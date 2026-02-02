@@ -1,0 +1,4050 @@
+{
+  "exportedAt": "2026-02-02T05:39:49.232Z",
+  "exportedBy": "tafreed57@gmail.com",
+  "version": "1.0.0",
+  "authData": {
+    "cash4kin@gmail.com": {
+      "aliasEmail": "cash4kin@gmail.com",
+      "email": "cash4kin@gmail.com",
+      "firstName": "linda",
+      "lastName": "User",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-28T00:43:00.330Z",
+      "requestedName": " ",
+      "rewardfulEmail": "linda30%@gmail.com",
+      "rewardfulAffiliateId": "ba02ade5-477f-487a-bd23-a89e8d004577",
+      "passwordHash": "+9WVlrQNRHtQYbR5gb/IYElLN2a0ufPpsT9CgIKiq/w=",
+      "passwordSalt": "ZHXFmsRWGSa3rZLm2d8XjkZGKRjYbDk9",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "cash4kin@gmail.com",
+      "internalEmail": "linda30%@gmail.com",
+      "approvedAt": "2026-01-28T10:29:59.133Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "ba02ade5-477f-487a-bd23-a89e8d004577",
+      "passwordSetAt": "2026-01-29T03:13:18.933Z",
+      "completedAt": "2026-01-29T03:13:18.934Z",
+      "lastLoginAt": "2026-02-01T23:49:53.688Z"
+    },
+    "cryptobasiks101@gmail.com": {
+      "aliasEmail": "cryptobasiks101@gmail.com",
+      "email": "cryptobasiks101@gmail.com",
+      "firstName": "steve",
+      "lastName": "under_mario garcia",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-28T00:36:34.815Z",
+      "requestedName": " ",
+      "rewardfulEmail": "steve30%@gmail.com",
+      "rewardfulAffiliateId": "b2474103-967b-4b55-b1c1-fe5d4acd7d02",
+      "passwordHash": "SMtCJfl2LWKofyq7Rf900Jiw2Ccn/6rT2xwnlDVM3zo=",
+      "passwordSalt": "ufPFvyEWX50veuzFAPmNmS6cd8WzXGlD",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "cryptobasiks101@gmail.com",
+      "internalEmail": "steve30%@gmail.com",
+      "approvedAt": "2026-01-28T20:12:58.090Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "b2474103-967b-4b55-b1c1-fe5d4acd7d02",
+      "passwordSetAt": "2026-01-28T20:24:20.012Z",
+      "completedAt": "2026-01-28T20:24:20.012Z",
+      "lastLoginAt": "2026-02-02T03:10:04.392Z"
+    },
+    "shehrozeps9721@gmail.com": {
+      "aliasEmail": "shehrozeps9721@gmail.com",
+      "email": "shehrozeps9721@gmail.com",
+      "firstName": "Mohammad",
+      "lastName": "Arshad",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-27T08:17:55.643Z",
+      "requestedName": " ",
+      "rewardfulEmail": "shehrozeps9721@gmail.com",
+      "rewardfulAffiliateId": "ad20af1a-6393-4290-81c4-d60fd0b6ab62",
+      "passwordHash": "3E7W4epsXZwvE6W5ikTL95OQgMFhMU1e7bnO2zmEsfE=",
+      "passwordSalt": "tm1SwB0cEcpc61sfsWQNNFCeKaa2QXAX",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "shehrozeps9721@gmail.com",
+      "internalEmail": "shehrozeps9721@gmail.com",
+      "approvedAt": "2026-01-27T08:24:38.376Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "ad20af1a-6393-4290-81c4-d60fd0b6ab62",
+      "passwordSetAt": "2026-01-27T08:25:39.732Z",
+      "completedAt": "2026-01-27T08:25:39.732Z",
+      "lastLoginAt": "2026-01-28T05:00:51.039Z"
+    },
+    "janedoe@gmail.com": {
+      "aliasEmail": "janedoe@gmail.com",
+      "email": "janedoe@gmail.com",
+      "firstName": "jane",
+      "lastName": "doe",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-27T04:11:01.800Z",
+      "requestedName": " ",
+      "rewardfulEmail": "janedoe100%@gmail.com",
+      "rewardfulAffiliateId": "05f5d971-47db-4e76-b2b1-b1c559217b58",
+      "passwordHash": "1cAFD+JSMH9rz8v66z7hW7UFogje3L27T+z2BbpwePQ=",
+      "passwordSalt": "b9mCOyB9RNi4LLYElA7yAONyo8PQVFF7",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "janedoe@gmail.com",
+      "internalEmail": "janedoe100%@gmail.com",
+      "approvedAt": "2026-01-27T04:13:50.704Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "05f5d971-47db-4e76-b2b1-b1c559217b58",
+      "passwordSetAt": "2026-01-27T04:14:37.295Z",
+      "completedAt": "2026-01-27T04:14:37.298Z",
+      "lastLoginAt": "2026-01-27T05:56:43.800Z"
+    },
+    "sara40%@gmail.com": {
+      "aliasEmail": "sara40%@gmail.com",
+      "email": "sara40%@gmail.com",
+      "firstName": "sara teacher",
+      "lastName": "name",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "REJECTED",
+      "requestedAt": "2026-01-26T04:27:37.920Z",
+      "requestedName": "sara teacher name",
+      "rewardfulEmail": null,
+      "rewardfulAffiliateId": null,
+      "passwordHash": null,
+      "passwordSalt": null,
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "rejectedAt": "2026-01-27T02:45:42.532Z",
+      "rejectedBy": "tafreed57@gmail.com",
+      "rejectionReason": ""
+    },
+    "tradewithshell@gmail.com": {
+      "aliasEmail": "tradewithshell@gmail.com",
+      "email": "tradewithshell@gmail.com",
+      "firstName": "Shell",
+      "lastName": "tradewithshell@gmail.com",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-02-02T02:38:06.394Z",
+      "requestedName": " ",
+      "rewardfulEmail": "shelly20%@gmail.com",
+      "rewardfulAffiliateId": "2bfa58be-911f-4c28-b0d0-48fe61a9cd9e",
+      "passwordHash": "9qo65N2YBhacfk3dIjtXYcxhxXUse6QPw8Imbancw7E=",
+      "passwordSalt": "ML70jcQs6BugGN75FpmZXj6wtMwO73aK",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "tradewithshell@gmail.com",
+      "internalEmail": "shelly20%@gmail.com",
+      "approvedAt": "2026-02-02T02:45:20.482Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "2bfa58be-911f-4c28-b0d0-48fe61a9cd9e",
+      "passwordSetAt": "2026-02-02T03:09:04.085Z",
+      "completedAt": "2026-02-02T03:09:04.088Z",
+      "lastLoginAt": "2026-02-02T03:12:27.882Z"
+    },
+    "tafreeddddd100%@gmail.com": {
+      "email": "tafreeddddd100%@gmail.com",
+      "passwordSalt": "N9SOnmi9CB8wtNmPbbjwvMbFrA3FB0d7",
+      "passwordHash": "DvoKoLIGirq+Xm79xQ/R1qWzgFCr+YRV8AIYiZZZbX4=",
+      "passwordSetAt": "2026-01-21T00:04:24.597Z",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "lastLoginAt": "2026-01-27T02:46:52.951Z"
+    },
+    "mg.one4all@gmail.com": {
+      "aliasEmail": "mg.one4all@gmail.com",
+      "email": "mg.one4all@gmail.com",
+      "firstName": "Mario teacher",
+      "lastName": "User",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-27T07:56:09.466Z",
+      "requestedName": " ",
+      "rewardfulEmail": "mario30%@gmail.com",
+      "rewardfulAffiliateId": "44c75cbf-ab00-499a-a72f-622dd5487b4d",
+      "passwordHash": "vNBWlLyaEq44tG9LK9YQBUpxC+JUazVdCbztdTQbDts=",
+      "passwordSalt": "kg1LPyZ6mLImNkJE1nyh2Gg7eaAysNQH",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "mg.one4all@gmail.com",
+      "internalEmail": "mario30%@gmail.com",
+      "approvedAt": "2026-01-27T08:02:23.807Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "44c75cbf-ab00-499a-a72f-622dd5487b4d",
+      "passwordSetAt": "2026-01-27T08:06:24.330Z",
+      "completedAt": "2026-01-27T08:06:24.331Z",
+      "lastLoginAt": "2026-02-02T05:33:58.924Z"
+    },
+    "tilacotainvestments@gmail.com": {
+      "aliasEmail": "tilacotainvestments@gmail.com",
+      "email": "tilacotainvestments@gmail.com",
+      "firstName": "TilaCotain",
+      "lastName": "under_mario garcia",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-28T20:35:35.418Z",
+      "requestedName": " ",
+      "rewardfulEmail": "tilacotain30%@gmail.com",
+      "rewardfulAffiliateId": "1e83bb0f-c484-43d4-9318-ae0bf8a491c3",
+      "passwordHash": "tLMyhoTfi/elhNSbTpHvgyIl0jZs77L14vl9rhiguZE=",
+      "passwordSalt": "JAAXk9cFRNtDX8FqGImQdUykCdPaBIlE",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "tilacotainvestments@gmail.com",
+      "internalEmail": "tilacotain30%@gmail.com",
+      "approvedAt": "2026-01-29T04:30:52.373Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "1e83bb0f-c484-43d4-9318-ae0bf8a491c3",
+      "passwordSetAt": "2026-01-31T00:44:56.435Z",
+      "completedAt": "2026-01-31T00:44:56.435Z",
+      "lastLoginAt": "2026-01-31T19:28:50.783Z"
+    },
+    "sarah40%@gmail.com": {
+      "email": "sarah40%@gmail.com",
+      "passwordSalt": "JrsoQZRvD3SHDpLRh7VOXXfUQM311vxv",
+      "passwordHash": "1sAUFhZmDgynjiI2fhYozdledAoEuTT2gCm3S9MWUag=",
+      "passwordSetAt": "2026-01-22T04:08:48.587Z",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "lastLoginAt": "2026-01-26T05:04:56.936Z"
+    },
+    "jakedoe@gmail.com": {
+      "aliasEmail": "jakedoe@gmail.com",
+      "email": "jakedoe@gmail.com",
+      "firstName": "jake",
+      "lastName": "doe",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-27T06:33:32.125Z",
+      "requestedName": " ",
+      "rewardfulEmail": "jjjjjj@gmail.com",
+      "rewardfulAffiliateId": "a7cee98d-7119-4e28-b744-ce5acbf2b5cb",
+      "passwordHash": "DJIsTL+DrJolOLWyxpvHdS9XqwRBqQ7MaXFyjA/DXhU=",
+      "passwordSalt": "guZQFkpimBJfu3ig30hJ4qDhpqOzv0BV",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "jakedoe@gmail.com",
+      "internalEmail": "jjjjjj@gmail.com",
+      "approvedAt": "2026-01-27T06:41:33.233Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "a7cee98d-7119-4e28-b744-ce5acbf2b5cb",
+      "passwordSetAt": "2026-01-27T06:48:03.397Z",
+      "completedAt": "2026-01-27T06:48:03.404Z",
+      "lastLoginAt": "2026-01-27T06:54:29.845Z"
+    },
+    "wahworkacct@gmail.com": {
+      "aliasEmail": "wahworkacct@gmail.com",
+      "email": "wahworkacct@gmail.com",
+      "firstName": "Fozia",
+      "lastName": "wahworkacct@gmail.com",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "APPROVED",
+      "requestedAt": "2026-01-31T02:12:08.646Z",
+      "requestedName": " ",
+      "rewardfulEmail": "fozia20%@gmail.com",
+      "rewardfulAffiliateId": "a11db5c8-c893-4555-8c68-623101ce819c",
+      "passwordHash": null,
+      "passwordSalt": null,
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "wahworkacct@gmail.com",
+      "internalEmail": "fozia20%@gmail.com",
+      "approvedAt": "2026-01-31T04:19:45.844Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "a11db5c8-c893-4555-8c68-623101ce819c"
+    },
+    "adamghouj@gmail.com": {
+      "aliasEmail": "adamghouj@gmail.com",
+      "email": "adamghouj@gmail.com",
+      "firstName": "",
+      "lastName": "",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "REJECTED",
+      "requestedAt": "2026-01-27T07:02:10.535Z",
+      "requestedName": " ",
+      "rewardfulEmail": null,
+      "rewardfulAffiliateId": null,
+      "passwordHash": null,
+      "passwordSalt": null,
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "rejectedAt": "2026-01-27T07:17:02.112Z",
+      "rejectedBy": "tafreed57@gmail.com",
+      "rejectionReason": ""
+    },
+    "admin@gmail.com": {
+      "aliasEmail": "admin@gmail.com",
+      "email": "admin@gmail.com",
+      "firstName": "Admin",
+      "lastName": "",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-27T09:21:58.596Z",
+      "approvedAt": "2026-01-27T09:21:58.602Z",
+      "isAdmin": true,
+      "passwordSalt": "KgtLUCIsu6tI7krJgwBGYvzudIfhONp3",
+      "passwordHash": "WwckEe3B3mJysTtXeT8Q9zY3nykrRkTDvK7BWSDcGko=",
+      "passwordSetAt": "2026-01-27T09:22:06.499Z",
+      "completedAt": "2026-01-27T09:22:06.499Z",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "lastLoginAt": "2026-01-27T09:22:34.992Z"
+    },
+    "tafreed47@gmail.com": {
+      "aliasEmail": "tafreed47@gmail.com",
+      "email": "tafreed47@gmail.com",
+      "firstName": "tafreed teacher",
+      "lastName": "mangla",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-27T02:50:01.997Z",
+      "requestedName": "tafreed mangla",
+      "rewardfulEmail": "tafreeddddd100%@gmail.com",
+      "rewardfulAffiliateId": "31b6f66f-0106-46df-a5b4-22939908eade",
+      "passwordHash": "azMREzZSClDuD7aQ0y13rh3QMrxVt9SFdxQTH0VMvWM=",
+      "passwordSalt": "uRGGKGORfl9gcZMJ6AzqukJCfrvzverC",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "tafreed47@gmail.com",
+      "internalEmail": "tafreeddddd100%@gmail.com",
+      "approvedAt": "2026-01-27T02:51:23.855Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "31b6f66f-0106-46df-a5b4-22939908eade",
+      "passwordSetAt": "2026-01-27T02:52:22.548Z",
+      "completedAt": "2026-01-27T02:52:22.549Z",
+      "lastLoginAt": "2026-02-01T05:52:31.543Z"
+    },
+    "mario30%@gmail.com": {
+      "email": "mario30%@gmail.com",
+      "passwordSalt": "LbKjMGsmmnd0YSD27nl1dfm2fM76k9z0",
+      "passwordHash": "w0vv8l+3EiyDHXFihlNkOvWBK+VZ670RZ6cZpzAcfjs=",
+      "passwordSetAt": "2026-01-21T06:46:09.592Z",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "lastLoginAt": "2026-01-26T23:07:25.462Z"
+    },
+    "techwithniki14@gmail.com": {
+      "aliasEmail": "techwithniki14@gmail.com",
+      "email": "techwithniki14@gmail.com",
+      "firstName": "nikki",
+      "lastName": "under_mohammad",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-28T13:58:33.957Z",
+      "requestedName": " ",
+      "rewardfulEmail": "nikki30%@gmail.com",
+      "rewardfulAffiliateId": "fa6b1e68-d88a-4626-9ccf-c6b091512d0c",
+      "passwordHash": "YEJV68/muXCUuJ/eB6b3i9g2/jAqklFyR6pgNROtnMw=",
+      "passwordSalt": "Z8BiHOSbmamE4u8QUaZY0UUt1yiMLvei",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "techwithniki14@gmail.com",
+      "internalEmail": "nikki30%@gmail.com",
+      "approvedAt": "2026-01-28T20:14:21.460Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "fa6b1e68-d88a-4626-9ccf-c6b091512d0c",
+      "passwordSetAt": "2026-01-29T18:13:18.358Z",
+      "completedAt": "2026-01-29T18:13:18.359Z",
+      "lastLoginAt": "2026-01-30T05:43:28.310Z"
+    },
+    "mawa3131@gmail.com": {
+      "aliasEmail": "mawa3131@gmail.com",
+      "email": "mawa3131@gmail.com",
+      "firstName": "Tafreed",
+      "lastName": "Mangla",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-27T03:47:28.581Z",
+      "requestedName": " ",
+      "rewardfulEmail": "mawa3191@gmail.com",
+      "rewardfulAffiliateId": "0634075b-7a2d-4b28-ab57-3ba7fe1a65e4",
+      "passwordHash": "sQNfZ8K2TIkG3yYhfDwWe/3lkN7lZi4z3l1gFueXkYY=",
+      "passwordSalt": "2WPwVMCAZAFimGmAedf7llORdilMaDO3",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "mawa3131@gmail.com",
+      "internalEmail": "mawa3191@gmail.com",
+      "approvedAt": "2026-01-27T03:49:01.029Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "0634075b-7a2d-4b28-ab57-3ba7fe1a65e4",
+      "passwordSetAt": "2026-01-27T03:50:03.508Z",
+      "completedAt": "2026-01-27T03:50:03.508Z",
+      "lastLoginAt": "2026-01-27T03:50:34.475Z"
+    },
+    "allieescaffi88@gmail.com": {
+      "aliasEmail": "allieescaffi88@gmail.com",
+      "email": "allieescaffi88@gmail.com",
+      "firstName": "allie",
+      "lastName": "User",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-29T04:28:51.264Z",
+      "requestedName": " ",
+      "rewardfulEmail": "allie30%@gmail.com",
+      "rewardfulAffiliateId": "b7d21ea8-8a6a-4f77-8cc3-f8e3146dd592",
+      "passwordHash": "TSeFh8EbjDQvxIlyCQZy8KX92XCUD73cOuNPCEfFVqU=",
+      "passwordSalt": "7SgQJsAQDqpX3gNAxaYVQP9SZLeQN1Q5",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "allieescaffi88@gmail.com",
+      "internalEmail": "allie30%@gmail.com",
+      "approvedAt": "2026-01-29T04:31:30.699Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "b7d21ea8-8a6a-4f77-8cc3-f8e3146dd592",
+      "passwordSetAt": "2026-01-29T04:35:50.120Z",
+      "completedAt": "2026-01-29T04:35:50.121Z",
+      "lastLoginAt": "2026-02-02T04:33:16.445Z"
+    },
+    "tafreed57@gmail.com": {
+      "email": "tafreed57@gmail.com",
+      "passwordSalt": "p94zVsgTjrWj0JXjH9zfSz2HQuCQm1PK",
+      "passwordHash": "vM9REEMTXzW4/gD2yEk3IjR/WBM07UOpz0uULDPC9Zs=",
+      "passwordSetAt": "2026-01-26T02:51:39.581Z",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "accountStatus": "ACTIVE",
+      "isAdmin": true,
+      "lastLoginAt": "2026-02-02T02:41:51.213Z"
+    },
+    "sarah.roemmich84@gmail.com": {
+      "aliasEmail": "sarah.roemmich84@gmail.com",
+      "email": "sarah.roemmich84@gmail.com",
+      "firstName": "sarah teacher",
+      "lastName": "qw",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-28T05:37:13.525Z",
+      "requestedName": " ",
+      "rewardfulEmail": "sarah40%@gmail.com",
+      "rewardfulAffiliateId": "447c6262-93a5-40d0-8a6f-188b7ca8ee7a",
+      "passwordHash": "6qTt18uJHiPWecEuZNdgohyLsaeiTiCou5jIIWQIeRk=",
+      "passwordSalt": "sbfqmU72OwAdauVhcPJCuBjaK4GCJE5C",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "sarah.roemmich84@gmail.com",
+      "internalEmail": "sarah40%@gmail.com",
+      "approvedAt": "2026-01-28T10:25:50.347Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "447c6262-93a5-40d0-8a6f-188b7ca8ee7a",
+      "passwordSetAt": "2026-01-28T13:52:10.500Z",
+      "completedAt": "2026-01-28T13:52:10.500Z",
+      "lastLoginAt": "2026-02-01T22:59:53.686Z"
+    },
+    "adamghouj@gmail.con": {
+      "aliasEmail": "adamghouj@gmail.con",
+      "email": "adamghouj@gmail.con",
+      "firstName": "Adam Ghoug",
+      "lastName": "Under_NO ONE",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-27T07:01:41.355Z",
+      "requestedName": " ",
+      "rewardfulEmail": "adam50%@gmail.com",
+      "rewardfulAffiliateId": "9dd5dc3d-da1e-4cfd-9896-b5be8e54deb4",
+      "passwordHash": "IG8EX+Ux1r7Sa/2r80u6PoyGM7iDA2Z/G6Eb75G/2iA=",
+      "passwordSalt": "3WgWJVoDw69AwDxxCgcDAlhDsbwQJ9z6",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "originalAliasEmail": "adamghouj@gmail.con",
+      "internalEmail": "adam50%@gmail.com",
+      "approvedAt": "2026-01-27T07:06:29.214Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "affiliateId": "9dd5dc3d-da1e-4cfd-9896-b5be8e54deb4",
+      "passwordSetAt": "2026-01-27T07:23:05.765Z",
+      "completedAt": "2026-01-27T07:23:05.768Z",
+      "lastLoginAt": "2026-02-01T15:57:35.528Z"
+    },
+    "jhondoe@gmail.com": {
+      "email": "jhondoe@gmail.com",
+      "firstName": "john",
+      "lastName": "doe",
+      "requestedPortalType": "affiliate",
+      "accountStatus": "COMPLETED",
+      "requestedAt": "2026-01-26T03:56:08.162Z",
+      "requestedName": "john doe",
+      "passwordHash": "2faIdANj7joWr1EtWl21z/oZDxdNKAPKlepFJU3l99g=",
+      "passwordSalt": "3pKh2DAYBYNFc8DGXpdxWbx7QhQwxnBg",
+      "failedLoginCount": 0,
+      "lockUntilTimestamp": 0,
+      "aliasEmail": "jhondoe@gmail.com",
+      "rewardfulEmail": "doe50%@gmail.com",
+      "internalEmail": "doe50%@gmail.com",
+      "approvedAt": "2026-01-26T05:05:48.457Z",
+      "approvedBy": "tafreed57@gmail.com",
+      "rewardfulAffiliateId": "3f32b35e-d608-4f5c-b243-deb7399ff2f2",
+      "affiliateId": "3f32b35e-d608-4f5c-b243-deb7399ff2f2",
+      "passwordSetAt": "2026-01-26T05:18:08.168Z",
+      "completedAt": "2026-01-26T05:18:08.168Z",
+      "lastLoginAt": "2026-01-26T05:18:29.817Z"
+    }
+  },
+  "affiliateAuth": {},
+  "pendingAccounts": {},
+  "approvedAccounts": {},
+  "rejectedAccounts": {},
+  "attendanceUsers": {
+    "mg_one4all_AT_gmail_com": {
+      "email": "mg.one4all@gmail.com",
+      "name": "Mario teacher Under_Mohammad",
+      "createdDate": "2026-01-20T20:40:41.761Z",
+      "teacherEmail": "none",
+      "originalEmail": "mario30%@gmail.com",
+      "migratedFrom": "mario30%@gmail.com",
+      "migratedAt": "2026-01-27T08:08:29.874Z"
+    },
+    "janedoe_AT_gmail_com": {
+      "email": "janedoe@gmail.com",
+      "name": "jane doe",
+      "createdDate": "2026-01-27T04:37:15.048Z",
+      "teacherEmail": "sarah40%@gmail.com",
+      "teacherUpdatedAt": "2026-01-27T05:57:16.816Z",
+      "teacherRemovedDate": "2026-01-27T05:21:16.668Z"
+    },
+    "mawa3131_AT_gmail_com": {
+      "email": "mawa3131@gmail.com",
+      "name": "Tafreed Mangla",
+      "createdDate": "2025-12-02T20:54:09.919Z",
+      "teacherEmail": "momo50%@gmail.com",
+      "originalEmail": "mawa3191@gmail.com",
+      "migratedFrom": "mawa3191@gmail.com",
+      "migratedAt": "2026-01-27T04:01:51.601Z"
+    },
+    "allieescaffi88_AT_gmail_com": {
+      "email": "allieescaffi88@gmail.com",
+      "name": "allie ",
+      "createdDate": "2026-01-29T04:41:48.176Z",
+      "teacherEmail": "mario30%@gmail.com",
+      "teacherUpdatedAt": "2026-01-29T04:41:48.818Z"
+    },
+    "tradewithshell_AT_gmail_com": {
+      "email": "tradewithshell@gmail.com",
+      "name": "Shell tradewithshell@gmail.com",
+      "createdDate": "2026-02-02T03:13:16.875Z",
+      "teacherEmail": "mario30%@gmail.com",
+      "teacherUpdatedAt": "2026-02-02T03:13:17.632Z"
+    },
+    "jamal_AT_gmail_com": {
+      "email": "jamal@gmail.com",
+      "name": "Jamal ",
+      "createdDate": "2026-01-03T23:38:16.375Z",
+      "teacherEmail": null,
+      "teacherRemovedDate": "2026-01-27T05:21:38.976Z"
+    },
+    "jakedoe_AT_gmail_com": {
+      "email": "jakedoe@gmail.com",
+      "name": "jake doe",
+      "createdDate": "2026-01-27T06:56:52.655Z",
+      "teacherEmail": "tafreeddddd100%@gmail.com",
+      "teacherUpdatedAt": "2026-01-27T06:56:53.572Z"
+    },
+    "tafreed47_AT_gmail_com": {
+      "email": "tafreed47@gmail.com",
+      "name": "Tafreed Mangla teacher Under_NO ONE",
+      "createdDate": "2026-01-20T05:37:01.400Z",
+      "teacherEmail": "none",
+      "originalEmail": "tafreeddddd100%@gmail.com",
+      "migratedFrom": "tafreeddddd100%@gmail.com",
+      "migratedAt": "2026-01-27T03:39:37.561Z"
+    },
+    "techwithniki14_AT_gmail_com": {
+      "email": "techwithniki14@gmail.com",
+      "name": "nikki under_mohammad",
+      "createdDate": "2026-01-30T05:49:44.652Z",
+      "teacherEmail": "mario30%@gmail.com",
+      "teacherUpdatedAt": "2026-01-30T05:50:22.561Z"
+    },
+    "linda_AT_gmail_com": {
+      "email": "linda@gmail.com",
+      "name": "linda ",
+      "createdDate": "2026-01-20T23:33:53.812Z",
+      "teacherEmail": null,
+      "teacherRemovedDate": "2026-01-31T04:40:21.061Z",
+      "teacherRemovedBy": "teacher"
+    },
+    "cryptobasiks101_AT_gmail_com": {
+      "email": "cryptobasiks101@gmail.com",
+      "name": "steve under_mario garcia",
+      "createdDate": "2026-01-28T20:33:15.425Z",
+      "teacherEmail": "mario30%@gmail.com",
+      "teacherUpdatedAt": "2026-01-28T20:33:16.004Z"
+    },
+    "shehrozeps9721_AT_gmail_com": {
+      "name": "shehroze",
+      "email": "shehrozeps9721@gmail.com",
+      "passwordHash": "b3fab2a9975ed6f97dde567a1a5c5c0ae42618439e4539ac82a2ce08e3808bb1",
+      "createdDate": "2025-11-18T21:52:49.641Z",
+      "teacherEmail": null,
+      "teacherRemovedDate": "2026-01-27T02:44:27.854Z"
+    },
+    "adamghouj_AT_gmail_con": {
+      "email": "adamghouj@gmail.con",
+      "name": "Adam Ghoug Under_NO ONE",
+      "createdDate": "2026-01-27T07:27:52.687Z",
+      "teacherEmail": "none",
+      "teacherUpdatedAt": "2026-01-29T10:33:46.571Z"
+    },
+    "tilacotainvestments_AT_gmail_com": {
+      "email": "tilacotainvestments@gmail.com",
+      "name": "TilaCotain under_mario garcia",
+      "createdDate": "2026-01-31T00:46:53.120Z",
+      "teacherEmail": "mario30%@gmail.com",
+      "teacherUpdatedAt": "2026-01-31T00:46:53.725Z"
+    },
+    "tafreed57_AT_gmail_com": {
+      "name": "tafreed",
+      "email": "tafreed57@gmail.com",
+      "passwordHash": "367be73bae9d171ff72b2bbcbfb01f2ca8ef6a6d75951081fd6260dfdecd681f",
+      "createdDate": "2025-11-15T01:22:11.375Z",
+      "teacherEmail": "momo50%@gmail.com"
+    },
+    "cash4kin_AT_gmail_com": {
+      "email": "cash4kin@gmail.com",
+      "name": "linda ",
+      "createdDate": "2026-01-29T03:19:07.353Z",
+      "teacherEmail": "mario30%@gmail.com",
+      "teacherUpdatedAt": "2026-01-30T17:32:01.446Z"
+    },
+    "sarah_roemmich84_AT_gmail_com": {
+      "email": "sarah.roemmich84@gmail.com",
+      "name": "sarah Under_Mohammad",
+      "createdDate": "2025-11-19T11:00:25.484Z",
+      "teacherEmail": "none",
+      "teacherRemovedDate": "2026-01-27T02:44:21.678Z",
+      "originalEmail": "sarah40%@gmail.com",
+      "migratedFrom": "sarah40%@gmail.com",
+      "migratedAt": "2026-01-28T13:56:13.119Z",
+      "teacherUpdatedAt": "2026-01-28T13:56:34.234Z"
+    }
+  },
+  "attendanceRecords": {},
+  "teacherLinks": {
+    "momo50__AT_gmail_com": {
+      "students": [
+        {
+          "studentId": "sarah40%@gmail.com",
+          "email": "sarah40%@gmail.com",
+          "internalEmail": "sarah40%@gmail.com",
+          "affiliateId": null,
+          "name": "sarah40%@gmail.com",
+          "status": "ACTIVE",
+          "createdAt": "2025-11-15T01:17:20.077Z",
+          "updatedAt": "2026-01-27T05:33:45.075Z",
+          "createdBy": "migrated",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "mario30%@gmail.com",
+          "email": "mario30%@gmail.com",
+          "internalEmail": "mario30%@gmail.com",
+          "affiliateId": null,
+          "name": "mario30%@gmail.com",
+          "status": "ACTIVE",
+          "createdAt": "2025-11-24T04:47:03.797Z",
+          "updatedAt": "2026-01-27T05:33:45.139Z",
+          "createdBy": "migrated",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "mawa3191@gmail.com",
+          "email": "mawa3191@gmail.com",
+          "internalEmail": "mawa3191@gmail.com",
+          "affiliateId": null,
+          "name": "mawa3191@gmail.com",
+          "status": "ACTIVE",
+          "createdAt": "2025-12-02T20:54:09.689Z",
+          "updatedAt": "2026-01-27T05:33:45.204Z",
+          "createdBy": "migrated",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "tafreed57@gmail.com",
+          "email": "tafreed57@gmail.com",
+          "internalEmail": "tafreed57@gmail.com",
+          "affiliateId": "6faa1ec0-171f-46af-a7ab-aa47612f4e26",
+          "name": "Tafreed Mangla",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-27T05:33:48.193Z",
+          "updatedAt": "2026-01-27T05:33:48.193Z",
+          "createdBy": "reconciliation",
+          "removedAt": null,
+          "removedBy": null
+        }
+      ]
+    },
+    "tafreed57_AT_gmail_com": {
+      "students": [
+        {
+          "studentId": "mg.one4all@gmail.com",
+          "email": "mg.one4all@gmail.com",
+          "internalEmail": "mg.one4all@gmail.com",
+          "affiliateId": "619206e7-5737-42ff-b48d-f22feae33d72",
+          "name": "mg.one4all@gmail.com",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-26T05:30:23.691Z",
+          "updatedAt": "2026-01-27T05:33:45.513Z",
+          "createdBy": "migrated",
+          "removedAt": null,
+          "removedBy": null
+        }
+      ]
+    },
+    "sarah40__AT_gmail_com": {
+      "students": [
+        {
+          "studentId": "janedoe@gmail.com",
+          "email": "janedoe@gmail.com",
+          "internalEmail": "janedoe100%@gmail.com",
+          "affiliateId": "05f5d971-47db-4e76-b2b1-b1c559217b58",
+          "name": "jane teacher doe",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-27T05:57:16.546Z",
+          "updatedAt": "2026-01-27T05:57:16.546Z",
+          "createdBy": "student",
+          "removedAt": null,
+          "removedBy": null
+        }
+      ]
+    },
+    "tafreeddddd100__AT_gmail_com": {
+      "students": [
+        {
+          "studentId": "jamal@gmail.com",
+          "email": "jamal@gmail.com",
+          "internalEmail": "jamal@gmail.com",
+          "affiliateId": null,
+          "name": "jamal@gmail.com",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-03T23:38:16.009Z",
+          "updatedAt": "2026-01-27T05:33:45.679Z",
+          "createdBy": "migrated",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "janedoe@gmail.com",
+          "email": "janedoe@gmail.com",
+          "internalEmail": "janedoe100%@gmail.com",
+          "affiliateId": "05f5d971-47db-4e76-b2b1-b1c559217b58",
+          "name": "janedoe@gmail.com",
+          "status": "REMOVED",
+          "createdAt": "2026-01-27T05:22:52.857Z",
+          "updatedAt": "2026-01-27T05:57:15.823Z",
+          "createdBy": "migrated",
+          "removedAt": "2026-01-27T05:57:15.823Z",
+          "removedBy": "student"
+        },
+        {
+          "studentId": "jakedoe@gmail.com",
+          "email": "jakedoe@gmail.com",
+          "internalEmail": "jjjjjj@gmail.com",
+          "affiliateId": "a7cee98d-7119-4e28-b744-ce5acbf2b5cb",
+          "name": "jake doe",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-27T06:56:53.227Z",
+          "updatedAt": "2026-01-27T06:56:53.227Z",
+          "createdBy": "student",
+          "removedAt": null,
+          "removedBy": null
+        }
+      ]
+    },
+    "mario30__AT_gmail_com": {
+      "students": [
+        {
+          "studentId": "linda@gmail.com",
+          "email": "linda@gmail.com",
+          "internalEmail": "linda@gmail.com",
+          "affiliateId": null,
+          "name": "linda@gmail.com",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-20T23:33:53.648Z",
+          "updatedAt": "2026-01-27T05:33:45.356Z",
+          "createdBy": "migrated",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "adamghouj@gmail.con",
+          "email": "adamghouj@gmail.con",
+          "internalEmail": "adam50%@gmail.com",
+          "affiliateId": "9dd5dc3d-da1e-4cfd-9896-b5be8e54deb4",
+          "name": "Adam Ghoug Under_NO ONE",
+          "status": "REMOVED",
+          "createdAt": "2026-01-27T07:27:53.096Z",
+          "updatedAt": "2026-01-29T10:33:45.671Z",
+          "createdBy": "student",
+          "removedAt": "2026-01-29T10:33:45.671Z",
+          "removedBy": "student"
+        },
+        {
+          "studentId": "cryptobasiks101@gmail.com",
+          "email": "cryptobasiks101@gmail.com",
+          "internalEmail": "steve30%@gmail.com",
+          "affiliateId": "b2474103-967b-4b55-b1c1-fe5d4acd7d02",
+          "name": "steve under_mario garcia",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-28T20:33:15.786Z",
+          "updatedAt": "2026-01-28T20:33:15.786Z",
+          "createdBy": "student",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "cash4kin@gmail.com",
+          "email": "cash4kin@gmail.com",
+          "internalEmail": "linda30%@gmail.com",
+          "affiliateId": "ba02ade5-477f-487a-bd23-a89e8d004577",
+          "name": "linda ",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-29T03:19:07.841Z",
+          "updatedAt": "2026-01-29T03:19:07.841Z",
+          "createdBy": "student",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "allieescaffi88@gmail.com",
+          "email": "allieescaffi88@gmail.com",
+          "internalEmail": "allie30%@gmail.com",
+          "affiliateId": "b7d21ea8-8a6a-4f77-8cc3-f8e3146dd592",
+          "name": "allie ",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-29T04:41:48.558Z",
+          "updatedAt": "2026-01-29T04:41:48.558Z",
+          "createdBy": "student",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "techwithniki14@gmail.com",
+          "email": "techwithniki14@gmail.com",
+          "internalEmail": "nikki30%@gmail.com",
+          "affiliateId": "fa6b1e68-d88a-4626-9ccf-c6b091512d0c",
+          "name": "nikki under_mohammad",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-30T05:49:44.958Z",
+          "updatedAt": "2026-01-30T05:49:44.958Z",
+          "createdBy": "student",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "tilacotainvestments@gmail.com",
+          "email": "tilacotainvestments@gmail.com",
+          "internalEmail": "tilacotain30%@gmail.com",
+          "affiliateId": "1e83bb0f-c484-43d4-9318-ae0bf8a491c3",
+          "name": "TilaCotain under_mario garcia",
+          "status": "ACTIVE",
+          "createdAt": "2026-01-31T00:46:53.493Z",
+          "updatedAt": "2026-01-31T00:46:53.493Z",
+          "createdBy": "student",
+          "removedAt": null,
+          "removedBy": null
+        },
+        {
+          "studentId": "tradewithshell@gmail.com",
+          "email": "tradewithshell@gmail.com",
+          "internalEmail": "shelly20%@gmail.com",
+          "affiliateId": "2bfa58be-911f-4c28-b0d0-48fe61a9cd9e",
+          "name": "Shell tradewithshell@gmail.com",
+          "status": "ACTIVE",
+          "createdAt": "2026-02-02T03:13:17.336Z",
+          "updatedAt": "2026-02-02T03:13:17.336Z",
+          "createdBy": "student",
+          "removedAt": null,
+          "removedBy": null
+        }
+      ]
+    }
+  },
+  "teacherStudents": {
+    "mario30__AT_gmail_com": {
+      "students": [
+        {
+          "email": "linda@gmail.com",
+          "internalEmail": "linda@gmail.com",
+          "affiliateId": null,
+          "addedDate": "2026-01-20T23:33:53.648Z"
+        },
+        {
+          "email": "cryptobasiks101@gmail.com",
+          "internalEmail": "steve30%@gmail.com",
+          "affiliateId": "b2474103-967b-4b55-b1c1-fe5d4acd7d02",
+          "addedDate": "2026-01-28T20:33:15.786Z"
+        },
+        {
+          "email": "cash4kin@gmail.com",
+          "internalEmail": "linda30%@gmail.com",
+          "affiliateId": "ba02ade5-477f-487a-bd23-a89e8d004577",
+          "addedDate": "2026-01-29T03:19:07.841Z"
+        },
+        {
+          "email": "allieescaffi88@gmail.com",
+          "internalEmail": "allie30%@gmail.com",
+          "affiliateId": "b7d21ea8-8a6a-4f77-8cc3-f8e3146dd592",
+          "addedDate": "2026-01-29T04:41:48.558Z"
+        },
+        {
+          "email": "techwithniki14@gmail.com",
+          "internalEmail": "nikki30%@gmail.com",
+          "affiliateId": "fa6b1e68-d88a-4626-9ccf-c6b091512d0c",
+          "addedDate": "2026-01-30T05:49:44.958Z"
+        },
+        {
+          "email": "tilacotainvestments@gmail.com",
+          "internalEmail": "tilacotain30%@gmail.com",
+          "affiliateId": "1e83bb0f-c484-43d4-9318-ae0bf8a491c3",
+          "addedDate": "2026-01-31T00:46:53.493Z"
+        },
+        {
+          "email": "tradewithshell@gmail.com",
+          "internalEmail": "shelly20%@gmail.com",
+          "affiliateId": "2bfa58be-911f-4c28-b0d0-48fe61a9cd9e",
+          "addedDate": "2026-02-02T03:13:17.336Z"
+        }
+      ]
+    },
+    "tafreeddddd100__AT_gmail_com": {
+      "students": [
+        {
+          "email": "jamal@gmail.com",
+          "internalEmail": "jamal@gmail.com",
+          "affiliateId": null,
+          "addedDate": "2026-01-03T23:38:16.009Z"
+        },
+        {
+          "email": "jakedoe@gmail.com",
+          "internalEmail": "jjjjjj@gmail.com",
+          "affiliateId": "a7cee98d-7119-4e28-b744-ce5acbf2b5cb",
+          "addedDate": "2026-01-27T06:56:53.227Z"
+        }
+      ]
+    },
+    "tafreed47_AT_gmail_com": {
+      "students": []
+    },
+    "tafreed57_AT_gmail_com": {
+      "students": [
+        {
+          "email": "mg.one4all@gmail.com",
+          "affiliateId": "619206e7-5737-42ff-b48d-f22feae33d72",
+          "addedDate": "2026-01-26T05:30:23.691Z"
+        }
+      ]
+    },
+    "momo50__AT_gmail_com": {
+      "students": [
+        {
+          "email": "sarah40%@gmail.com",
+          "internalEmail": "sarah40%@gmail.com",
+          "affiliateId": null,
+          "addedDate": "2025-11-15T01:17:20.077Z"
+        },
+        {
+          "email": "mario30%@gmail.com",
+          "internalEmail": "mario30%@gmail.com",
+          "affiliateId": null,
+          "addedDate": "2025-11-24T04:47:03.797Z"
+        },
+        {
+          "email": "mawa3191@gmail.com",
+          "internalEmail": "mawa3191@gmail.com",
+          "affiliateId": null,
+          "addedDate": "2025-12-02T20:54:09.689Z"
+        },
+        {
+          "email": "tafreed57@gmail.com",
+          "internalEmail": "tafreed57@gmail.com",
+          "affiliateId": "6faa1ec0-171f-46af-a7ab-aa47612f4e26",
+          "addedDate": "2026-01-27T05:33:48.193Z"
+        }
+      ]
+    },
+    "sarah40__AT_gmail_com": {
+      "students": [
+        {
+          "email": "janedoe@gmail.com",
+          "internalEmail": "janedoe100%@gmail.com",
+          "affiliateId": "05f5d971-47db-4e76-b2b1-b1c559217b58",
+          "addedDate": "2026-01-27T05:57:16.546Z"
+        }
+      ]
+    }
+  },
+  "teacherEarnings": {},
+  "commissionOverrides": {},
+  "commissionTracking": {},
+  "referralData": {
+    "janedoe100%@gmail.com": {
+      "userEmail": "janedoe100%@gmail.com",
+      "affiliateId": "05f5d971-47db-4e76-b2b1-b1c559217b58",
+      "lastKnownLeadCount": 0,
+      "previousLeadCount": 0,
+      "lastSuccessfulFetchAt": 1769493427884,
+      "lastFetchedAt": 1769493427884,
+      "fetchHistory": [
+        {
+          "timestamp": 1769488637696,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769488947914,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769489324430,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769489495605,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769489704271,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769490306965,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769490616497,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769491120994,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769491375956,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769493427884,
+          "count": 0,
+          "delta": 0
+        }
+      ]
+    },
+    "sarah40%@gmail.com": {
+      "userEmail": "sarah40%@gmail.com",
+      "affiliateId": "447c6262-93a5-40d0-8a6f-188b7ca8ee7a",
+      "lastKnownLeadCount": 1008,
+      "previousLeadCount": 970,
+      "lastSuccessfulFetchAt": 1769986814633,
+      "lastFetchedAt": 1769986814633,
+      "fetchHistory": [
+        {
+          "timestamp": 1769924735690,
+          "count": 994,
+          "delta": 994
+        },
+        {
+          "timestamp": 1769924748963,
+          "count": 970,
+          "delta": -24
+        },
+        {
+          "timestamp": 1769986814633,
+          "count": 1008,
+          "delta": 38
+        }
+      ]
+    },
+    "jjjjjj@gmail.com": {
+      "userEmail": "jjjjjj@gmail.com",
+      "affiliateId": "a7cee98d-7119-4e28-b744-ce5acbf2b5cb",
+      "lastKnownLeadCount": 0,
+      "previousLeadCount": 0,
+      "lastSuccessfulFetchAt": 1769497015794,
+      "lastFetchedAt": 1769497015794,
+      "fetchHistory": [
+        {
+          "timestamp": 1769497015794,
+          "count": 0,
+          "delta": 0
+        }
+      ]
+    },
+    "linda30%@gmail.com": {
+      "userEmail": "linda30%@gmail.com",
+      "affiliateId": "ba02ade5-477f-487a-bd23-a89e8d004577",
+      "lastKnownLeadCount": 311,
+      "previousLeadCount": 308,
+      "lastSuccessfulFetchAt": 1770008597454,
+      "lastFetchedAt": 1770008597454,
+      "fetchHistory": [
+        {
+          "timestamp": 1769889336679,
+          "count": 279,
+          "delta": 3
+        },
+        {
+          "timestamp": 1769922229743,
+          "count": 279,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769973270786,
+          "count": 279,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769989303683,
+          "count": 285,
+          "delta": 6
+        },
+        {
+          "timestamp": 1769989962548,
+          "count": 286,
+          "delta": 1
+        },
+        {
+          "timestamp": 1769990688919,
+          "count": 286,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769997230749,
+          "count": 286,
+          "delta": 0
+        },
+        {
+          "timestamp": 1770003418661,
+          "count": 286,
+          "delta": 0
+        },
+        {
+          "timestamp": 1770007890066,
+          "count": 308,
+          "delta": 22
+        },
+        {
+          "timestamp": 1770008597454,
+          "count": 311,
+          "delta": 3
+        }
+      ]
+    },
+    "tilacotain30%@gmail.com": {
+      "userEmail": "tilacotain30%@gmail.com",
+      "affiliateId": "1e83bb0f-c484-43d4-9318-ae0bf8a491c3",
+      "lastKnownLeadCount": 2,
+      "previousLeadCount": 2,
+      "lastSuccessfulFetchAt": 1769890372355,
+      "lastFetchedAt": 1769890372355,
+      "fetchHistory": [
+        {
+          "timestamp": 1769820416338,
+          "count": 2,
+          "delta": 2
+        },
+        {
+          "timestamp": 1769822281903,
+          "count": 2,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769840162997,
+          "count": 2,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769887751521,
+          "count": 2,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769890372355,
+          "count": 2,
+          "delta": 0
+        }
+      ]
+    },
+    "steve30%@gmail.com": {
+      "userEmail": "steve30%@gmail.com",
+      "affiliateId": "b2474103-967b-4b55-b1c1-fe5d4acd7d02",
+      "lastKnownLeadCount": 52,
+      "previousLeadCount": 48,
+      "lastSuccessfulFetchAt": 1770001833260,
+      "lastFetchedAt": 1770001833260,
+      "fetchHistory": [
+        {
+          "timestamp": 1769800041101,
+          "count": 43,
+          "delta": 2
+        },
+        {
+          "timestamp": 1769800456706,
+          "count": 43,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769800777378,
+          "count": 43,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769801126717,
+          "count": 43,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769801461831,
+          "count": 43,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769932317672,
+          "count": 43,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769933442222,
+          "count": 44,
+          "delta": 1
+        },
+        {
+          "timestamp": 1769972901408,
+          "count": 44,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769974281714,
+          "count": 48,
+          "delta": 4
+        },
+        {
+          "timestamp": 1770001833260,
+          "count": 52,
+          "delta": 4
+        }
+      ]
+    },
+    "linda@gmail.com": {
+      "userEmail": "linda@gmail.com",
+      "affiliateId": "ba02ade5-477f-487a-bd23-a89e8d004577",
+      "lastKnownLeadCount": 240,
+      "previousLeadCount": 239,
+      "lastSuccessfulFetchAt": 1769583130333,
+      "lastFetchedAt": 1769583130333,
+      "fetchHistory": [
+        {
+          "timestamp": 1768952036048,
+          "count": 173,
+          "delta": 173
+        },
+        {
+          "timestamp": 1769417591635,
+          "count": 210,
+          "delta": 37
+        },
+        {
+          "timestamp": 1769468955036,
+          "count": 211,
+          "delta": 1
+        },
+        {
+          "timestamp": 1769469532568,
+          "count": 214,
+          "delta": 3
+        },
+        {
+          "timestamp": 1769469954838,
+          "count": 215,
+          "delta": 1
+        },
+        {
+          "timestamp": 1769470502241,
+          "count": 215,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769471331745,
+          "count": 215,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769505760567,
+          "count": 226,
+          "delta": 11
+        },
+        {
+          "timestamp": 1769567186229,
+          "count": 239,
+          "delta": 13
+        },
+        {
+          "timestamp": 1769583130333,
+          "count": 240,
+          "delta": 1
+        }
+      ]
+    },
+    "mg.one4all@gmail.com": {
+      "userEmail": "mg.one4all@gmail.com",
+      "affiliateId": "619206e7-5737-42ff-b48d-f22feae33d72",
+      "lastKnownLeadCount": 2555,
+      "previousLeadCount": 439,
+      "lastSuccessfulFetchAt": 1769409168765,
+      "lastFetchedAt": 1769409168765,
+      "fetchHistory": [
+        {
+          "timestamp": 1769406311625,
+          "count": 439,
+          "delta": 439
+        },
+        {
+          "timestamp": 1769407023960,
+          "count": 439,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769408447698,
+          "count": 439,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769409168765,
+          "count": 2555,
+          "delta": 2116
+        }
+      ]
+    },
+    "mawa3191@gmail.com": {
+      "userEmail": "mawa3191@gmail.com",
+      "affiliateId": "0634075b-7a2d-4b28-ab57-3ba7fe1a65e4",
+      "lastKnownLeadCount": 0,
+      "previousLeadCount": 0,
+      "lastSuccessfulFetchAt": 1769486513242,
+      "lastFetchedAt": 1769486513242,
+      "fetchHistory": [
+        {
+          "timestamp": 1769486513242,
+          "count": 0,
+          "delta": 0
+        }
+      ]
+    },
+    "shelly20%@gmail.com": {
+      "userEmail": "shelly20%@gmail.com",
+      "affiliateId": "2bfa58be-911f-4c28-b0d0-48fe61a9cd9e",
+      "lastKnownLeadCount": 0,
+      "previousLeadCount": 0,
+      "lastSuccessfulFetchAt": 1770010739938,
+      "lastFetchedAt": 1770010739938,
+      "fetchHistory": [
+        {
+          "timestamp": 1770002000472,
+          "count": 0,
+          "delta": 0
+        },
+        {
+          "timestamp": 1770010739938,
+          "count": 0,
+          "delta": 0
+        }
+      ]
+    },
+    "mario30%@gmail.com": {
+      "userEmail": "mario30%@gmail.com",
+      "affiliateId": "44c75cbf-ab00-499a-a72f-622dd5487b4d",
+      "lastKnownLeadCount": 892,
+      "previousLeadCount": 1413,
+      "lastSuccessfulFetchAt": 1770010661654,
+      "lastFetchedAt": 1770010661654,
+      "fetchHistory": [
+        {
+          "timestamp": 1769501311720,
+          "count": 1412,
+          "delta": 25
+        },
+        {
+          "timestamp": 1769505915071,
+          "count": 1412,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769583222536,
+          "count": 1412,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769583781675,
+          "count": 1412,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769661369523,
+          "count": 1412,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769753864923,
+          "count": 1413,
+          "delta": 1
+        },
+        {
+          "timestamp": 1769819601667,
+          "count": 1413,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769821584737,
+          "count": 1413,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769822262728,
+          "count": 1413,
+          "delta": 0
+        },
+        {
+          "timestamp": 1770010661654,
+          "count": 892,
+          "delta": -521
+        }
+      ]
+    },
+    "nikki30%@gmail.com": {
+      "userEmail": "nikki30%@gmail.com",
+      "affiliateId": "fa6b1e68-d88a-4626-9ccf-c6b091512d0c",
+      "lastKnownLeadCount": 10,
+      "previousLeadCount": 10,
+      "lastSuccessfulFetchAt": 1769794330134,
+      "lastFetchedAt": 1769794330134,
+      "fetchHistory": [
+        {
+          "timestamp": 1769752187704,
+          "count": 10,
+          "delta": 10
+        },
+        {
+          "timestamp": 1769752544525,
+          "count": 10,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769752871611,
+          "count": 10,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769794330134,
+          "count": 10,
+          "delta": 0
+        }
+      ]
+    },
+    "allie30%@gmail.com": {
+      "userEmail": "allie30%@gmail.com",
+      "affiliateId": "b7d21ea8-8a6a-4f77-8cc3-f8e3146dd592",
+      "lastKnownLeadCount": 10,
+      "previousLeadCount": 10,
+      "lastSuccessfulFetchAt": 1770006819057,
+      "lastFetchedAt": 1770006819057,
+      "fetchHistory": [
+        {
+          "timestamp": 1769829363437,
+          "count": 4,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769834185518,
+          "count": 4,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769834488729,
+          "count": 4,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769836324942,
+          "count": 4,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769838753289,
+          "count": 4,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769840341283,
+          "count": 4,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769917075884,
+          "count": 4,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769921626562,
+          "count": 10,
+          "delta": 6
+        },
+        {
+          "timestamp": 1769922087401,
+          "count": 10,
+          "delta": 0
+        },
+        {
+          "timestamp": 1770006819057,
+          "count": 10,
+          "delta": 0
+        }
+      ]
+    },
+    "tafreed57@gmail.com": {
+      "userEmail": "tafreed57@gmail.com",
+      "affiliateId": "6faa1ec0-171f-46af-a7ab-aa47612f4e26",
+      "lastKnownLeadCount": 1,
+      "previousLeadCount": 0,
+      "lastSuccessfulFetchAt": 1768893537097,
+      "lastFetchedAt": 1768893537097,
+      "recentLeads": [
+        {
+          "id": "12ee6e",
+          "state": "lead",
+          "createdAt": "2025-05-27T20:11:00.652Z",
+          "becameLeadAt": "2025-05-27T20:12:41.000Z",
+          "becameConversionAt": null,
+          "_sortTimestamp": "2025-05-27T20:12:41.000Z"
+        }
+      ],
+      "fetchHistory": [
+        {
+          "timestamp": 1768893537097,
+          "count": 1,
+          "delta": 1
+        }
+      ]
+    },
+    "adam50%@gmail.com": {
+      "userEmail": "adam50%@gmail.com",
+      "affiliateId": "9dd5dc3d-da1e-4cfd-9896-b5be8e54deb4",
+      "lastKnownLeadCount": 237,
+      "previousLeadCount": 237,
+      "lastSuccessfulFetchAt": 1769962992473,
+      "lastFetchedAt": 1769962992473,
+      "fetchHistory": [
+        {
+          "timestamp": 1769812941647,
+          "count": 184,
+          "delta": 1
+        },
+        {
+          "timestamp": 1769836170703,
+          "count": 190,
+          "delta": 6
+        },
+        {
+          "timestamp": 1769853175991,
+          "count": 198,
+          "delta": 8
+        },
+        {
+          "timestamp": 1769855802903,
+          "count": 199,
+          "delta": 1
+        },
+        {
+          "timestamp": 1769870619546,
+          "count": 208,
+          "delta": 9
+        },
+        {
+          "timestamp": 1769911764344,
+          "count": 208,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769924298769,
+          "count": 212,
+          "delta": 4
+        },
+        {
+          "timestamp": 1769924617388,
+          "count": 212,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769961473209,
+          "count": 237,
+          "delta": 25
+        },
+        {
+          "timestamp": 1769962992473,
+          "count": 237,
+          "delta": 0
+        }
+      ]
+    },
+    "tafreeddddd100%@gmail.com": {
+      "userEmail": "tafreeddddd100%@gmail.com",
+      "affiliateId": "31b6f66f-0106-46df-a5b4-22939908eade",
+      "lastKnownLeadCount": 168,
+      "previousLeadCount": 168,
+      "lastSuccessfulFetchAt": 1769925182367,
+      "lastFetchedAt": 1769925182367,
+      "fetchHistory": [
+        {
+          "timestamp": 1769924689833,
+          "count": 168,
+          "delta": 168
+        },
+        {
+          "timestamp": 1769924691526,
+          "count": 168,
+          "delta": 0
+        },
+        {
+          "timestamp": 1769925182367,
+          "count": 168,
+          "delta": 0
+        }
+      ]
+    }
+  },
+  "passwordTokens": {},
+  "_rawKeyCount": 235,
+  "_unknownKeys": [
+    {
+      "key": "ATTENDANCE_jamal_AT_gmail_com_2026-01-03_1767483578314",
+      "value": {
+        "email": "jamal@gmail.com",
+        "date": "2026-01-03",
+        "confirmed": true,
+        "timestamp": "2026-01-03T23:39:38.314Z",
+        "recordId": 1767483578314,
+        "teacherEmail": "tafreeddddd100%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_PglehgtZ53KpZDndcWrlNpXc2a0bdPonpNLxKpjJO8B6Ge2-t5GrSwwJlhbqCSnQ_ml3aokp5",
+      "value": {
+        "token": "PglehgtZ53KpZDndcWrlNpXc2a0bdPonpNLxKpjJO8B6Ge2-t5GrSwwJlhbqCSnQ_ml3aokp5",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-02-01T05:23:00.658Z",
+        "expiresAt": 1769966580425,
+        "lastSeenAt": "2026-02-01T05:38:49.474Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "SESSION_Kyr_91PWldpD26cDfq_Ld0A9VqW9k_x9Cfh-hZcMiwIb806JvfkFwJZN0ozQnihU_ml08uf35",
+      "value": {
+        "token": "Kyr_91PWldpD26cDfq_Ld0A9VqW9k_x9Cfh-hZcMiwIb806JvfkFwJZN0ozQnihU_ml08uf35",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-01-30T02:08:15.532Z",
+        "expiresAt": 1769782095329,
+        "lastSeenAt": "2026-01-30T02:08:53.242Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "SESSION_ZRTrP-K1eMp0-H6HXPzPah2KmA-Tg9h8FLnMhtIayw1P8feGAp9Qr7bfiE8BnAwo_mkwe0jyj",
+      "value": {
+        "token": "ZRTrP-K1eMp0-H6HXPzPah2KmA-Tg9h8FLnMhtIayw1P8feGAp9Qr7bfiE8BnAwo_mkwe0jyj",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-27T09:21:55.210Z",
+        "expiresAt": 1769548914955,
+        "lastSeenAt": "2026-01-27T09:26:00.939Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cryptobasiks101_AT_gmail_com_2026-01-28_1769632876680",
+      "value": {
+        "email": "cryptobasiks101@gmail.com",
+        "date": "2026-01-28",
+        "confirmed": true,
+        "timestamp": "2026-01-28T20:41:16.680Z",
+        "recordId": 1769632876680,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah40__AT_gmail_com_2026-01-25_1769403960374",
+      "value": {
+        "email": "sarah40%@gmail.com",
+        "date": "2026-01-25",
+        "confirmed": true,
+        "timestamp": "2026-01-26T05:06:00.374Z",
+        "recordId": 1769403960374,
+        "teacherEmail": "sarah40%@gmail.com"
+      }
+    },
+    {
+      "key": "teacher_student_pct_momo50%@gmail.com_sarah40%@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "SESSION_8fKnRpiUnFOhpE8XYl8WQHCfwlg1kYp59ZgAy4v_uaKujasCj6GRE53rvuw1t9BB_mkusx2a2",
+      "value": {
+        "token": "8fKnRpiUnFOhpE8XYl8WQHCfwlg1kYp59ZgAy4v_uaKujasCj6GRE53rvuw1t9BB_mkusx2a2",
+        "email": "mario30%@gmail.com",
+        "aliasEmail": "mario30%@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mario30%@gmail.com",
+        "displayEmail": "mario30%@gmail.com",
+        "createdAt": "2026-01-26T06:43:34.295Z",
+        "expiresAt": 1769453013962,
+        "lastSeenAt": "2026-01-26T07:01:20.273Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_pFwen7SjzRjf13U84pdd2wkvK8veuI8uBhZcM3oBfv4-sH1KunEUs88aH8uwcmRF_ml2trqi9",
+      "value": {
+        "token": "pFwen7SjzRjf13U84pdd2wkvK8veuI8uBhZcM3oBfv4-sH1KunEUs88aH8uwcmRF_ml2trqi9",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-01-31T21:29:34.715Z",
+        "expiresAt": 1769938174450,
+        "lastSeenAt": "2026-01-31T22:14:04.994Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "INCREMENTAL_TRACKING_momo50__AT_gmail_com",
+      "value": {
+        "isInitialized": true,
+        "emailBaselinePercentage": 50,
+        "lastApiUnpaid": 0,
+        "lastApiDueNow": 0,
+        "lastApiTotalPaid": 3976.99,
+        "lastDisplayedUnpaid": 0,
+        "lastDisplayedDueNow": 0,
+        "lastDisplayedTotalPaid": 2656.24,
+        "initialApiUnpaid": 352.69,
+        "initialApiDueNow": 0,
+        "initialApiTotalPaid": 2641.5,
+        "lastUpdateTime": "2025-11-28T06:03:17.125Z"
+      }
+    },
+    {
+      "key": "SESSION_IvoLpCh9AfasFu5eethB48Lcw_vL9DwsTQ4aRssRDJFIFxbHYIdabUcJDiFyMyui_mkwbrsqj",
+      "value": {
+        "token": "IvoLpCh9AfasFu5eethB48Lcw_vL9DwsTQ4aRssRDJFIFxbHYIdabUcJDiFyMyui_mkwbrsqj",
+        "email": "tafreed57@gmail.com",
+        "aliasEmail": "tafreed57@gmail.com",
+        "rewardfulEmail": "tafreed57@gmail.com",
+        "canonicalEmail": "tafreed57@gmail.com",
+        "displayEmail": "tafreed57@gmail.com",
+        "createdAt": "2026-01-27T08:19:07.389Z",
+        "expiresAt": 1769545147195,
+        "lastSeenAt": "2026-01-27T08:20:23.757Z",
+        "isTeacher": true,
+        "isAdmin": true,
+        "userName": "Tafreed Mangla"
+      }
+    },
+    {
+      "key": "SESSION_MwF5b1QeyC9pS3au9tieTIfmFLPsYsh52Hg9pnq9fvLAZkizmnChsjm0j_FGba6d_mkygovmz",
+      "value": {
+        "token": "MwF5b1QeyC9pS3au9tieTIfmFLPsYsh52Hg9pnq9fvLAZkizmnChsjm0j_FGba6d_mkygovmz",
+        "email": "tafreed57@gmail.com",
+        "aliasEmail": "tafreed57@gmail.com",
+        "rewardfulEmail": "tafreed57@gmail.com",
+        "canonicalEmail": "tafreed57@gmail.com",
+        "displayEmail": "tafreed57@gmail.com",
+        "createdAt": "2026-01-28T20:12:21.634Z",
+        "expiresAt": 1769674341421,
+        "lastSeenAt": "2026-01-28T20:12:37.777Z",
+        "isTeacher": true,
+        "isAdmin": true,
+        "userName": "Tafreed Mangla"
+      }
+    },
+    {
+      "key": "ATTENDANCE_adamghouj_AT_gmail_con_2026-01-29_1769682764236",
+      "value": {
+        "email": "adamghouj@gmail.con",
+        "date": "2026-01-29",
+        "confirmed": true,
+        "timestamp": "2026-01-29T10:32:44.236Z",
+        "recordId": 1769682764236,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_1XPMkZSWJoQDm-Rzgo-pTHmLuukC2fj0NkIAy1suZThABPnIaTe3Es3Rkd6bb4wE_ml0ff60u",
+      "value": {
+        "token": "1XPMkZSWJoQDm-Rzgo-pTHmLuukC2fj0NkIAy1suZThABPnIaTe3Es3Rkd6bb4wE_ml0ff60u",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-30T05:12:21.632Z",
+        "expiresAt": 1769793141054,
+        "lastSeenAt": "2026-01-30T06:16:45.048Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_uS-9mudmjj4s6aNM4aQ8M80k0nWfObcNsBximDfrYzZ4NyiKP5UgOl0ItuSlX4Ue_ml1uu7vg",
+      "value": {
+        "token": "uS-9mudmjj4s6aNM4aQ8M80k0nWfObcNsBximDfrYzZ4NyiKP5UgOl0ItuSlX4Ue_ml1uu7vg",
+        "email": "allieescaffi88@gmail.com",
+        "aliasEmail": "allieescaffi88@gmail.com",
+        "rewardfulEmail": "allie30%@gmail.com",
+        "canonicalEmail": "allieescaffi88@gmail.com",
+        "displayEmail": "allieescaffi88@gmail.com",
+        "createdAt": "2026-01-31T05:11:43.933Z",
+        "expiresAt": 1769879503709,
+        "lastSeenAt": "2026-01-31T05:12:01.603Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "allie"
+      }
+    },
+    {
+      "key": "INCREMENTAL_TRACKING_mg_one4all_AT_gmail_com",
+      "value": {
+        "isInitialized": true,
+        "emailPercentage": 100,
+        "adminPercentage": 50,
+        "lastUserCutUnpaid": 718.38,
+        "lastUserCutDueNow": 0,
+        "lastUserCutTotalPaid": 14379.11,
+        "lastDisplayedUnpaid": 2291.45,
+        "lastDisplayedDueNow": 1501.19,
+        "lastDisplayedTotalPaid": 12726.14,
+        "lastUpdateTime": "2025-12-24T11:07:35.428Z"
+      }
+    },
+    {
+      "key": "SESSION_lHJuY8DwR90qGKEfNNXS-YcJJoLmGHy9B1f8xvwhcBI984Z80QRso4lSwILYbSu3_mkzsj0es",
+      "value": {
+        "token": "lHJuY8DwR90qGKEfNNXS-YcJJoLmGHy9B1f8xvwhcBI984Z80QRso4lSwILYbSu3_mkzsj0es",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-29T18:31:29.501Z",
+        "expiresAt": 1769754689236,
+        "lastSeenAt": "2026-01-29T18:31:48.052Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_pnLR71KrDzPUq08J9c8SKtVhrhUakQwrbwhBQZw1ABEI6dRwEfl21ODRRyIrtl4m_ml0hqw85",
+      "value": {
+        "token": "pnLR71KrDzPUq08J9c8SKtVhrhUakQwrbwhBQZw1ABEI6dRwEfl21ODRRyIrtl4m_ml0hqw85",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-30T06:17:27.845Z",
+        "expiresAt": 1769797047462,
+        "lastSeenAt": "2026-01-30T06:45:18.899Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_OCMX4dTH3QsTnStWyfEof0Cxi25rZw3Uri_LDFWQToPNabFcxmhxnmi930_abukE_ml1o3m1b",
+      "value": {
+        "token": "OCMX4dTH3QsTnStWyfEof0Cxi25rZw3Uri_LDFWQToPNabFcxmhxnmi930_abukE_ml1o3m1b",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-31T02:03:05.200Z",
+        "expiresAt": 1769868184656,
+        "lastSeenAt": "2026-01-31T02:03:23.910Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_5TjV98OmTu9z-6IxL31B7VZaOUo37mblfbLjn16FZKeidJrZDe4QrD7IicH0fvwW_ml1tebd9",
+      "value": {
+        "token": "5TjV98OmTu9z-6IxL31B7VZaOUo37mblfbLjn16FZKeidJrZDe4QrD7IicH0fvwW_ml1tebd9",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-31T04:31:22.347Z",
+        "expiresAt": 1769877082127,
+        "lastSeenAt": "2026-01-31T04:31:22.347Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_tilacotainvestments_AT_gmail_com_2026-01-30_1769840173224",
+      "value": {
+        "email": "tilacotainvestments@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-31T06:16:13.224Z",
+        "recordId": 1769840173224,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ADMIN_OVERRIDE_mg_one4all_AT_gmail_com",
+      "value": {
+        "percentageEnabled": true,
+        "percentageMultiplier": 50
+      }
+    },
+    {
+      "key": "SESSION_sQ9PDrLfC1yQWD_h9HvDOMFIAtl2QvYqEiplrMSLjwpVVEMOvI7HI_LopbMokUj0_ml4ocgys",
+      "value": {
+        "token": "sQ9PDrLfC1yQWD_h9HvDOMFIAtl2QvYqEiplrMSLjwpVVEMOvI7HI_LopbMokUj0_ml4ocgys",
+        "email": "allieescaffi88@gmail.com",
+        "aliasEmail": "allieescaffi88@gmail.com",
+        "rewardfulEmail": "allie30%@gmail.com",
+        "canonicalEmail": "allieescaffi88@gmail.com",
+        "displayEmail": "allieescaffi88@gmail.com",
+        "createdAt": "2026-02-02T04:33:16.853Z",
+        "expiresAt": 1770049996517,
+        "lastSeenAt": "2026-02-02T04:33:34.517Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "allie"
+      }
+    },
+    {
+      "key": "SESSION_-fQpH1a0OUAgMNIZDc5ODFkoPLklLSq1H31qBRkHzMyoxvNQ_dgCMnWn8TQlnT7r_ml17v7jp",
+      "value": {
+        "token": "-fQpH1a0OUAgMNIZDc5ODFkoPLklLSq1H31qBRkHzMyoxvNQ_dgCMnWn8TQlnT7r_ml17v7jp",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-30T18:28:39.083Z",
+        "expiresAt": 1769840918775,
+        "lastSeenAt": "2026-01-30T18:29:16.681Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_EVt8rBnj1Jf32W0pr6kflpmONlyu5MQ75gSweFVHIcwFmv0ixmynBET_QW27P4rd_ml0dm4ei",
+      "value": {
+        "token": "EVt8rBnj1Jf32W0pr6kflpmONlyu5MQ75gSweFVHIcwFmv0ixmynBET_QW27P4rd_ml0dm4ei",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-01-30T04:21:46.910Z",
+        "expiresAt": 1769790106315,
+        "lastSeenAt": "2026-01-30T04:22:38.779Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "SESSION_MJuqvx2W4lKXGqsYJc-tAo4W5ED64FHFRvBgxtpY4LgjQ18eGS9l5gwXrpgUx2iu_mkyx361f",
+      "value": {
+        "token": "MJuqvx2W4lKXGqsYJc-tAo4W5ED64FHFRvBgxtpY4LgjQ18eGS9l5gwXrpgUx2iu_mkyx361f",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-29T03:51:22.671Z",
+        "expiresAt": 1769701881939,
+        "lastSeenAt": "2026-01-29T03:58:09.549Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_tafreed57_AT_gmail_com_2025-11-19_1763551895240",
+      "value": {
+        "email": "tafreed57@gmail.com",
+        "date": "2025-11-19",
+        "confirmed": true,
+        "timestamp": "2025-11-19T11:31:35.240Z",
+        "recordId": 1763551895240
+      }
+    },
+    {
+      "key": "SESSION_U7yszLFj3bMpUcKgTpjc2mNv9-gIko6f8SQ4n21J2njc1EoMwsCi6zZpedmrb9zc_ml15tmid",
+      "value": {
+        "token": "U7yszLFj3bMpUcKgTpjc2mNv9-gIko6f8SQ4n21J2njc1EoMwsCi6zZpedmrb9zc_ml15tmid",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-30T17:31:25.894Z",
+        "expiresAt": 1769837485621,
+        "lastSeenAt": "2026-01-30T17:31:56.547Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_sdZtua_2ADc3g4eShUDQUUQK5osqiCxiT62LcBIz7DjkQVbA5QAhNP41hrVTjRrP_ml1vdlrl",
+      "value": {
+        "token": "sdZtua_2ADc3g4eShUDQUUQK5osqiCxiT62LcBIz7DjkQVbA5QAhNP41hrVTjRrP_ml1vdlrl",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-01-31T05:26:48.485Z",
+        "expiresAt": 1769880408177,
+        "lastSeenAt": "2026-01-31T05:27:05.474Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "teacher_earnings_momo50%@gmail.com",
+      "value": {
+        "totalEarned": 1478.3229999999999,
+        "totalUnpaidEarned": 1057.55,
+        "totalDueNowEarned": 420.7729999999999,
+        "lastUpdated": "2025-12-21T05:28:31.626Z",
+        "studentTracking": {
+          "sarah40%@gmail.com": {
+            "unpaid": 2550.99,
+            "dueNow": 295.41
+          },
+          "mario30%@gmail.com": {
+            "unpaid": 2420.37,
+            "dueNow": 211.38
+          },
+          "mawa3191@gmail.com": {
+            "unpaid": 0,
+            "dueNow": 0
+          }
+        }
+      }
+    },
+    {
+      "key": "SESSION_jpR39dC-2YTNA5abt-8gPRRipyq4p_Ceo3CFzB3Y8JRnmBkKPmZehn2iC_v0-U8h_mkzrxvm2",
+      "value": {
+        "token": "jpR39dC-2YTNA5abt-8gPRRipyq4p_Ceo3CFzB3Y8JRnmBkKPmZehn2iC_v0-U8h_mkzrxvm2",
+        "email": "techwithniki14@gmail.com",
+        "aliasEmail": "techwithniki14@gmail.com",
+        "rewardfulEmail": "nikki30%@gmail.com",
+        "canonicalEmail": "techwithniki14@gmail.com",
+        "displayEmail": "techwithniki14@gmail.com",
+        "createdAt": "2026-01-29T18:15:03.996Z",
+        "expiresAt": 1769753703242,
+        "lastSeenAt": "2026-01-29T23:29:12.821Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "nikki under_mohammad"
+      }
+    },
+    {
+      "key": "INCREMENTAL_TRACKING_sarah40__AT_gmail_com",
+      "value": {
+        "isInitialized": true,
+        "emailBaselinePercentage": 40,
+        "lastApiUnpaid": 1356.79,
+        "lastApiDueNow": 33.29,
+        "lastApiTotalPaid": 0,
+        "lastDisplayedUnpaid": 824.09,
+        "lastDisplayedDueNow": 19.95,
+        "lastDisplayedTotalPaid": 0,
+        "initialApiUnpaid": 887.83,
+        "initialApiDueNow": 22.24,
+        "initialApiTotalPaid": 0,
+        "lastUpdateTime": "2025-11-28T03:39:53.612Z"
+      }
+    },
+    {
+      "key": "SESSION_1a27fDMlNrnHbOduDnUHep3RpNNfCSEyojGEHWTa35JIILts7-ZBYAPRb_kIyWwv_ml1x6ney",
+      "value": {
+        "token": "1a27fDMlNrnHbOduDnUHep3RpNNfCSEyojGEHWTa35JIILts7-ZBYAPRb_kIyWwv_ml1x6ney",
+        "email": "allieescaffi88@gmail.com",
+        "aliasEmail": "allieescaffi88@gmail.com",
+        "rewardfulEmail": "allie30%@gmail.com",
+        "canonicalEmail": "allieescaffi88@gmail.com",
+        "displayEmail": "allieescaffi88@gmail.com",
+        "createdAt": "2026-01-31T06:17:23.177Z",
+        "expiresAt": 1769883442955,
+        "lastSeenAt": "2026-01-31T06:19:55.539Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "allie"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-01-30_1769802449350",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-30T19:47:29.350Z",
+        "recordId": 1769802449350,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_tafreed57_AT_gmail_com_2025-12-02_1764708901894",
+      "value": {
+        "email": "tafreed57@gmail.com",
+        "date": "2025-12-02",
+        "confirmed": true,
+        "timestamp": "2025-12-02T20:55:01.894Z",
+        "recordId": 1764708901894
+      }
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-01-28_1769656779118",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-01-28",
+        "confirmed": true,
+        "timestamp": "2026-01-29T03:19:39.118Z",
+        "recordId": 1769656779118,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cryptobasiks101_AT_gmail_com_2026-01-29_1769712840305",
+      "value": {
+        "email": "cryptobasiks101@gmail.com",
+        "date": "2026-01-29",
+        "confirmed": true,
+        "timestamp": "2026-01-29T18:54:00.305Z",
+        "recordId": 1769712840305,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah40__AT_gmail_com_2026-01-24_1769289649478",
+      "value": {
+        "email": "sarah40%@gmail.com",
+        "date": "2026-01-24",
+        "confirmed": true,
+        "timestamp": "2026-01-24T21:20:49.478Z",
+        "recordId": 1769289649478,
+        "teacherEmail": "sarah40%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_adamghouj_AT_gmail_con_2026-01-31_1769853229199",
+      "value": {
+        "email": "adamghouj@gmail.con",
+        "date": "2026-01-31",
+        "confirmed": true,
+        "timestamp": "2026-01-31T09:53:49.199Z",
+        "recordId": 1769853229199,
+        "teacherEmail": "none"
+      }
+    },
+    {
+      "key": "ATTENDANCE_allieescaffi88_AT_gmail_com_2026-01-31_1769917151795",
+      "value": {
+        "email": "allieescaffi88@gmail.com",
+        "date": "2026-01-31",
+        "confirmed": true,
+        "timestamp": "2026-02-01T03:39:11.795Z",
+        "recordId": 1769917151795,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "teacher_student_pct_mg.one4all@gmail.com_cash4kin@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "SESSION_xYU6DCxWekfYCpgAjUzLH-1P564wBmKjh-sAfgb14qVXMOcl1U_Ak4w8FevWWtQF_ml1gx5cm",
+      "value": {
+        "token": "xYU6DCxWekfYCpgAjUzLH-1P564wBmKjh-sAfgb14qVXMOcl1U_Ak4w8FevWWtQF_ml1gx5cm",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-30T22:42:06.061Z",
+        "expiresAt": 1769856125784,
+        "lastSeenAt": "2026-01-30T22:42:18.466Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ADMIN_AUDIT_LOG",
+      "value": [
+        {
+          "timestamp": "2026-01-27T02:43:26.785Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "sarah40%@gmail.com",
+          "details": {
+            "note": "legacy_email"
+          }
+        },
+        {
+          "timestamp": "2026-01-27T05:09:12.603Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "mario30%@gmail.com",
+          "details": {
+            "note": "legacy_email"
+          }
+        },
+        {
+          "timestamp": "2026-01-27T05:11:19.657Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "sarah40%@gmail.com",
+          "details": {
+            "note": "legacy_email"
+          }
+        },
+        {
+          "timestamp": "2026-01-27T05:19:50.519Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "tafreed47@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T05:20:08.315Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "STOP_MANAGE",
+          "targetEmail": "tafreed47@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T05:20:12.989Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "janedoe@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T05:20:21.088Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "STOP_MANAGE",
+          "targetEmail": "janedoe@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T05:20:30.674Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "sarah40%@gmail.com",
+          "details": {
+            "note": "legacy_email"
+          }
+        },
+        {
+          "timestamp": "2026-01-27T05:20:56.155Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "STOP_MANAGE",
+          "targetEmail": "sarah40%@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T05:21:07.669Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "tafreed47@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T05:21:56.582Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "STOP_MANAGE",
+          "targetEmail": "tafreed47@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T06:03:31.793Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "tafreed47@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T06:03:55.329Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "STOP_MANAGE",
+          "targetEmail": "tafreed47@gmail.com",
+          "details": {}
+        },
+        {
+          "timestamp": "2026-01-27T06:04:12.295Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "START_MANAGE",
+          "targetEmail": "sarah40%@gmail.com",
+          "details": {
+            "note": "legacy_email"
+          }
+        },
+        {
+          "timestamp": "2026-01-27T06:06:17.403Z",
+          "adminEmail": "tafreed57@gmail.com",
+          "action": "STOP_MANAGE",
+          "targetEmail": "sarah40%@gmail.com",
+          "details": {}
+        }
+      ]
+    },
+    {
+      "key": "AFFILIATE_API_KEY",
+      "value": "a19ffe31b1e28e95f16637992bb6f67a"
+    },
+    {
+      "key": "SESSION_wLEaybqpGTJjaZFx-OVWo0CDsEeMLDS6cgg6KGVA4a7boS_rXiqtZqW9b_IAIHyV_mkvs2bhr",
+      "value": {
+        "token": "wLEaybqpGTJjaZFx-OVWo0CDsEeMLDS6cgg6KGVA4a7boS_rXiqtZqW9b_IAIHyV_mkvs2bhr",
+        "email": "mario30%@gmail.com",
+        "aliasEmail": "mario30%@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mario30%@gmail.com",
+        "displayEmail": "mario30%@gmail.com",
+        "createdAt": "2026-01-26T23:07:26.178Z",
+        "expiresAt": 1769512045743,
+        "lastSeenAt": "2026-01-26T23:48:42.197Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_fPIYWsUXV5TfY3X300N2daXPeKm2lUqtGxcEFXe-LwVqNFj3CKLy368QxCu6vQxZ_ml1qo24y",
+      "value": {
+        "token": "fPIYWsUXV5TfY3X300N2daXPeKm2lUqtGxcEFXe-LwVqNFj3CKLy368QxCu6vQxZ_ml1qo24y",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-31T03:14:58.597Z",
+        "expiresAt": 1769872497875,
+        "lastSeenAt": "2026-01-31T03:15:17.386Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_RLqK-X9vFKospDYhDJpc7YS03nISgiokcSZsrDDiZw9tnWeValsTLFOklIvnEh-V_ml0df83b",
+      "value": {
+        "token": "RLqK-X9vFKospDYhDJpc7YS03nISgiokcSZsrDDiZw9tnWeValsTLFOklIvnEh-V_ml0df83b",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-30T04:16:25.030Z",
+        "expiresAt": 1769789784504,
+        "lastSeenAt": "2026-01-30T04:16:37.603Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah40__AT_gmail_com_2025-12-01_1764642591017",
+      "value": {
+        "email": "sarah40%@gmail.com",
+        "date": "2025-12-01",
+        "confirmed": true,
+        "timestamp": "2025-12-02T02:29:51.017Z",
+        "recordId": 1764642591017
+      }
+    },
+    {
+      "key": "ATTENDANCE_cryptobasiks101_AT_gmail_com_2026-02-01_1770001868977",
+      "value": {
+        "email": "cryptobasiks101@gmail.com",
+        "date": "2026-02-01",
+        "confirmed": true,
+        "timestamp": "2026-02-02T03:11:08.977Z",
+        "recordId": 1770001868977,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_qVBZ11YjMZUQQHKD4M4GVl9wHBpCtBDNOm2mHnft9TvsbZo4V6kkulYFUsUEQiN2_ml0j453m",
+      "value": {
+        "token": "qVBZ11YjMZUQQHKD4M4GVl9wHBpCtBDNOm2mHnft9TvsbZo4V6kkulYFUsUEQiN2_ml0j453m",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-30T06:55:45.366Z",
+        "expiresAt": 1769799345108,
+        "lastSeenAt": "2026-01-30T06:56:04.480Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ADMIN_EMAILS",
+      "value": "tafreed57@gmail.com,shehrozeps9721@gmail.com"
+    },
+    {
+      "key": "SESSION_m0ckV38tOJ_v6dEVg8d1Ziw9kex49hn51yiAVUy5lOTJXI7Ct-s8RcJWYnBVvmCz_ml1ur46z",
+      "value": {
+        "token": "m0ckV38tOJ_v6dEVg8d1Ziw9kex49hn51yiAVUy5lOTJXI7Ct-s8RcJWYnBVvmCz_ml1ur46z",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-31T05:09:19.587Z",
+        "expiresAt": 1769879358972,
+        "lastSeenAt": "2026-01-31T09:52:51.905Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-02-01_1769989282698",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-02-01",
+        "confirmed": true,
+        "timestamp": "2026-02-01T23:41:22.698Z",
+        "recordId": 1769989282698,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_3t-EG8gyQOSi9QV-9AZ9jXLOHAgI5Vr7rfcbEwfmvpaXWpshzD4n-GtvVi8mNqal_mkyyt6jv",
+      "value": {
+        "token": "3t-EG8gyQOSi9QV-9AZ9jXLOHAgI5Vr7rfcbEwfmvpaXWpshzD4n-GtvVi8mNqal_mkyyt6jv",
+        "email": "allieescaffi88@gmail.com",
+        "aliasEmail": "allieescaffi88@gmail.com",
+        "rewardfulEmail": "allie30%@gmail.com",
+        "canonicalEmail": "allieescaffi88@gmail.com",
+        "displayEmail": "allieescaffi88@gmail.com",
+        "createdAt": "2026-01-29T04:39:35.469Z",
+        "expiresAt": 1769704775275,
+        "lastSeenAt": "2026-01-29T04:41:18.343Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "allie"
+      }
+    },
+    {
+      "key": "teacher_student_pct_mg.one4all@gmail.com_techwithniki14@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "SESSION_flndb7x-tDWN7udilbSVwuK_tto3vP4pPoXI2bFdVWKRpgwM2Tl2RUU1T8GOlWKj_ml26fi3l",
+      "value": {
+        "token": "flndb7x-tDWN7udilbSVwuK_tto3vP4pPoXI2bFdVWKRpgwM2Tl2RUU1T8GOlWKj_ml26fi3l",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-31T10:36:12.760Z",
+        "expiresAt": 1769898972514,
+        "lastSeenAt": "2026-01-31T10:39:32.013Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cryptobasiks101_AT_gmail_com_2026-01-30_1769801474848",
+      "value": {
+        "email": "cryptobasiks101@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-30T19:31:14.848Z",
+        "recordId": 1769801474848,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_J_kVtz4SCv30s5bmN6ujVOT2OHPESo-m4Od-ORi8bPmr33KDdjQqpE_UjFYJhseW_ml1tcfbo",
+      "value": {
+        "token": "J_kVtz4SCv30s5bmN6ujVOT2OHPESo-m4Od-ORi8bPmr33KDdjQqpE_UjFYJhseW_ml1tcfbo",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-31T04:29:54.148Z",
+        "expiresAt": 1769876993941,
+        "lastSeenAt": "2026-01-31T04:42:10.074Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_adamghouj_AT_gmail_con_2026-01-30_1769807195297",
+      "value": {
+        "email": "adamghouj@gmail.con",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-30T21:06:35.297Z",
+        "recordId": 1769807195297,
+        "teacherEmail": "none"
+      }
+    },
+    {
+      "key": "SESSION_9oCJjALjtBH6kmy85bc3m9qiGFZrmehoCw6jTt6NyCN_nOTBYhe2XUzVxLzJB_6e_mkxvnke6",
+      "value": {
+        "token": "9oCJjALjtBH6kmy85bc3m9qiGFZrmehoCw6jTt6NyCN_nOTBYhe2XUzVxLzJB_6e_mkxvnke6",
+        "email": "tafreed57@gmail.com",
+        "aliasEmail": "tafreed57@gmail.com",
+        "rewardfulEmail": "tafreed57@gmail.com",
+        "canonicalEmail": "tafreed57@gmail.com",
+        "displayEmail": "tafreed57@gmail.com",
+        "createdAt": "2026-01-28T10:23:28.705Z",
+        "expiresAt": 1769639008254,
+        "lastSeenAt": "2026-01-28T10:25:16.247Z",
+        "isTeacher": true,
+        "isAdmin": true,
+        "userName": "Tafreed Mangla"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah_roemmich84_AT_gmail_com_2026-01-30_1769833181907",
+      "value": {
+        "email": "sarah.roemmich84@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-31T04:19:41.907Z",
+        "recordId": 1769833181907,
+        "teacherEmail": "none"
+      }
+    },
+    {
+      "key": "SESSION_GDe4VQYqf7st1uMTMBFkRrfhLn-C_6mhTA-A-wRC_6aemQs7ZtWaVQgkscrWZziv_mkz02hbs",
+      "value": {
+        "token": "GDe4VQYqf7st1uMTMBFkRrfhLn-C_6mhTA-A-wRC_6aemQs7ZtWaVQgkscrWZziv_mkz02hbs",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-01-29T05:14:49.014Z",
+        "expiresAt": 1769706888760,
+        "lastSeenAt": "2026-01-29T05:54:13.825Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "ATTENDANCE_tafreed57_AT_gmail_com_2025-11-19_1763578033089",
+      "value": {
+        "email": "tafreed57@gmail.com",
+        "date": "2025-11-19",
+        "confirmed": true,
+        "timestamp": "2025-11-19T18:47:13.089Z",
+        "recordId": 1763578033089
+      }
+    },
+    {
+      "key": "teacher_student_pct_mario30%@gmail.com_linda@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "SESSION_0pCBjuZLWJZFt5fVsK8U0Dya2ZlIGzw2FHMrEUcUUErI86KeReTN1f6l_yhnj3zT_mkxhf8me",
+      "value": {
+        "token": "0pCBjuZLWJZFt5fVsK8U0Dya2ZlIGzw2FHMrEUcUUErI86KeReTN1f6l_yhnj3zT_mkxhf8me",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-28T03:45:05.376Z",
+        "expiresAt": 1769615105126,
+        "lastSeenAt": "2026-01-28T03:46:07.412Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_onTgryiOgqUPz2nGfbZIrx_YNOWqEJwjr5TEZ5MNFBEs7jqHvM8P_Fk_7_-4i7sH_mkxk4ob6",
+      "value": {
+        "token": "onTgryiOgqUPz2nGfbZIrx_YNOWqEJwjr5TEZ5MNFBEs7jqHvM8P_Fk_7_-4i7sH_mkxk4ob6",
+        "email": "shehrozeps9721@gmail.com",
+        "aliasEmail": "shehrozeps9721@gmail.com",
+        "rewardfulEmail": "shehrozeps9721@gmail.com",
+        "canonicalEmail": "shehrozeps9721@gmail.com",
+        "displayEmail": "shehrozeps9721@gmail.com",
+        "createdAt": "2026-01-28T05:00:51.331Z",
+        "expiresAt": 1769619651090,
+        "lastSeenAt": "2026-01-28T05:01:11.319Z",
+        "isTeacher": true,
+        "isAdmin": true,
+        "userName": "Mohammad Arshad"
+      }
+    },
+    {
+      "key": "SESSION_ZnM5Xf5fFIoqNcEFpXr7DLo4kEceC3-mGAxRbEcKfqOow1ENEr2PHI_GtuooEn3o_ml44wlnw",
+      "value": {
+        "token": "ZnM5Xf5fFIoqNcEFpXr7DLo4kEceC3-mGAxRbEcKfqOow1ENEr2PHI_GtuooEn3o_ml44wlnw",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-02-01T19:29:03.629Z",
+        "expiresAt": 1770017343406,
+        "lastSeenAt": "2026-02-01T19:31:53.453Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah40__AT_gmail_com_2025-11-26_1764218758115",
+      "value": {
+        "email": "sarah40%@gmail.com",
+        "date": "2025-11-26",
+        "confirmed": true,
+        "timestamp": "2025-11-27T04:45:58.115Z",
+        "recordId": 1764218758115
+      }
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-01-31_1769889133511",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-01-31",
+        "confirmed": true,
+        "timestamp": "2026-01-31T19:52:13.511Z",
+        "recordId": 1769889133511,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cryptobasiks101_AT_gmail_com_2026-02-01_1769974288756",
+      "value": {
+        "email": "cryptobasiks101@gmail.com",
+        "date": "2026-02-01",
+        "confirmed": true,
+        "timestamp": "2026-02-01T19:31:28.756Z",
+        "recordId": 1769974288756,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_Ne5Zsdg3R62KTH9j5NAhcLXP19R5RZ2DcF1tW4jiEECbi6XCNg-Q6FtLzGjC0Y3e_ml4e81ng",
+      "value": {
+        "token": "Ne5Zsdg3R62KTH9j5NAhcLXP19R5RZ2DcF1tW4jiEECbi6XCNg-Q6FtLzGjC0Y3e_ml4e81ng",
+        "email": "cash4kin@gmail.com",
+        "aliasEmail": "cash4kin@gmail.com",
+        "rewardfulEmail": "linda30%@gmail.com",
+        "canonicalEmail": "cash4kin@gmail.com",
+        "displayEmail": "cash4kin@gmail.com",
+        "createdAt": "2026-02-01T23:49:54.233Z",
+        "expiresAt": 1770032993884,
+        "lastSeenAt": "2026-02-02T05:03:13.782Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "linda"
+      }
+    },
+    {
+      "key": "SESSION_HrHZgPWnFdj4MuPK_-QUB40QnATAumLJbeD6m5sUw6VNo8f7Wrno2Y8AKQU5r7rX_ml44z5bm",
+      "value": {
+        "token": "HrHZgPWnFdj4MuPK_-QUB40QnATAumLJbeD6m5sUw6VNo8f7Wrno2Y8AKQU5r7rX_ml44z5bm",
+        "email": "cryptobasiks101@gmail.com",
+        "aliasEmail": "cryptobasiks101@gmail.com",
+        "rewardfulEmail": "steve30%@gmail.com",
+        "canonicalEmail": "cryptobasiks101@gmail.com",
+        "displayEmail": "cryptobasiks101@gmail.com",
+        "createdAt": "2026-02-01T19:31:02.384Z",
+        "expiresAt": 1770017462194,
+        "lastSeenAt": "2026-02-01T19:31:17.821Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "steve under_mario garcia"
+      }
+    },
+    {
+      "key": "teacher_earnings_mario30%@gmail.com",
+      "value": {
+        "totalEarned": 0,
+        "totalUnpaidEarned": 0,
+        "totalDueNowEarned": 0,
+        "lastUpdated": "2026-01-26T06:57:23.277Z",
+        "studentTracking": {
+          "linda@gmail.com": {
+            "unpaid": 0,
+            "dueNow": 0
+          }
+        }
+      }
+    },
+    {
+      "key": "teacher_earnings_tafreed57@gmail.com",
+      "value": {
+        "totalEarned": 207.615,
+        "totalUnpaidEarned": 122.096,
+        "totalDueNowEarned": 85.519,
+        "lastUpdated": "2026-01-27T05:16:50.370Z",
+        "studentTracking": {
+          "mg.one4all@gmail.com": {
+            "unpaid": 1220.96,
+            "dueNow": 855.19
+          }
+        }
+      }
+    },
+    {
+      "key": "SESSION_MmP1bdp_F4fH-TpPg5AypX0AaRONmewVdJOWLnYAiROnL7Tmifk4520I9-jrhjbl_ml1suat7",
+      "value": {
+        "token": "MmP1bdp_F4fH-TpPg5AypX0AaRONmewVdJOWLnYAiROnL7Tmifk4520I9-jrhjbl_ml1suat7",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-01-31T04:15:48.484Z",
+        "expiresAt": 1769876148284,
+        "lastSeenAt": "2026-01-31T04:19:27.455Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "ATTENDANCE_allieescaffi88_AT_gmail_com_2026-01-29_1769748071709",
+      "value": {
+        "email": "allieescaffi88@gmail.com",
+        "date": "2026-01-29",
+        "confirmed": true,
+        "timestamp": "2026-01-30T04:41:11.709Z",
+        "recordId": 1769748071709,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_ob3y7iQYdfshif7SE2wqAGoIuDOTjiF-FOY-VkmYKnate7VuinGFuq_N12rwf1-z_mkxoqte8",
+      "value": {
+        "token": "ob3y7iQYdfshif7SE2wqAGoIuDOTjiF-FOY-VkmYKnate7VuinGFuq_N12rwf1-z_mkxoqte8",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-28T07:10:02.826Z",
+        "expiresAt": 1769627402578,
+        "lastSeenAt": "2026-01-28T08:06:40.039Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ATTENDANCE_tafreed57_AT_gmail_com_2025-11-19_1763552637076",
+      "value": {
+        "email": "tafreed57@gmail.com",
+        "date": "2025-11-19",
+        "confirmed": true,
+        "timestamp": "2025-11-19T11:43:57.076Z",
+        "recordId": 1763552637076
+      }
+    },
+    {
+      "key": "attendance_tracking_sarah40%@gmail.com",
+      "value": {
+        "email": "sarah40%@gmail.com",
+        "name": "sarah Under_Mohammad",
+        "createdDate": "2025-11-19T10:52:18.579Z",
+        "attendanceHistory": []
+      }
+    },
+    {
+      "key": "ATTENDANCE_shehrozeps9721_AT_gmail_com_2025-11-18_1763502793024",
+      "value": {
+        "email": "shehrozeps9721@gmail.com",
+        "date": "2025-11-18",
+        "confirmed": true,
+        "timestamp": "2025-11-18T21:53:13.024Z",
+        "recordId": 1763502793024
+      }
+    },
+    {
+      "key": "SESSION_ZLiAnJwA7Ck9ImMw_F2jFLjz37jXmgyNIw6QLg1Hbl1jli-2wFhAQyWI5cpFhsYz_ml33r8hf",
+      "value": {
+        "token": "ZLiAnJwA7Ck9ImMw_F2jFLjz37jXmgyNIw6QLg1Hbl1jli-2wFhAQyWI5cpFhsYz_ml33r8hf",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-02-01T02:09:07.491Z",
+        "expiresAt": 1769954947251,
+        "lastSeenAt": "2026-02-01T02:09:20.843Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "teacher_student_pct_tafreed57@gmail.com_mg.one4all@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "SESSION_NfwU5NeZR2-IhtoVK7LBMOF9xJFyiI-DCl1oNgclGM_iqc_LNgMxFCTS0SBOlDp4_mky38nsx",
+      "value": {
+        "token": "NfwU5NeZR2-IhtoVK7LBMOF9xJFyiI-DCl1oNgclGM_iqc_LNgMxFCTS0SBOlDp4_mky38nsx",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-01-28T13:55:50.013Z",
+        "expiresAt": 1769651749761,
+        "lastSeenAt": "2026-01-28T13:56:10.535Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "ATTENDANCE_tilacotainvestments_AT_gmail_com_2026-01-31_1769887771551",
+      "value": {
+        "email": "tilacotainvestments@gmail.com",
+        "date": "2026-01-31",
+        "confirmed": true,
+        "timestamp": "2026-01-31T19:29:31.551Z",
+        "recordId": 1769887771551,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_xgzouZU0jJ0vIyKP7ecK2O-39tlt2RpzPWiFBbbH9FbCzgo_pTBBAvbtWwSojien_mkwbxzx5",
+      "value": {
+        "token": "xgzouZU0jJ0vIyKP7ecK2O-39tlt2RpzPWiFBbbH9FbCzgo_pTBBAvbtWwSojien_mkwbxzx5",
+        "email": "tafreed57@gmail.com",
+        "aliasEmail": "tafreed57@gmail.com",
+        "rewardfulEmail": "tafreed57@gmail.com",
+        "canonicalEmail": "tafreed57@gmail.com",
+        "displayEmail": "tafreed57@gmail.com",
+        "createdAt": "2026-01-27T08:23:56.622Z",
+        "expiresAt": 1769545436442,
+        "lastSeenAt": "2026-01-27T08:24:19.586Z",
+        "isTeacher": true,
+        "isAdmin": true,
+        "userName": "Tafreed Mangla"
+      }
+    },
+    {
+      "key": "INCREMENTAL_TRACKING_mario30__AT_gmail_com",
+      "value": {
+        "isInitialized": true,
+        "emailBaselinePercentage": 30,
+        "lastApiUnpaid": 4926.49,
+        "lastApiDueNow": 2857.26,
+        "lastApiTotalPaid": 0,
+        "lastDisplayedUnpaid": 1644.91,
+        "lastDisplayedDueNow": 857.18,
+        "lastDisplayedTotalPaid": 0,
+        "initialApiUnpaid": 4687.97,
+        "initialApiDueNow": 2857.26,
+        "initialApiTotalPaid": 0,
+        "lastUpdateTime": "2025-11-28T03:40:05.155Z"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah_roemmich84_AT_gmail_com_2026-02-01_1769986817110",
+      "value": {
+        "email": "sarah.roemmich84@gmail.com",
+        "date": "2026-02-01",
+        "confirmed": true,
+        "timestamp": "2026-02-01T23:00:17.110Z",
+        "recordId": 1769986817110,
+        "teacherEmail": "none"
+      }
+    },
+    {
+      "key": "ATTENDANCE_mawa3191_AT_gmail_com_2025-12-02_1764710323411",
+      "value": {
+        "email": "mawa3191@gmail.com",
+        "date": "2025-12-02",
+        "confirmed": true,
+        "timestamp": "2025-12-02T21:18:43.411Z",
+        "recordId": 1764710323411,
+        "teacherEmail": "momo50%@gmail.com"
+      }
+    },
+    {
+      "key": "teacher_student_pct_mg.one4all@gmail.com_tilacotainvestments@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "SESSION_JFfYDj6DPmNaCfqrQKSHkeyUTz2Hy_E96dMvIf8OKdFspDnfcYK3tnaoDrT2ye1S_mkzu12k7",
+      "value": {
+        "token": "JFfYDj6DPmNaCfqrQKSHkeyUTz2Hy_E96dMvIf8OKdFspDnfcYK3tnaoDrT2ye1S_mkzu12k7",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-29T19:13:31.698Z",
+        "expiresAt": 1769757211447,
+        "lastSeenAt": "2026-01-29T19:13:51.747Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "SESSION_AMLGyK9bpHWWdf0lnAeUxoExw2_WwJq8Los2KPHQDD3LoAA4L6RfjhMJ_Y-W6buS_ml2f95cy",
+      "value": {
+        "token": "AMLGyK9bpHWWdf0lnAeUxoExw2_WwJq8Los2KPHQDD3LoAA4L6RfjhMJ_Y-W6buS_ml2f95cy",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-31T14:43:12.908Z",
+        "expiresAt": 1769913792610,
+        "lastSeenAt": "2026-01-31T14:43:36.287Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-02-01_1770003442710",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-02-01",
+        "confirmed": true,
+        "timestamp": "2026-02-02T03:37:22.710Z",
+        "recordId": 1770003442710,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cryptobasiks101_AT_gmail_com_2026-01-30_1769800782840",
+      "value": {
+        "email": "cryptobasiks101@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-30T19:19:42.840Z",
+        "recordId": 1769800782840,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_GSx28IUTr4TVX64Oammw4h7NlZ4ApkNdTTBt3G9IZ1xDvK4A9HuNXrPhkExnRPo2_mkztb7gf",
+      "value": {
+        "token": "GSx28IUTr4TVX64Oammw4h7NlZ4ApkNdTTBt3G9IZ1xDvK4A9HuNXrPhkExnRPo2_mkztb7gf",
+        "email": "cryptobasiks101@gmail.com",
+        "aliasEmail": "cryptobasiks101@gmail.com",
+        "rewardfulEmail": "steve30%@gmail.com",
+        "canonicalEmail": "cryptobasiks101@gmail.com",
+        "displayEmail": "cryptobasiks101@gmail.com",
+        "createdAt": "2026-01-29T18:53:25.022Z",
+        "expiresAt": 1769756004737,
+        "lastSeenAt": "2026-01-29T18:53:51.224Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "steve under_mario garcia"
+      }
+    },
+    {
+      "key": "SESSION_-dOZNoUSEzBGOLTLr1_cFKhvzbJy4WQkIoo6RyYNeoFDs2XS8oE81-_fZH4y_jCD_mkyhaqh3",
+      "value": {
+        "token": "-dOZNoUSEzBGOLTLr1_cFKhvzbJy4WQkIoo6RyYNeoFDs2XS8oE81-_fZH4y_jCD_mkyhaqh3",
+        "email": "cryptobasiks101@gmail.com",
+        "aliasEmail": "cryptobasiks101@gmail.com",
+        "rewardfulEmail": "steve30%@gmail.com",
+        "canonicalEmail": "cryptobasiks101@gmail.com",
+        "displayEmail": "cryptobasiks101@gmail.com",
+        "createdAt": "2026-01-28T20:29:21.356Z",
+        "expiresAt": 1769675361159,
+        "lastSeenAt": "2026-01-28T20:30:30.176Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "steve under_mario garcia"
+      }
+    },
+    {
+      "key": "teacher_student_pct_mg.one4all@gmail.com_linda@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-01-30_1769802521998",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-30T19:48:41.998Z",
+        "recordId": 1769802521998,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_yFqgO82aYjBYGXRFqinl7DwuwK6rPH36b4dMjqOIwWbjXVGCZH8540uAK8F0EE52_ml3fyyjr",
+      "value": {
+        "token": "yFqgO82aYjBYGXRFqinl7DwuwK6rPH36b4dMjqOIwWbjXVGCZH8540uAK8F0EE52_ml3fyyjr",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-02-01T07:51:03.446Z",
+        "expiresAt": 1769975463016,
+        "lastSeenAt": "2026-02-01T07:51:28.750Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_-N5kApEIdj4E-KTCwop-zIDYkb1hA7jv3_9ZxZ8OalMr47hzXuZr5hm7gqIl7xZh_mkyvuytl",
+      "value": {
+        "token": "-N5kApEIdj4E-KTCwop-zIDYkb1hA7jv3_9ZxZ8OalMr47hzXuZr5hm7gqIl7xZh_mkyvuytl",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-29T03:16:59.999Z",
+        "expiresAt": 1769699819721,
+        "lastSeenAt": "2026-01-29T03:18:24.988Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_IA5fv9v_KvMfFJ00-lyzsKChJuv8wdsJMyEgA4C6apAuDA4Ndrap29moo9l5rWKO_ml36yexc",
+      "value": {
+        "token": "IA5fv9v_KvMfFJ00-lyzsKChJuv8wdsJMyEgA4C6apAuDA4Ndrap29moo9l5rWKO_ml36yexc",
+        "email": "allieescaffi88@gmail.com",
+        "aliasEmail": "allieescaffi88@gmail.com",
+        "rewardfulEmail": "allie30%@gmail.com",
+        "canonicalEmail": "allieescaffi88@gmail.com",
+        "displayEmail": "allieescaffi88@gmail.com",
+        "createdAt": "2026-02-01T03:38:41.284Z",
+        "expiresAt": 1769960321041,
+        "lastSeenAt": "2026-02-01T03:39:28.389Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "allie"
+      }
+    },
+    {
+      "key": "ATTENDANCE_shehrozeps9721_AT_gmail_com_2025-11-18_1763502813251",
+      "value": {
+        "email": "shehrozeps9721@gmail.com",
+        "date": "2025-11-18",
+        "confirmed": true,
+        "timestamp": "2025-11-18T21:53:33.251Z",
+        "recordId": 1763502813251
+      }
+    },
+    {
+      "key": "SESSION_w_zViuhSH1ORwCHGLqRwEKBpr_JhSd-pFUp2haJycWNI_6plbKARdUqQiWOXDfYa_mkz1p5os",
+      "value": {
+        "token": "w_zViuhSH1ORwCHGLqRwEKBpr_JhSd-pFUp2haJycWNI_6plbKARdUqQiWOXDfYa_mkz1p5os",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-29T06:00:26.642Z",
+        "expiresAt": 1769709626381,
+        "lastSeenAt": "2026-01-29T06:00:43.114Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_HpniKMIKc64CrdRj9kf_WYgV0ywgswgX2xNtWqG0PoxhYd8ECD3uzdo-tqPiWwul_ml4epo02",
+      "value": {
+        "token": "HpniKMIKc64CrdRj9kf_WYgV0ywgswgX2xNtWqG0PoxhYd8ECD3uzdo-tqPiWwul_ml4epo02",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-02-02T00:03:36.241Z",
+        "expiresAt": 1770033816003,
+        "lastSeenAt": "2026-02-02T00:04:20.571Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_tafreed57_AT_gmail_com_2025-11-30_1764553877205",
+      "value": {
+        "email": "tafreed57@gmail.com",
+        "date": "2025-11-30",
+        "confirmed": true,
+        "timestamp": "2025-12-01T01:51:17.205Z",
+        "recordId": 1764553877205
+      }
+    },
+    {
+      "key": "ATTENDANCE_adamghouj_AT_gmail_con_2026-02-01_1769924597079",
+      "value": {
+        "email": "adamghouj@gmail.con",
+        "date": "2026-02-01",
+        "confirmed": true,
+        "timestamp": "2026-02-01T05:43:17.079Z",
+        "recordId": 1769924597079,
+        "teacherEmail": "none"
+      }
+    },
+    {
+      "key": "ATTENDANCE_techwithniki14_AT_gmail_com_2026-01-29_1769752218386",
+      "value": {
+        "email": "techwithniki14@gmail.com",
+        "date": "2026-01-29",
+        "confirmed": true,
+        "timestamp": "2026-01-30T05:50:18.386Z",
+        "recordId": 1769752218386,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_vRUr3_KGw7xQLQxMepGfyy09eJZ5XnRRvx-oDJmC0qfdCqyy3z0_tBgwShGiXS6h_ml1kv376",
+      "value": {
+        "token": "vRUr3_KGw7xQLQxMepGfyy09eJZ5XnRRvx-oDJmC0qfdCqyy3z0_tBgwShGiXS6h_ml1kv376",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-31T00:32:28.361Z",
+        "expiresAt": 1769862748146,
+        "lastSeenAt": "2026-01-31T01:09:16.699Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-01-31_1769884609493",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-01-31",
+        "confirmed": true,
+        "timestamp": "2026-01-31T18:36:49.493Z",
+        "recordId": 1769884609493,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah_roemmich84_AT_gmail_com_2026-01-29_1769738944912",
+      "value": {
+        "email": "sarah.roemmich84@gmail.com",
+        "date": "2026-01-29",
+        "confirmed": true,
+        "timestamp": "2026-01-30T02:09:04.912Z",
+        "recordId": 1769738944912,
+        "teacherEmail": "none"
+      }
+    },
+    {
+      "key": "ATTENDANCE_allieescaffi88_AT_gmail_com_2026-02-01_1770006831533",
+      "value": {
+        "email": "allieescaffi88@gmail.com",
+        "date": "2026-02-01",
+        "confirmed": true,
+        "timestamp": "2026-02-02T04:33:51.533Z",
+        "recordId": 1770006831533,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_2qJVxjJjoAW7OtqyU-ozgD_EHGrwbYLP4IjPY4USqm9WpsfM4NbU399vWlvVYnX3_mkxhen6o",
+      "value": {
+        "token": "2qJVxjJjoAW7OtqyU-ozgD_EHGrwbYLP4IjPY4USqm9WpsfM4NbU399vWlvVYnX3_mkxhen6o",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-28T03:44:37.696Z",
+        "expiresAt": 1769615077344,
+        "lastSeenAt": "2026-01-28T03:44:52.698Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "TEACHER_PAYMENT_momo50__AT_gmail_com",
+      "value": {
+        "paymentDate": "2025-11-11T01:53:56.620Z",
+        "paidAmount": 2094.89,
+        "lastPaidAllStudentsTotal": 2094.89,
+        "studentCount": 1
+      }
+    },
+    {
+      "key": "SESSION_QIHiqHVNRjpW2SvMZ_wa86kTbooCZRagXb5yhdyV60qnv3VA7d85htR72Elsdnez_ml4qijii",
+      "value": {
+        "token": "QIHiqHVNRjpW2SvMZ_wa86kTbooCZRagXb5yhdyV60qnv3VA7d85htR72Elsdnez_ml4qijii",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-02-02T05:33:59.219Z",
+        "expiresAt": 1770053638986,
+        "lastSeenAt": "2026-02-02T05:38:37.522Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_-n0He_YIgxJeH5JX1THUS5ZPtMEo8Rh0XH0C5nvrGHVKaBPjY_9eQcaxNnOWq8B-_ml1dh14k",
+      "value": {
+        "token": "-n0He_YIgxJeH5JX1THUS5ZPtMEo8Rh0XH0C5nvrGHVKaBPjY_9eQcaxNnOWq8B-_ml1dh14k",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-30T21:05:35.210Z",
+        "expiresAt": 1769850334965,
+        "lastSeenAt": "2026-01-30T21:05:50.756Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "SESSION_3XALQqROhRl4wZ0j2GJ48HsUDXYHP47r1TlqCtpdit29dgjWCWUJoWPCIZvXWcrF_mkzbeuei",
+      "value": {
+        "token": "3XALQqROhRl4wZ0j2GJ48HsUDXYHP47r1TlqCtpdit29dgjWCWUJoWPCIZvXWcrF_mkzbeuei",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-29T10:32:21.627Z",
+        "expiresAt": 1769725941355,
+        "lastSeenAt": "2026-01-29T10:32:34.597Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "SESSION_R34kSMofbavJkenxj2a2d35rihSk76Vh32rOfVQ9T8ejIBi5--SEhFBT-3pm3W9o_ml3b7h8b",
+      "value": {
+        "token": "R34kSMofbavJkenxj2a2d35rihSk76Vh32rOfVQ9T8ejIBi5--SEhFBT-3pm3W9o_ml3b7h8b",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-02-01T05:37:42.607Z",
+        "expiresAt": 1769967462395,
+        "lastSeenAt": "2026-02-01T05:37:42.607Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ATTENDANCE_adamghouj_AT_gmail_con_2026-01-27_1769571902047",
+      "value": {
+        "email": "adamghouj@gmail.con",
+        "date": "2026-01-27",
+        "confirmed": true,
+        "timestamp": "2026-01-28T03:45:02.047Z",
+        "recordId": 1769571902047,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_allieescaffi88_AT_gmail_com_2026-01-30_1769828809850",
+      "value": {
+        "email": "allieescaffi88@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-31T03:06:49.850Z",
+        "recordId": 1769828809850,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cryptobasiks101_AT_gmail_com_2026-02-01_1769933445489",
+      "value": {
+        "email": "cryptobasiks101@gmail.com",
+        "date": "2026-02-01",
+        "confirmed": true,
+        "timestamp": "2026-02-01T08:10:45.489Z",
+        "recordId": 1769933445489,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_YtNNG-4x3MXbtDOhZPZkosq7xEGZWR2bS2VOtHdgojPMxrzulM0febtfUNYiGxUn_mkwnxyzd",
+      "value": {
+        "token": "YtNNG-4x3MXbtDOhZPZkosq7xEGZWR2bS2VOtHdgojPMxrzulM0febtfUNYiGxUn_mkwnxyzd",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-27T13:59:50.831Z",
+        "expiresAt": 1769565590618,
+        "lastSeenAt": "2026-01-27T14:02:55.474Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "SESSION_CL4xqothVhUlg6H4cD3JYPodxCoXLdteSK3aR86JMceV-KbNovw_wrpcaRGpjM35_ml3b7v5e",
+      "value": {
+        "token": "CL4xqothVhUlg6H4cD3JYPodxCoXLdteSK3aR86JMceV-KbNovw_wrpcaRGpjM35_ml3b7v5e",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-02-01T05:38:01.153Z",
+        "expiresAt": 1769967480434,
+        "lastSeenAt": "2026-02-01T05:38:15.390Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "SESSION_ubRA5H9mF69H6MjGlVaoeD4jyDVFBDuaZG7jaUCT2Qr17oAAZRDaCqwBz0RQPYOO_mkxeljqs",
+      "value": {
+        "token": "ubRA5H9mF69H6MjGlVaoeD4jyDVFBDuaZG7jaUCT2Qr17oAAZRDaCqwBz0RQPYOO_mkxeljqs",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-28T02:26:00.993Z",
+        "expiresAt": 1769610360628,
+        "lastSeenAt": "2026-01-28T02:29:15.054Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah_roemmich84_AT_gmail_com_2026-01-28_1769663708482",
+      "value": {
+        "email": "sarah.roemmich84@gmail.com",
+        "date": "2026-01-28",
+        "confirmed": true,
+        "timestamp": "2026-01-29T05:15:08.482Z",
+        "recordId": 1769663708482,
+        "teacherEmail": "none"
+      }
+    },
+    {
+      "key": "ATTENDANCE_shehrozeps9721_AT_gmail_com_2025-11-20_1763688461091",
+      "value": {
+        "email": "shehrozeps9721@gmail.com",
+        "date": "2025-11-20",
+        "confirmed": true,
+        "timestamp": "2025-11-21T01:27:41.091Z",
+        "recordId": 1763688461091
+      }
+    },
+    {
+      "key": "ATTENDANCE_adamghouj_AT_gmail_con_2026-01-27_1769498922274",
+      "value": {
+        "email": "adamghouj@gmail.con",
+        "date": "2026-01-27",
+        "confirmed": true,
+        "timestamp": "2026-01-27T07:28:42.274Z",
+        "recordId": 1769498922274,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_zxb4zaBjrUAuHGbwmGyTgbstMYjS7TP-BdhyP660kuW8ixCIDTShtxVZ8IVeN1U6_mkyybrv0",
+      "value": {
+        "token": "zxb4zaBjrUAuHGbwmGyTgbstMYjS7TP-BdhyP660kuW8ixCIDTShtxVZ8IVeN1U6_mkyybrv0",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-29T04:26:03.991Z",
+        "expiresAt": 1769703963085,
+        "lastSeenAt": "2026-01-29T04:26:03.991Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "SESSION_KyQ33BKqtUs9E_LYsO29fVH0WxwLSKl2IFAG469QSnR7dY_OR__qu1aRnMJ9hI4-_mkw9sr4r",
+      "value": {
+        "token": "KyQ33BKqtUs9E_LYsO29fVH0WxwLSKl2IFAG469QSnR7dY_OR__qu1aRnMJ9hI4-_mkw9sr4r",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-27T07:23:52.861Z",
+        "expiresAt": 1769541832539,
+        "lastSeenAt": "2026-01-27T07:31:17.337Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "Adam Ghoug Under_NO ONE"
+      }
+    },
+    {
+      "key": "SESSION_JuGmCIq9SmWXuk5fbu4tnh23S0Fk2QieijvVjnh2GIuczfdh0wNw2vYfxTpPd5J4_mkyunuxc",
+      "value": {
+        "token": "JuGmCIq9SmWXuk5fbu4tnh23S0Fk2QieijvVjnh2GIuczfdh0wNw2vYfxTpPd5J4_mkyunuxc",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-29T02:43:28.674Z",
+        "expiresAt": 1769697808466,
+        "lastSeenAt": "2026-01-29T02:46:50.407Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_QRW9aDhEVvpcJEKClpw5BYQx3rL36L6PMevYvMr4yuPR8emigqcmeU96IDFuS7we_ml445a7e",
+      "value": {
+        "token": "QRW9aDhEVvpcJEKClpw5BYQx3rL36L6PMevYvMr4yuPR8emigqcmeU96IDFuS7we_ml445a7e",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-02-01T19:07:49.537Z",
+        "expiresAt": 1770016068843,
+        "lastSeenAt": "2026-02-01T19:08:35.131Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_xNcKn9DPUJ_2EDC_iEAbuiiYZg6hTRiqrBrPbn2Dui05ocKtGQQXBpIpCfZlZilM_mkupe8pl",
+      "value": {
+        "token": "xNcKn9DPUJ_2EDC_iEAbuiiYZg6hTRiqrBrPbn2Dui05ocKtGQQXBpIpCfZlZilM_mkupe8pl",
+        "email": "sarah40%@gmail.com",
+        "aliasEmail": "sarah40%@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah40%@gmail.com",
+        "displayEmail": "sarah40%@gmail.com",
+        "createdAt": "2026-01-26T05:04:57.228Z",
+        "expiresAt": 1769447096986,
+        "lastSeenAt": "2026-01-26T05:06:31.332Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher"
+      }
+    },
+    {
+      "key": "SESSION_hgFuHl9uJFVaQXPoKqtp8WeHA1gPrmhTLry5G6meKQ3Y13CmCppsFQTDD-IzKcae_ml4lgjus",
+      "value": {
+        "token": "hgFuHl9uJFVaQXPoKqtp8WeHA1gPrmhTLry5G6meKQ3Y13CmCppsFQTDD-IzKcae_ml4lgjus",
+        "email": "tradewithshell@gmail.com",
+        "aliasEmail": "tradewithshell@gmail.com",
+        "rewardfulEmail": "shelly20%@gmail.com",
+        "canonicalEmail": "tradewithshell@gmail.com",
+        "displayEmail": "tradewithshell@gmail.com",
+        "createdAt": "2026-02-02T03:12:28.397Z",
+        "expiresAt": 1770045148037,
+        "lastSeenAt": "2026-02-02T03:12:54.362Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "Shell tradewithshell@gmail.com"
+      }
+    },
+    {
+      "key": "teacher_earnings_sarah40%@gmail.com",
+      "value": {
+        "totalEarned": 0,
+        "totalUnpaidEarned": 0,
+        "totalDueNowEarned": 0,
+        "lastUpdated": "2026-01-27T02:45:19.145Z",
+        "studentTracking": {
+          "shehrozeps9721@gmail.com": {
+            "unpaid": 289.88,
+            "dueNow": 0
+          }
+        }
+      }
+    },
+    {
+      "key": "TEACHER_PERCENTAGE_momo50__AT_gmail_com",
+      "value": 10
+    },
+    {
+      "key": "SESSION_yPDYAu2gNLiVMJ69AxmKjpbA34Talup2-p1K4s0GW4yKXsHIwNAnBxhntzDWeVCW_mkwbcz1j",
+      "value": {
+        "token": "yPDYAu2gNLiVMJ69AxmKjpbA34Talup2-p1K4s0GW4yKXsHIwNAnBxhntzDWeVCW_mkwbcz1j",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-27T08:07:35.759Z",
+        "expiresAt": 1769544455527,
+        "lastSeenAt": "2026-01-27T08:08:26.351Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_Os2KgoxMdrEtFqQU2ZBHh3jG0kCqFlYiHDdzGR16e19NJjuAGGxgYjcaAXuxa3bH_ml19nznu",
+      "value": {
+        "token": "Os2KgoxMdrEtFqQU2ZBHh3jG0kCqFlYiHDdzGR16e19NJjuAGGxgYjcaAXuxa3bH_ml19nznu",
+        "email": "cryptobasiks101@gmail.com",
+        "aliasEmail": "cryptobasiks101@gmail.com",
+        "rewardfulEmail": "steve30%@gmail.com",
+        "canonicalEmail": "cryptobasiks101@gmail.com",
+        "displayEmail": "cryptobasiks101@gmail.com",
+        "createdAt": "2026-01-30T19:19:01.825Z",
+        "expiresAt": 1769843941194,
+        "lastSeenAt": "2026-01-30T19:30:56.996Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "steve under_mario garcia"
+      }
+    },
+    {
+      "key": "INCREMENTAL_TRACKING_tafreed57_AT_gmail_com",
+      "value": {
+        "isInitialized": true,
+        "emailBaselinePercentage": null,
+        "lastApiUnpaid": 0,
+        "lastApiDueNow": 0,
+        "lastApiTotalPaid": 0,
+        "lastDisplayedUnpaid": 0,
+        "lastDisplayedDueNow": 0,
+        "lastDisplayedTotalPaid": 0,
+        "initialApiUnpaid": 0,
+        "initialApiDueNow": 0,
+        "initialApiTotalPaid": 0,
+        "lastUpdateTime": "2025-11-19T11:01:37.328Z"
+      }
+    },
+    {
+      "key": "INCREMENTAL_TRACKING_mohammadxtafreed10__AT_gmail_com",
+      "value": {
+        "isInitialized": true,
+        "emailBaselinePercentage": 10,
+        "lastApiUnpaid": 11035.06,
+        "lastApiDueNow": 3633.3,
+        "lastApiTotalPaid": 0,
+        "lastDisplayedUnpaid": 1103.51,
+        "lastDisplayedDueNow": 363.33,
+        "lastDisplayedTotalPaid": 0,
+        "initialApiUnpaid": 11035.06,
+        "initialApiDueNow": 3633.3,
+        "initialApiTotalPaid": 0,
+        "lastUpdateTime": "2025-11-25T23:37:45.782Z"
+      }
+    },
+    {
+      "key": "SESSION_6_PzPeXz-HiRrTeIwxJs6Kh76jxQKXhglFVeOuh-Rkcu7otHL68UONU7HQh6yHZn_mkyycq9b",
+      "value": {
+        "token": "6_PzPeXz-HiRrTeIwxJs6Kh76jxQKXhglFVeOuh-Rkcu7otHL68UONU7HQh6yHZn_mkyycq9b",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-29T04:26:47.867Z",
+        "expiresAt": 1769704007663,
+        "lastSeenAt": "2026-01-29T04:26:59.352Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah40__AT_gmail_com_2025-12-28_1766959953402",
+      "value": {
+        "email": "sarah40%@gmail.com",
+        "date": "2025-12-28",
+        "confirmed": true,
+        "timestamp": "2025-12-28T22:12:33.402Z",
+        "recordId": 1766959953402,
+        "teacherEmail": "momo50%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_UgCt9seA5iK46iGjK8mMGPh1uYFSF1tTwiChU_5wykuxhgxVpcNdGq-_7Ihypk7C_ml3xcnou",
+      "value": {
+        "token": "UgCt9seA5iK46iGjK8mMGPh1uYFSF1tTwiChU_5wykuxhgxVpcNdGq-_7Ihypk7C_ml3xcnou",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-02-01T15:57:35.876Z",
+        "expiresAt": 1770004655600,
+        "lastSeenAt": "2026-02-01T15:57:48.906Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "ATTENDANCE_allieescaffi88_AT_gmail_com_2026-01-28_1769661720070",
+      "value": {
+        "email": "allieescaffi88@gmail.com",
+        "date": "2026-01-28",
+        "confirmed": true,
+        "timestamp": "2026-01-29T04:42:00.070Z",
+        "recordId": 1769661720070,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "ATTENDANCE_sarah_roemmich84_AT_gmail_com_2026-01-31_1769894997165",
+      "value": {
+        "email": "sarah.roemmich84@gmail.com",
+        "date": "2026-01-31",
+        "confirmed": true,
+        "timestamp": "2026-01-31T21:29:57.165Z",
+        "recordId": 1769894997165,
+        "teacherEmail": "none"
+      }
+    },
+    {
+      "key": "SESSION_IX-It80665ebol3O38yOF5EN7YjRWey2iEz2yxgX0ZcorIpe3XArb0A4dqw6xwJI_ml05us3d",
+      "value": {
+        "token": "IX-It80665ebol3O38yOF5EN7YjRWey2iEz2yxgX0ZcorIpe3XArb0A4dqw6xwJI_ml05us3d",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-30T00:44:33.780Z",
+        "expiresAt": 1769777073338,
+        "lastSeenAt": "2026-01-30T00:44:53.270Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    },
+    {
+      "key": "teacher_student_pct_mg.one4all@gmail.com_allieescaffi88@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "SESSION_dqCLmaGCRDgM6-JJSEXICMblMzRNGbyMtbNZ8EDLv9dixmqG5ka-lrAjymSQSYNl_ml1w6wgt",
+      "value": {
+        "token": "dqCLmaGCRDgM6-JJSEXICMblMzRNGbyMtbNZ8EDLv9dixmqG5ka-lrAjymSQSYNl_ml1w6wgt",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-31T05:49:35.262Z",
+        "expiresAt": 1769881775071,
+        "lastSeenAt": "2026-01-31T05:53:27.265Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_e4JLiqFqw_Cb6vZe4qSgRTyF7Vo1e45eT3WNwtISmmzZtIapHJHEXg-KHd7wn_Xe_ml4cfqq2",
+      "value": {
+        "token": "e4JLiqFqw_Cb6vZe4qSgRTyF7Vo1e45eT3WNwtISmmzZtIapHJHEXg-KHd7wn_Xe_ml4cfqq2",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-02-01T22:59:53.996Z",
+        "expiresAt": 1770029993738,
+        "lastSeenAt": "2026-02-01T23:03:48.411Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "SESSION_wTNjBmj45zkAR_ngGCYJ7pDB-iOjsfxgxjtI9PP6e70ASSHoaFbDgYXeap5bqpoZ_mkw9uhsm",
+      "value": {
+        "token": "wTNjBmj45zkAR_ngGCYJ7pDB-iOjsfxgxjtI9PP6e70ASSHoaFbDgYXeap5bqpoZ_mkw9uhsm",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-27T07:25:14.020Z",
+        "expiresAt": 1769541913750,
+        "lastSeenAt": "2026-01-27T07:25:14.020Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "Adam Ghoug Under_NO ONE"
+      }
+    },
+    {
+      "key": "SESSION_tTqLVSG9Gw6B54lUkRY6FwTk0JDWK2uUtmSAehNAu3MUH4Q_a8Btu5f17dPWzLMg_ml0f49nd",
+      "value": {
+        "token": "tTqLVSG9Gw6B54lUkRY6FwTk0JDWK2uUtmSAehNAu3MUH4Q_a8Btu5f17dPWzLMg_ml0f49nd",
+        "email": "sarah.roemmich84@gmail.com",
+        "aliasEmail": "sarah.roemmich84@gmail.com",
+        "rewardfulEmail": "sarah40%@gmail.com",
+        "canonicalEmail": "sarah.roemmich84@gmail.com",
+        "displayEmail": "sarah.roemmich84@gmail.com",
+        "createdAt": "2026-01-30T05:03:52.832Z",
+        "expiresAt": 1769792632539,
+        "lastSeenAt": "2026-01-30T05:03:52.832Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "sarah teacher qw"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-01-29_1769741230975",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-01-29",
+        "confirmed": true,
+        "timestamp": "2026-01-30T02:47:10.975Z",
+        "recordId": 1769741230975,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "teacher_student_pct_mg.one4all@gmail.com_cryptobasiks101@gmail.com",
+      "value": 20
+    },
+    {
+      "key": "SESSION_yoSukpJDxSaE37bj2NI7-q78njGvqPo-ewgPuSSYnTKM7HRdxd7o4hNAOf8CPG6U_ml0e9ghy",
+      "value": {
+        "token": "yoSukpJDxSaE37bj2NI7-q78njGvqPo-ewgPuSSYnTKM7HRdxd7o4hNAOf8CPG6U_ml0e9ghy",
+        "email": "allieescaffi88@gmail.com",
+        "aliasEmail": "allieescaffi88@gmail.com",
+        "rewardfulEmail": "allie30%@gmail.com",
+        "canonicalEmail": "allieescaffi88@gmail.com",
+        "displayEmail": "allieescaffi88@gmail.com",
+        "createdAt": "2026-01-30T04:39:55.298Z",
+        "expiresAt": 1769791195078,
+        "lastSeenAt": "2026-01-30T04:40:57.067Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "allie"
+      }
+    },
+    {
+      "key": "SESSION_xq0XLlozFKVM4bQJgDk9m027vJMveKynyahpbekUzsznjVghdTLij59xDlCys7sl_mkx4mrdj",
+      "value": {
+        "token": "xq0XLlozFKVM4bQJgDk9m027vJMveKynyahpbekUzsznjVghdTLij59xDlCys7sl_mkx4mrdj",
+        "email": "tafreed57@gmail.com",
+        "aliasEmail": "tafreed57@gmail.com",
+        "rewardfulEmail": "tafreed57@gmail.com",
+        "canonicalEmail": "tafreed57@gmail.com",
+        "displayEmail": "tafreed57@gmail.com",
+        "createdAt": "2026-01-27T21:47:01.304Z",
+        "expiresAt": 1769593621015,
+        "lastSeenAt": "2026-01-27T21:47:23.593Z",
+        "isTeacher": true,
+        "isAdmin": true,
+        "userName": "Tafreed Mangla"
+      }
+    },
+    {
+      "key": "SESSION_24K0EJo1eAi_jUTGJ43_z7gmdA-4ZPphu56YLeySb52jN9w2Gux7fEkfeviQb6bO_ml4ldh4f",
+      "value": {
+        "token": "24K0EJo1eAi_jUTGJ43_z7gmdA-4ZPphu56YLeySb52jN9w2Gux7fEkfeviQb6bO_ml4ldh4f",
+        "email": "cryptobasiks101@gmail.com",
+        "aliasEmail": "cryptobasiks101@gmail.com",
+        "rewardfulEmail": "steve30%@gmail.com",
+        "canonicalEmail": "cryptobasiks101@gmail.com",
+        "displayEmail": "cryptobasiks101@gmail.com",
+        "createdAt": "2026-02-02T03:10:04.985Z",
+        "expiresAt": 1770045004527,
+        "lastSeenAt": "2026-02-02T03:10:29.637Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "steve under_mario garcia"
+      }
+    },
+    {
+      "key": "SESSION_Hy3rLNy95Nk8HuGFflV7kGIdgMZN2O6fysw2lZolohXGPEtBQ9gOUOKhbwrmgBwE_mkyymvt8",
+      "value": {
+        "token": "Hy3rLNy95Nk8HuGFflV7kGIdgMZN2O6fysw2lZolohXGPEtBQ9gOUOKhbwrmgBwE_mkyymvt8",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-29T04:34:41.646Z",
+        "expiresAt": 1769704481420,
+        "lastSeenAt": "2026-01-29T04:50:31.911Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_shehrozeps9721_AT_gmail_com_2025-11-20_1763688455201",
+      "value": {
+        "email": "shehrozeps9721@gmail.com",
+        "date": "2025-11-20",
+        "confirmed": true,
+        "timestamp": "2025-11-21T01:27:35.201Z",
+        "recordId": 1763688455201
+      }
+    },
+    {
+      "key": "INCREMENTAL_TRACKING_shehrozethefallenangel_AT_gmail_com",
+      "value": {
+        "isInitialized": true,
+        "emailBaselinePercentage": null,
+        "lastApiUnpaid": 52126.06,
+        "lastApiDueNow": 28412.71,
+        "lastApiTotalPaid": 0,
+        "lastDisplayedUnpaid": 52126.06,
+        "lastDisplayedDueNow": 28412.71,
+        "lastDisplayedTotalPaid": 0,
+        "initialApiUnpaid": 45415.32,
+        "initialApiDueNow": 20023.82,
+        "initialApiTotalPaid": 0,
+        "lastUpdateTime": "2025-11-19T18:45:21.513Z"
+      }
+    },
+    {
+      "key": "ATTENDANCE_shehrozeps9721_AT_gmail_com_2025-12-09_1765319737577",
+      "value": {
+        "email": "shehrozeps9721@gmail.com",
+        "date": "2025-12-09",
+        "confirmed": true,
+        "timestamp": "2025-12-09T22:35:37.577Z",
+        "recordId": 1765319737577,
+        "teacherEmail": "sarah40%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_IU47U-HasKvwgtOvfgWx7GdWm9UQaiJyHeua8x-_wEnj7_bmhS38-C8Q6c-ERiNq_ml39kxtb",
+      "value": {
+        "token": "IU47U-HasKvwgtOvfgWx7GdWm9UQaiJyHeua8x-_wEnj7_bmhS38-C8Q6c-ERiNq_ml39kxtb",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-02-01T04:52:11.443Z",
+        "expiresAt": 1769964731183,
+        "lastSeenAt": "2026-02-01T05:15:15.961Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_cash4kin_AT_gmail_com_2026-01-30_1769807099034",
+      "value": {
+        "email": "cash4kin@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-30T21:04:59.034Z",
+        "recordId": 1769807099034,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "teacher_student_pct_tafreed47@gmail.com_janedoe@gmail.com",
+      "value": 10
+    },
+    {
+      "key": "SESSION_lPGosefLs6Sig_mNma08HE0QLLvqdJtWFVUFn_ONkTr7SoxyMjDKs2xgYrv0ONc0_mkuszj59",
+      "value": {
+        "token": "lPGosefLs6Sig_mNma08HE0QLLvqdJtWFVUFn_ONkTr7SoxyMjDKs2xgYrv0ONc0_mkuszj59",
+        "email": "mario30%@gmail.com",
+        "aliasEmail": "mario30%@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mario30%@gmail.com",
+        "displayEmail": "mario30%@gmail.com",
+        "createdAt": "2026-01-26T06:45:29.413Z",
+        "expiresAt": 1769453129133,
+        "lastSeenAt": "2026-01-26T06:45:29.413Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_oHFH4NM7rb0KpqatRSYQpikmu9zf4P6rYsYzZK_Mpe6376KhkW3A6SvkqrdaZJOu_ml3gnjwy",
+      "value": {
+        "token": "oHFH4NM7rb0KpqatRSYQpikmu9zf4P6rYsYzZK_Mpe6376KhkW3A6SvkqrdaZJOu_ml3gnjwy",
+        "email": "cryptobasiks101@gmail.com",
+        "aliasEmail": "cryptobasiks101@gmail.com",
+        "rewardfulEmail": "steve30%@gmail.com",
+        "canonicalEmail": "cryptobasiks101@gmail.com",
+        "displayEmail": "cryptobasiks101@gmail.com",
+        "createdAt": "2026-02-01T08:10:10.855Z",
+        "expiresAt": 1769976610450,
+        "lastSeenAt": "2026-02-01T08:10:37.733Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "steve under_mario garcia"
+      }
+    },
+    {
+      "key": "SESSION_iUlLLacI6y6LqDFozHJdEkuAct4TyFH7doAVTHM4jqcv1W9TfHrucTDSqG963wpM_mkxlfzlv",
+      "value": {
+        "token": "iUlLLacI6y6LqDFozHJdEkuAct4TyFH7doAVTHM4jqcv1W9TfHrucTDSqG963wpM_mkxlfzlv",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-28T05:37:39.375Z",
+        "expiresAt": 1769621858563,
+        "lastSeenAt": "2026-01-28T05:37:44.431Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "SESSION_cYcalzr9vn9SMU8xa8P2DwdizRdz9E3Yj9t1R1wg0d0AwFLm8qr_Q6zgyN7TizPy_ml0fdtaq",
+      "value": {
+        "token": "cYcalzr9vn9SMU8xa8P2DwdizRdz9E3Yj9t1R1wg0d0AwFLm8qr_Q6zgyN7TizPy_ml0fdtaq",
+        "email": "mg.one4all@gmail.com",
+        "aliasEmail": "mg.one4all@gmail.com",
+        "rewardfulEmail": "mario30%@gmail.com",
+        "canonicalEmail": "mg.one4all@gmail.com",
+        "displayEmail": "mg.one4all@gmail.com",
+        "createdAt": "2026-01-30T05:11:18.175Z",
+        "expiresAt": 1769793077907,
+        "lastSeenAt": "2026-01-30T05:11:52.829Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Mario teacher"
+      }
+    },
+    {
+      "key": "ATTENDANCE_tilacotainvestments_AT_gmail_com_2026-01-30_1769820476791",
+      "value": {
+        "email": "tilacotainvestments@gmail.com",
+        "date": "2026-01-30",
+        "confirmed": true,
+        "timestamp": "2026-01-31T00:47:56.791Z",
+        "recordId": 1769820476791,
+        "teacherEmail": "mario30%@gmail.com"
+      }
+    },
+    {
+      "key": "SESSION_85HbbdLntXnUGFnYWvJOFpsmjab8P4M5vcNEPHm2fKQ2c4dnGWr1mSjve98ZabV4_ml1qc3ue",
+      "value": {
+        "token": "85HbbdLntXnUGFnYWvJOFpsmjab8P4M5vcNEPHm2fKQ2c4dnGWr1mSjve98ZabV4_ml1qc3ue",
+        "email": "allieescaffi88@gmail.com",
+        "aliasEmail": "allieescaffi88@gmail.com",
+        "rewardfulEmail": "allie30%@gmail.com",
+        "canonicalEmail": "allieescaffi88@gmail.com",
+        "displayEmail": "allieescaffi88@gmail.com",
+        "createdAt": "2026-01-31T03:05:40.427Z",
+        "expiresAt": 1769871940217,
+        "lastSeenAt": "2026-01-31T03:07:41.605Z",
+        "isTeacher": false,
+        "isAdmin": false,
+        "userName": "allie"
+      }
+    },
+    {
+      "key": "TEACHER_PAYMENT_sarah40__AT_gmail_com",
+      "value": {
+        "paymentDate": "2026-01-27T02:45:19.074Z",
+        "paidAmount": 28.99,
+        "lastPaidAllStudentsTotal": 0,
+        "studentCount": 0
+      }
+    },
+    {
+      "key": "SESSION_VFYlLuFcJpb_QHzMGnMecqu_F49PRZ9wM7zTFB0DsWvG_pec_zlpzmIPZKR8Yez4_mkyyc6xi",
+      "value": {
+        "token": "VFYlLuFcJpb_QHzMGnMecqu_F49PRZ9wM7zTFB0DsWvG_pec_zlpzmIPZKR8Yez4_mkyyc6xi",
+        "email": "adamghouj@gmail.con",
+        "aliasEmail": "adamghouj@gmail.con",
+        "rewardfulEmail": "adam50%@gmail.com",
+        "canonicalEmail": "adamghouj@gmail.con",
+        "displayEmail": "adamghouj@gmail.con",
+        "createdAt": "2026-01-29T04:26:23.177Z",
+        "expiresAt": 1769703982615,
+        "lastSeenAt": "2026-01-29T04:26:23.177Z",
+        "isTeacher": true,
+        "isAdmin": false,
+        "userName": "Adam Ghoug teacher Under_NO ONE"
+      }
+    }
+  ]
+}

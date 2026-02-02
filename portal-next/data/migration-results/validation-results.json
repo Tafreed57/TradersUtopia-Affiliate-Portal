@@ -1,0 +1,80 @@
+{
+  "validatedAt": "2026-02-02T05:47:35.522Z",
+  "stats": {
+    "users": 47,
+    "sessions": 0,
+    "attendanceProfiles": 17,
+    "attendanceRecords": 0,
+    "teacherLinks": 17,
+    "commissionOverrides": 0
+  },
+  "results": [
+    {
+      "check": "User count",
+      "status": "pass",
+      "expected": 23,
+      "actual": 47,
+      "message": "User count matches expected"
+    },
+    {
+      "check": "Users with valid email",
+      "status": "pass",
+      "expected": 0,
+      "actual": 0,
+      "message": "All users have valid email"
+    },
+    {
+      "check": "Admin users exist",
+      "status": "pass",
+      "actual": 1,
+      "message": "1 admin user(s) found"
+    },
+    {
+      "check": "Teacher users exist",
+      "status": "pass",
+      "actual": 6,
+      "message": "6 teacher user(s) found"
+    },
+    {
+      "check": "Active users have passwords",
+      "status": "warn",
+      "expected": 0,
+      "actual": 24,
+      "message": "24 active users without password"
+    },
+    {
+      "check": "Attendance profiles have users",
+      "status": "pass",
+      "expected": 0,
+      "actual": 0,
+      "message": "All attendance profiles linked to users"
+    },
+    {
+      "check": "Teacher-student links valid",
+      "status": "pass",
+      "expected": 0,
+      "actual": 0,
+      "message": "All teacher-student links are valid"
+    },
+    {
+      "check": "No duplicate emails",
+      "status": "pass",
+      "expected": 0,
+      "actual": 0,
+      "message": "No duplicate emails found"
+    },
+    {
+      "check": "Attendance records have valid dates",
+      "status": "pass",
+      "expected": 0,
+      "actual": 0,
+      "message": "All attendance records have valid dates"
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "warnings": 1,
+    "failed": 0,
+    "total": 9
+  }
+}

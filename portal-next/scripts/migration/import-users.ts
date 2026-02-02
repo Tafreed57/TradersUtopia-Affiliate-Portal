@@ -89,14 +89,17 @@ async function importUsers(): Promise<MigrationResult> {
     if (!normalizedEmail) continue;
 
     const existing = userMap.get(normalizedEmail);
+    // Support both field naming conventions (hash/salt OR passwordHash/passwordSalt)
+    const pwHash = (data as Record<string, unknown>).passwordHash ?? data.hash;
+    const pwSalt = (data as Record<string, unknown>).passwordSalt ?? data.salt;
     userMap.set(normalizedEmail, {
       ...existing,
       aliasEmail: normalizeEmail(data.aliasEmail || email),
       internalEmail: data.internalEmail ? normalizeEmail(data.internalEmail) : undefined,
-      passwordHash: data.hash,
-      passwordSalt: data.salt,
+      passwordHash: pwHash as string | undefined,
+      passwordSalt: pwSalt as string | undefined,
       passwordSetAt: parseDate(data.passwordSetAt || data.createdAt),
-      accountStatus: data.hash ? 'ACTIVE' : 'APPROVED',
+      accountStatus: pwHash ? 'ACTIVE' : 'APPROVED',
       isAdmin: ADMIN_EMAILS.includes(normalizedEmail),
       isTeacher: TEACHER_EMAILS.includes(normalizedEmail),
     });
@@ -108,29 +111,61 @@ async function importUsers(): Promise<MigrationResult> {
     const normalizedEmail = normalizeEmail(email);
     if (!normalizedEmail) continue;
 
+    // Support both field naming conventions AND extended fields from export
+    const rawData = data as Record<string, unknown>;
+    const pwHash = rawData.passwordHash ?? data.hash;
+    const pwSalt = rawData.passwordSalt ?? data.salt;
+    const aliasEmail = (rawData.aliasEmail as string) || normalizedEmail;
+    const internalEmail = (rawData.internalEmail as string) || (rawData.rewardfulEmail as string);
+    const firstName = rawData.firstName as string | undefined;
+    const lastName = rawData.lastName as string | undefined;
+    const accountStatus = (rawData.accountStatus as string) || (pwHash ? 'ACTIVE' : 'PENDING');
+    const rewardfulAffiliateId = (rawData.rewardfulAffiliateId as string) || (rawData.affiliateId as string);
+    const approvedAt = parseDate(rawData.approvedAt as string);
+    const approvedBy = rawData.approvedBy as string | undefined;
+    const lastLoginAt = parseDate((rawData.lastLoginAt as string) || data.lastLogin);
+    const passwordSetAt = parseDate((rawData.passwordSetAt as string) || data.createdAt);
+    const failedLoginCount = (rawData.failedLoginCount as number) || data.failedAttempts || 0;
+    const lockUntilTimestamp = parseDate((rawData.lockUntilTimestamp as string) || data.lockUntil);
+
     const existing = userMap.get(normalizedEmail);
     if (!existing) {
       userMap.set(normalizedEmail, {
-        aliasEmail: normalizedEmail,
-        passwordHash: data.hash,
-        passwordSalt: data.salt,
-        passwordSetAt: parseDate(data.createdAt),
-        accountStatus: data.hash ? 'ACTIVE' : 'PENDING',
+        aliasEmail: normalizeEmail(aliasEmail),
+        internalEmail: internalEmail ? normalizeEmail(internalEmail) : undefined,
+        firstName,
+        lastName,
+        passwordHash: pwHash as string | undefined,
+        passwordSalt: pwSalt as string | undefined,
+        passwordSetAt,
+        accountStatus: accountStatus as 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'COMPLETED',
         isAdmin: ADMIN_EMAILS.includes(normalizedEmail),
         isTeacher: TEACHER_EMAILS.includes(normalizedEmail),
-        lastLoginAt: parseDate(data.lastLogin),
-        failedLoginCount: data.failedAttempts || 0,
-        lockUntilTimestamp: parseDate(data.lockUntil),
+        rewardfulAffiliateId,
+        approvedAt,
+        approvedBy,
+        lastLoginAt,
+        failedLoginCount,
+        lockUntilTimestamp,
       });
     } else {
       // Merge data
       userMap.set(normalizedEmail, {
         ...existing,
-        passwordHash: existing.passwordHash || data.hash,
-        passwordSalt: existing.passwordSalt || data.salt,
-        lastLoginAt: parseDate(data.lastLogin) || existing.lastLoginAt,
-        failedLoginCount: data.failedAttempts || existing.failedLoginCount,
-        lockUntilTimestamp: parseDate(data.lockUntil) || existing.lockUntilTimestamp,
+        aliasEmail: existing.aliasEmail || normalizeEmail(aliasEmail),
+        internalEmail: existing.internalEmail || (internalEmail ? normalizeEmail(internalEmail) : undefined),
+        firstName: existing.firstName || firstName,
+        lastName: existing.lastName || lastName,
+        passwordHash: existing.passwordHash || (pwHash as string | undefined),
+        passwordSalt: existing.passwordSalt || (pwSalt as string | undefined),
+        passwordSetAt: existing.passwordSetAt || passwordSetAt,
+        accountStatus: (accountStatus as 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'COMPLETED') || existing.accountStatus,
+        rewardfulAffiliateId: existing.rewardfulAffiliateId || rewardfulAffiliateId,
+        approvedAt: existing.approvedAt || approvedAt,
+        approvedBy: existing.approvedBy || approvedBy,
+        lastLoginAt: lastLoginAt || existing.lastLoginAt,
+        failedLoginCount: failedLoginCount || existing.failedLoginCount,
+        lockUntilTimestamp: lockUntilTimestamp || existing.lockUntilTimestamp,
       });
     }
   }

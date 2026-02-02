@@ -1,0 +1,36 @@
+{
+  "importedAt": "2026-02-02T05:47:23.411Z",
+  "summary": {
+    "totalTeachers": 6,
+    "linksCreated": 17,
+    "earningsCreated": 0,
+    "skipped": 0,
+    "errors": 6
+  },
+  "errors": [
+    {
+      "key": "momo50__AT_gmail_com",
+      "error": "legacyStudents is not iterable"
+    },
+    {
+      "key": "tafreed57_AT_gmail_com",
+      "error": "legacyStudents is not iterable"
+    },
+    {
+      "key": "sarah40__AT_gmail_com",
+      "error": "legacyStudents is not iterable"
+    },
+    {
+      "key": "tafreeddddd100__AT_gmail_com",
+      "error": "legacyStudents is not iterable"
+    },
+    {
+      "key": "mario30__AT_gmail_com",
+      "error": "legacyStudents is not iterable"
+    },
+    {
+      "key": "tafreed47_AT_gmail_com",
+      "error": "legacyStudents is not iterable"
+    }
+  ]
+}
