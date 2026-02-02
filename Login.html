@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Login - Traders Utopia Portal</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+    }
+    
+    html, body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .login-container {
+      width: 100%;
+      max-width: 440px;
+      animation: slideIn 0.6s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { 
+        opacity: 0; 
+        transform: translateY(40px) scale(0.95);
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .logo-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .logo-icon {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 16px 48px rgba(233, 69, 96, 0.4);
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    
+    .logo-icon svg {
+      width: 55px;
+      height: 55px;
+      fill: white;
+    }
+    
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 400;
+    }
+    
+    .login-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 40px 32px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 10px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .input-wrapper {
+      position: relative;
+    }
+    
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      fill: rgba(255, 255, 255, 0.4);
+      transition: fill 0.3s;
+    }
+    
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 18px 18px 18px 52px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      font-size: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      color: white;
+      transition: all 0.3s ease;
+      -webkit-appearance: none;
+    }
+    
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #e94560;
+      background: rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.2);
+    }
+    
+    input:focus + .input-icon,
+    .input-wrapper:focus-within .input-icon {
+      fill: #e94560;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 32px rgba(233, 69, 96, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(233, 69, 96, 0.5);
+    }
+    
+    .btn:active {
+      transform: translateY(-1px);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .msg {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+    }
+    
+    .msg.error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+    
+    .msg.success {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+    
+    .msg.info {
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+    }
+    
+    .links-section {
+      margin-top: 28px;
+      text-align: center;
+    }
+    
+    .links-section a {
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+    
+    .links-section a:hover {
+      color: #e94560;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 13px;
+    }
+    
+    /* Decorative elements */
+    .bg-decoration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(233, 69, 96, 0.1), rgba(255, 107, 107, 0.05));
+    }
+    
+    .bg-circle-1 {
+      width: 600px;
+      height: 600px;
+      top: -300px;
+      right: -200px;
+    }
+    
+    .bg-circle-2 {
+      width: 400px;
+      height: 400px;
+      bottom: -150px;
+      left: -100px;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 480px) {
+      .login-container {
+        max-width: 100%;
+      }
+      
+      .login-card {
+        padding: 32px 24px;
+      }
+      
+      h1 {
+        font-size: 28px;
+      }
+      
+      .logo-icon {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .logo-icon svg {
+        width: 45px;
+        height: 45px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-decoration">
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+  </div>
+  
+  <div class="login-container">
+    <div class="logo-section">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V7.89l7-3.11v8.2z"/>
+        </svg>
+      </div>
+      <h1>Traders Utopia</h1>
+      <p class="subtitle">Sign in to access your portal</p>
+    </div>
+    
+    <div class="login-card">
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div class="input-wrapper">
+            <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+            <svg class="input-icon" viewBox="0 0 24 24">
+              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+            <svg class="input-icon" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn" id="loginBtn">Sign In</button>
+      </form>
+      
+      <div id="message" class="msg"></div>
+      
+      <div class="links-section">
+        <a href="#" id="newHereLink">New here? Request access</a>
+        <span style="color: rgba(255,255,255,0.3); margin: 0 10px;">|</span>
+        <a href="#" id="checkStatusLink" style="color: rgba(255,255,255,0.6);">Check request status</a>
+      </div>
+    </div>
+    
+    <div class="footer">
+      &copy; 2024 Traders Utopia. All rights reserved.
+    </div>
+  </div>
+  
+  <script>
+    // Session token storage key
+    var SESSION_TOKEN_KEY = 'tradersutopia_session_token';
+    
+    // Check if already logged in on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      console.log('Login page loaded, checking for existing session...');
+      checkExistingSession();
+      
+      // Pre-fill email from URL parameter
+      var urlParams = new URLSearchParams(window.location.search);
+      var emailParam = urlParams.get('email');
+      if (emailParam) {
+        document.getElementById('email').value = emailParam;
+        document.getElementById('password').focus();
+      }
+    });
+    
+    function checkExistingSession() {
+      var token = localStorage.getItem(SESSION_TOKEN_KEY);
+      if (!token) {
+        console.log('No existing session token');
+        return;
+      }
+      
+      console.log('Found existing session token, validating...');
+      showMessage('Checking session...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.valid) {
+            console.log('Session valid, redirecting to home...');
+            showMessage('Welcome back! Redirecting...', 'success');
+            redirectToHome();
+          } else {
+            console.log('Session invalid, clearing token');
+            localStorage.removeItem(SESSION_TOKEN_KEY);
+            hideMessage();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Session validation error:', error);
+          localStorage.removeItem(SESSION_TOKEN_KEY);
+          hideMessage();
+        })
+        .validateSessionToken(token);
+    }
+    
+    function showMessage(text, type) {
+      var msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = 'msg ' + type;
+      msg.style.display = 'block';
+    }
+    
+    function hideMessage() {
+      document.getElementById('message').style.display = 'none';
+    }
+    
+    function redirectToHome() {
+      google.script.run
+        .withSuccessHandler(function(appUrl) {
+          var url = appUrl + '?page=home';
+          try {
+            window.top.location.href = url;
+          } catch (e) {
+            window.location.href = url;
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error getting app URL:', error);
+          // Try to redirect anyway
+          try {
+            window.top.location.href = window.location.href.split('?')[0] + '?page=home';
+          } catch (e) {
+            window.location.href = window.location.href.split('?')[0] + '?page=home';
+          }
+        })
+        .getWebAppUrl();
+    }
+    
+    // Login form submission
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      var email = document.getElementById('email').value.trim();
+      var password = document.getElementById('password').value;
+      
+      if (!email || email.indexOf('@') === -1) {
+        showMessage('Please enter a valid email address', 'error');
+        return;
+      }
+      
+      if (!password) {
+        showMessage('Please enter your password', 'error');
+        return;
+      }
+      
+      var btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Signing in...';
+      showMessage('Verifying credentials...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            // Store session token
+            localStorage.setItem(SESSION_TOKEN_KEY, result.token);
+            
+            showMessage('Login successful! Redirecting...', 'success');
+            console.log('Session created, token stored');
+            
+            // Short delay for visual feedback then redirect
+            setTimeout(function() {
+              redirectToHome();
+            }, 500);
+          } else {
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+            
+            if (result.noPasswordSet || result.needsAccessRequest) {
+              showMessage(result.error, 'error');
+              // Highlight the "New here?" link
+              document.getElementById('newHereLink').style.color = '#e94560';
+              document.getElementById('newHereLink').style.fontWeight = 'bold';
+            } else if (result.isPending) {
+              // Account pending approval - show info message
+              showMessage(result.error, 'info');
+            } else if (result.isRejected) {
+              // Account rejected
+              showMessage(result.error, 'error');
+            } else {
+              showMessage(result.error || 'Login failed', 'error');
+            }
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.textContent = 'Sign In';
+          console.error('Login error:', error);
+          showMessage('Connection error. Please try again.', 'error');
+        })
+        .loginAndCreateSession(email, password);
+    });
+    
+    // New here link - go to request access page
+    // IMPORTANT: Use server-provided base URL to avoid userCodeAppPanel bug
+    document.getElementById('newHereLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('New here link clicked');
+      
+      var email = document.getElementById('email').value.trim();
+      showMessage('Redirecting...', 'info');
+      
+      // Get the CORRECT deployed web app URL from the server
+      // This uses ScriptApp.getService().getUrl() which returns the /exec URL
+      google.script.run
+        .withSuccessHandler(function(baseUrl) {
+          console.log('Server provided base URL:', baseUrl);
+          
+          // Build the full URL using the correct base
+          var url = baseUrl + '?page=setpassword';
+          if (email) {
+            url += '&email=' + encodeURIComponent(email);
+          }
+          
+          console.log('Navigating to:', url);
+          
+          // Navigate using the correct URL
+          // Use window.top to break out of any iframe
+          try {
+            window.top.location.href = url;
+          } catch (err) {
+            console.log('window.top failed, trying window.location');
+            window.location.href = url;
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to get base URL:', error);
+          showMessage('Navigation error. Please try again.', 'error');
+        })
+        .getWebAppUrl();
+    });
+    
+    // Check status link - also goes to setpassword page with status check
+    document.getElementById('checkStatusLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Check status link clicked');
+      
+      var email = document.getElementById('email').value.trim();
+      showMessage('Redirecting...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(function(baseUrl) {
+          console.log('Server provided base URL:', baseUrl);
+          
+          // Go to setpassword page with a flag to auto-open status popup
+          var url = baseUrl + '?page=setpassword&checkstatus=1';
+          if (email) {
+            url += '&email=' + encodeURIComponent(email);
+          }
+          
+          console.log('Navigating to:', url);
+          
+          try {
+            window.top.location.href = url;
+          } catch (err) {
+            console.log('window.top failed, trying window.location');
+            window.location.href = url;
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Failed to get base URL:', error);
+          showMessage('Navigation error. Please try again.', 'error');
+        })
+        .getWebAppUrl();
+    });
+    
+    // Allow Enter key in password field
+    document.getElementById('password').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+      }
+    });
+  </script>
+</body>
+</html>

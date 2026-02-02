@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script>
+    // Force viewport reset on iOS
+    if (window.innerWidth > 768 && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      var viewportMeta = document.querySelector('meta[name="viewport"]');
+      if (viewportMeta) {
+        viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        // Force a reflow
+        setTimeout(function() {
+          window.scrollTo(0, 0);
+          document.body.style.width = '100%';
+        }, 100);
+      }
+    }
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+    }
+    
+    body { 
+      font-family: system-ui, Arial, sans-serif; 
+      padding: 0; 
+      margin: 0; 
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      /* Force iOS to respect actual device width */
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Force container to be mobile-friendly */
+    .container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      padding: 15px !important;
+      width: calc(100% - 10px) !important;
+      max-width: 600px !important;
+      margin: 5px auto !important;
+      overflow-x: hidden !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Desktop styles - higher breakpoint to handle iOS 980px viewport issue */
+    @media (min-width: 1024px) {
+      .container {
+        padding: 30px;
+        margin: 20px auto;
+        border-radius: 12px;
+      }
+    }
+    
+    /* Force mobile button styles for ALL screens (iOS iframe fix) */
+    .btn { 
+      padding: 14px 20px !important; 
+      border-radius: 8px; 
+      border: 2px solid #4a90e2; 
+      background: #4a90e2;
+      color: white;
+      cursor: pointer; 
+      margin: 5px 0 !important;
+      font-size: 16px !important;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      width: 100% !important;
+      min-height: 48px !important;
+      max-width: 600px;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      touch-action: manipulation;
+    }
+    
+    .btn:hover {
+      background: #357abd;
+      border-color: #357abd;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+    }
+    
+    .btn:disabled { 
+      opacity: 0.6; 
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      background: #ccc;
+      border-color: #ccc;
+    }
+    
+    /* Force mobile input styles (iOS iframe fix) */
+    .input { 
+      width: 100% !important; 
+      padding: 14px !important; 
+      margin: 10px 0 15px !important; 
+      border: 2px solid #e1e5e9; 
+      border-radius: 8px; 
+      box-sizing: border-box;
+      font-size: 16px !important;
+      min-height: 48px !important;
+      transition: border-color 0.3s ease;
+      max-width: 100% !important;
+    }
+    
+    .input:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+    
+    .msg { 
+      margin-top: 15px; 
+      font-size: 14px; 
+      padding: 10px;
+      border-radius: 6px;
+      background: #f8f9fa;
+    }
+    
+    /* Force mobile-friendly table layout */
+    .table { 
+      width: 100% !important; 
+      border-collapse: collapse; 
+      font-size: 14px !important; 
+      margin-top: 20px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: table !important;
+    }
+    
+    .table tbody {
+      display: table-row-group !important;
+    }
+    
+    .table tr {
+      display: table-row !important;
+    }
+    
+    .table td { 
+      padding: 12px 10px !important; 
+      border-bottom: 1px solid #e8e8e8;
+      display: table-cell !important;
+      vertical-align: top !important;
+      word-wrap: break-word !important;
+    }
+    
+    .table td:first-child { 
+      font-weight: 600; 
+      color: #2d3748;
+      width: 45% !important;
+    }
+    
+    .table td:last-child { 
+      color: #4a5568;
+      width: 55% !important;
+    }
+    
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    h2 {
+      color: #2d3748;
+      margin-bottom: 20px;
+      font-size: 28px;
+      text-align: center;
+    }
+    
+    #adminPercentageEnabled:checked + span {
+      background-color: #4CAF50 !important;
+    }
+    #adminPercentageEnabled:checked + span + span {
+      transform: translateX(20px) !important;
+    }
+    #adminPercentageEnabled + span {
+      background-color: #ccc;
+    }
+    #adminPercentageEnabled + span + span {
+      transition: transform 0.4s;
+    }
+    
+    /* Force ALL inputs to prevent iOS zoom */
+    input,
+    select,
+    textarea,
+    input[type="number"],
+    input[type="text"],
+    input[type="email"] {
+      font-size: 16px !important;
+      min-height: 48px !important;
+      padding: 14px !important;
+      box-sizing: border-box !important;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    /* Force admin inputs to always be visible and full width (iOS iframe fix) */
+    #adminUnpaid,
+    #adminDueNow,
+    #adminTotalPaid,
+    #adminLastPayout,
+    #adminStatus {
+      min-height: 48px !important;
+      padding: 14px !important;
+      font-size: 16px !important;
+      border: 2px solid #ccc !important;
+      border-radius: 6px !important;
+      width: 100% !important;
+      max-width: 600px !important;
+      box-sizing: border-box !important;
+      display: block !important;
+    }
+    
+    #adminPercentage {
+      min-height: 48px !important;
+      padding: 14px !important;
+      font-size: 16px !important;
+      border: 2px solid #ccc !important;
+      border-radius: 6px !important;
+      width: 120px !important;
+      max-width: 120px !important;
+      box-sizing: border-box !important;
+      display: inline-block !important;
+    }
+    
+    /* Force admin interface to be mobile-friendly - DON'T override display! */
+    #adminInterface {
+      overflow-x: hidden !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    /* When adminResults is shown, make it mobile-friendly */
+    #adminResults {
+      overflow-x: hidden !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    #adminResults > div {
+      overflow-x: hidden !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    
+    /* Ensure override fields are visible when parent is displayed */
+    #adminResults[style*="display: block"] #adminUnpaid,
+    #adminResults[style*="display: block"] #adminDueNow,
+    #adminResults[style*="display: block"] #adminTotalPaid,
+    #adminResults[style*="display: block"] #adminLastPayout,
+    #adminResults[style*="display: block"] #adminStatus {
+      display: block !important;
+      visibility: visible !important;
+    }
+    
+    /* Mobile responsive styles - changed to 1023px to handle iOS 980px viewport */
+    @media (max-width: 1023px) {
+      .container {
+        padding: 20px;
+        width: calc(100% - 20px);
+        margin: 10px;
+      }
+      
+      h2 {
+        font-size: 22px !important;
+      }
+      
+      /* Buttons and inputs already forced in base styles - no need to override */
+      
+      .table {
+        font-size: 13px;
+      }
+      
+      /* Table is already forced to mobile-friendly in base styles */
+      .table td {
+        font-size: 13px !important;
+      }
+      
+      /* Admin panel already styled in base CSS - removed redundant rules */
+    }
+    
+    /* Very small mobile devices - just font size adjustments */
+    @media (max-width: 480px) {
+      h2 {
+        font-size: 20px !important;
+        line-height: 1.3 !important;
+      }
+      
+      .table {
+        font-size: 12px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Affiliate Commission Lookup</h2>
+    <div style="text-align: center; font-size: 10px; color: #999; margin-bottom: 10px;">
+      v3.0 - Comprehensive Fix | <span id="screenInfo"></span>
+    </div>
+    <script>
+      var screenInfo = document.getElementById('screenInfo');
+      var width = window.innerWidth;
+      var height = window.innerHeight;
+      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      screenInfo.textContent = 'Screen: ' + width + 'x' + height + (isMobile ? ' [Mobile Device]' : ' [Desktop]');
+      
+      // Log for debugging
+      console.log('=== DEBUG INFO ===');
+      console.log('Window size:', width, 'x', height);
+      console.log('Is mobile device:', isMobile);
+      console.log('User agent:', navigator.userAgent);
+      console.log('Container width:', document.querySelector('.container') ? document.querySelector('.container').offsetWidth : 'N/A');
+    </script>
+    
+    <div style="font-size: 12px; margin-bottom: 15px; padding: 10px; background: #f0f8ff; border-radius: 6px; color: #555;">
+      <strong>Field Explanations:</strong><br>
+      - <strong>Unpaid Amount:</strong> Total commissions not yet paid to you (includes pending + approved)<br>
+      - <strong>Due Now:</strong> Approved commissions ready for immediate payout (subset of unpaid)<br>
+      - <strong>Total Paid:</strong> Total amount already paid out to you historically
+    </div>
+    
+    <label style="font-weight: 600; color: #2d3748; margin-bottom: 8px; display: block;">Email</label>
+    <input id="email" type="email" class="input" placeholder="Enter affiliate email address" value="" />
+    
+    <div style="text-align: center; margin-top: 10px;">
+      <button id="btnQuick" type="button" class="btn">Lookup Affiliate</button>
+    </div>
+    
+    <div id="msg" class="msg" style="display: none;"></div>
+    
+    <div id="affiliateResults" style="display: none; margin-top: 20px;">
+      <h3 style="color: #2d3748; font-size: 20px; margin-bottom: 15px;">Commission Details</h3>
+      <table class="table">
+        <tbody id="out"></tbody>
+      </table>
+    </div>
+    
+    <!-- Admin interface -->
+    <div id="adminInterface" style="display: none;">
+      <hr style="margin: 20px 0; border: none; height: 1px; background: #e1e5e9;">
+      <div style="margin: 15px 0; padding: 10px; border: 2px solid #ff9800; border-radius: 6px; background: #fff3e0;">
+        <h4 style="margin: 0 0 10px; color: #e65100;">[ADMIN] Admin Panel</h4>
+        <p style="margin: 0 0 10px; font-size: 12px; color: #666;">You can override any affiliate data or lookup anyone information.</p>
+        
+        <div style="margin: 10px 0;">
+          <label style="font-weight: bold; display: block; margin-bottom: 3px;">Lookup Any Affiliate Email</label>
+          <input id="adminLookupEmail" type="email" class="input" placeholder="Enter any affiliate email to manage" />
+          <button id="btnAdminLookup" class="btn" style="background: #4CAF50; color: white; border-color: #4CAF50; margin-top: 5px;">Lookup &amp; Manage</button>
+          <button id="btnExitAdmin" class="btn" style="background: #607d8b; color: white; border-color: #607d8b; margin-top: 5px; margin-left: 5px;">Exit Admin Mode</button>
+        </div>
+      </div>
+      
+      <!-- Admin lookup results -->
+      <div id="adminResults" style="display: none;">
+        <div style="margin: 15px 0; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+          <h4 style="margin: 0 0 10px;">Current Data</h4>
+          <table id="adminDataTable" class="table"><tbody></tbody></table>
+        </div>
+        
+        <div style="margin: 15px 0; padding: 10px; border: 2px solid #2196F3; border-radius: 6px; background: #e3f2fd;">
+          <h4 style="margin: 0 0 10px; color: #1976d2;">Override Values</h4>
+          
+          <div style="margin: 8px 0;">
+            <label style="font-weight: bold; display: block; margin-bottom: 3px;">Unpaid Amount (CAD)</label>
+            <input id="adminUnpaid" type="number" step="0.01" placeholder="Leave empty for API value" />
+          </div>
+          
+          <div style="margin: 8px 0;">
+            <label style="font-weight: bold; display: block; margin-bottom: 3px;">Due Now (CAD)</label>
+            <input id="adminDueNow" type="number" step="0.01" placeholder="Leave empty for API value" />
+          </div>
+          
+          <div style="margin: 8px 0;">
+            <label style="font-weight: bold; display: block; margin-bottom: 3px;">Total Paid (CAD)</label>
+            <input id="adminTotalPaid" type="number" step="0.01" placeholder="Leave empty for API value" />
+          </div>
+          
+          <div style="margin: 8px 0;">
+            <label style="font-weight: bold; display: block; margin-bottom: 3px;">Last Payout</label>
+            <input id="adminLastPayout" type="text" placeholder="e.g., 2024-01-15" />
+          </div>
+          
+          <div style="margin: 8px 0;">
+            <label style="font-weight: bold; display: block; margin-bottom: 3px;">Status</label>
+            <select id="adminStatus">
+              <option value="">Use API value</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="suspended">Suspended</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          
+          <hr style="margin: 15px 0; border: none; height: 1px; background: #90CAF9;">
+          
+          <div style="margin: 8px 0; padding: 10px; background: #FFF9C4; border-radius: 4px; border-left: 4px solid #FBC02D;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <label style="font-weight: bold; color: #F57F17; margin: 0;">
+                [INFO] Percentage Multiplier
+              </label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 11px; color: #666;">Enable:</span>
+                <label style="position: relative; display: inline-block; width: 44px; height: 24px; margin: 0;">
+                  <input type="checkbox" id="adminPercentageEnabled" style="opacity: 0; width: 0; height: 0;">
+                  <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;"></span>
+                  <span style="position: absolute; cursor: pointer; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                </label>
+              </div>
+            </div>
+            <p style="font-size: 11px; margin: 0 0 8px 0; color: #666;">
+              When enabled, automatically reduce displayed Unpaid and Due Now amounts by the percentage below.<br>
+              Example: Enter 50 to show only 50 percent of real values. This applies to future updates only.
+            </p>
+            <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+              <input id="adminPercentage" type="number" min="0" max="100" step="1" placeholder="100" style="width: 100px; max-width: 100px !important;" />
+              <span style="font-weight: bold;">%</span>
+              <span style="font-size: 11px; color: #666; margin-left: 5px;">(Leave empty or 100 for full amount)</span>
+            </div>
+          </div>
+          
+          <div style="margin-top: 10px;">
+            <button id="btnSaveAdminOverride" class="btn" style="background: #4CAF50; color: white; border-color: #4CAF50;">Save Override</button>
+            <button id="btnRemoveAdminOverride" class="btn" style="background: #f44336; color: white; border-color: #f44336; margin-left: 5px;">Remove Override</button>
+            <button id="btnRefreshData" class="btn" style="background: #2196F3; color: white; border-color: #2196F3; margin-left: 5px;">Refresh Data</button>
+          </div>
+          <div style="margin-top: 10px; padding: 10px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px;">
+            <p style="font-size: 12px; color: #e65100; margin: 0 0 8px 0; font-weight: bold;">⚠️ System Maintenance</p>
+            <button id="btnResetAllTracking" class="btn" style="background: #ff9800; color: white; border-color: #ff9800; width: 100%;">Reset ALL Tracking Data</button>
+            <p style="font-size: 10px; color: #666; margin: 8px 0 0 0;">
+              Use this after system updates. Clears all stored tracking data for all affiliates. They will re-initialize on next lookup.
+            </p>
+          </div>
+          <!-- Debugging buttons removed from UI (functions still available in backend) -->
+          <p style="font-size: 11px; color: #666; margin-top: 8px;">
+            <strong>Refresh Data:</strong> Fetch latest API values and apply incremental changes
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    console.log('Page loaded successfully');
+    
+    var lastLookupData = null;
+    var inactivityTimer = null;
+    var INACTIVITY_TIMEOUT = 300000; // 5 minutes in milliseconds
+    var currentLookupEmail = null;
+    var isAdmin = false; // Set from backend - DO NOT hardcode admin emails in frontend
+    var isInAdminMode = false;
+    
+    // Check if user is admin on page load using backend single source of truth
+    google.script.run
+      .withSuccessHandler(function(status) {
+        console.log('User status:', status);
+        isAdmin = status.isAdmin;
+        console.log('Admin check complete, isAdmin:', isAdmin);
+        // Show admin UI option if user is admin
+        if (isAdmin) {
+          console.log('Admin user detected - admin features available');
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.log('Error checking admin status:', error);
+        isAdmin = false; // Default to non-admin on error
+      })
+      .getCurrentUserStatus();
+    
+    function setMessage(text, color) {
+      var msgEl = document.getElementById("msg");
+      if (msgEl) {
+        msgEl.innerHTML = text;
+        msgEl.style.color = color || "#333";
+        msgEl.style.display = "block";
+      }
+    }
+    
+    function addTableRow(label, value) {
+      return "<tr><td>" + label + "</td><td>" + value + "</td></tr>";
+    }
+    
+    function formatMoney(amount) {
+      if (amount == null || amount === "") return "-";
+      return "$" + Number(amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " CAD";
+    }
+    
+    // Auto-clear after inactivity for security
+    function startInactivityTimer() {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      inactivityTimer = setTimeout(function() {
+        forceResetAllData();
+        setMessage("Session cleared for privacy", "#999");
+      }, INACTIVITY_TIMEOUT);
+    }
+    
+    // Restart timer on any user activity
+    function onUserActivity() {
+      startInactivityTimer();
+    }
+    
+    // Complete privacy reset for multi-user protection
+    function resetAllData(forceReset) {
+      // If in admin mode and not forced, only do light reset
+      if (isInAdminMode && !forceReset) {
+        return;
+      }
+      
+      lastLookupData = null;
+      currentLookupEmail = null;
+      isInAdminMode = false;
+      
+      var emailInput = document.getElementById("email");
+      var btnQuick = document.getElementById("btnQuick");
+      var tableBody = document.querySelector("#out");
+      var affiliateResults = document.getElementById("affiliateResults");
+      var adminInterface = document.getElementById("adminInterface");
+      var adminResults = document.getElementById("adminResults");
+      
+      if (emailInput) emailInput.value = "";
+      if (btnQuick) {
+        btnQuick.disabled = false;
+        btnQuick.style.display = "inline-block";
+      }
+      if (tableBody) tableBody.innerHTML = "";
+      if (affiliateResults) affiliateResults.style.display = "none";
+      if (adminResults) adminResults.style.display = "none";
+      
+      // Always hide admin interface on reset
+      if (adminInterface) {
+        adminInterface.style.display = "none";
+      }
+      
+      setMessage("Enter your email address to lookup affiliate data", "#333");
+    }
+    
+    // Force reset (for security when needed)
+    function forceResetAllData() {
+      resetAllData(true);
+    }
+    
+    function showAdminInterface() {
+      isInAdminMode = true;
+      setMessage("[ADMIN] Admin Mode Active - Interface will persist. Auto-logout in 15 minutes.", "#060");
+      
+      // Hide normal controls
+      document.getElementById("btnQuick").style.display = "none";
+      document.getElementById("affiliateResults").style.display = "none";
+      
+      // Show admin interface
+      document.getElementById("adminInterface").style.display = "block";
+      
+      // Use longer timeout for admin users (15 minutes instead of 5)
+      INACTIVITY_TIMEOUT = 900000;
+      startInactivityTimer();
+    }
+    
+    function handleAffiliateSuccess(result, targetEmail) {
+      console.log('Success:', result);
+      
+      if (result.status === 'Not found') {
+        setMessage('Affiliate not found for: ' + targetEmail, '#d00');
+        document.getElementById('affiliateResults').style.display = 'none';
+        if (isAdmin) {
+          document.getElementById('adminResults').style.display = 'none';
+        }
+        return;
+      }
+      
+      setMessage('Commission data loaded successfully!', '#060');
+      currentLookupEmail = targetEmail;
+      
+      var tableBody = document.querySelector("#out");
+      if (tableBody) {
+        var html = "";
+        html += addTableRow("Affiliate ID", result.affiliateId || "-");
+        html += addTableRow("Unpaid Amount", formatMoney(result.unpaidAmount));
+        html += addTableRow("Due Now", formatMoney(result.dueNow));
+        html += addTableRow("Total Paid", formatMoney(result.totalPaid));
+        html += addTableRow("Last Payout", result.lastPayout || "-");
+        html += addTableRow("Status", result.status || "-");
+        tableBody.innerHTML = html;
+      }
+      
+      document.getElementById('affiliateResults').style.display = 'block';
+      
+      // Admin panel updates
+      if (isAdmin && result._from_admin) {
+        var adminTableBody = document.querySelector("#adminDataTable tbody");
+        if (adminTableBody) {
+          var html = "";
+          html += addTableRow("Affiliate ID", result.affiliateId || "-");
+          html += addTableRow("Unpaid Amount", formatMoney(result.unpaidAmount));
+          html += addTableRow("Due Now", formatMoney(result.dueNow));
+          html += addTableRow("Total Paid", formatMoney(result.totalPaid));
+          html += addTableRow("Last Payout", result.lastPayout || "-");
+          html += addTableRow("Status", result.status || "-");
+          if (result._admin_override) {
+            html += addTableRow("", "<span style='color: #ff6b35; font-weight: bold;'>[!] Has Override</span>");
+          }
+          if (result._percentage_applied) {
+            html += "<tr><td colspan='2' style='background: #FFF9C4; border-left: 4px solid #FBC02D; padding: 8px; font-size: 11px;'>";
+            html += "<strong>Percentage Multiplier Applied:</strong> " + result._percentage_applied;
+            html += "</td></tr>";
+          }
+          adminTableBody.innerHTML = html;
+        }
+        
+        // Debug info removed from UI (kept in backend for logging)
+        
+        // Load override values into form
+        if (result._admin_override) {
+          var override = result._admin_override;
+          document.getElementById("adminUnpaid").value = override.unpaidAmount || "";
+          document.getElementById("adminDueNow").value = override.dueNow || "";
+          document.getElementById("adminTotalPaid").value = override.totalPaid || "";
+          document.getElementById("adminLastPayout").value = override.lastPayout || "";
+          document.getElementById("adminStatus").value = override.status || "";
+          document.getElementById("adminPercentage").value = override.percentageMultiplier || "";
+          document.getElementById("adminPercentageEnabled").checked = override.percentageEnabled || false;
+        } else {
+          // Clear form
+          document.getElementById("adminUnpaid").value = "";
+          document.getElementById("adminDueNow").value = "";
+          document.getElementById("adminTotalPaid").value = "";
+          document.getElementById("adminLastPayout").value = "";
+          document.getElementById("adminStatus").value = "";
+          document.getElementById("adminPercentage").value = "";
+          document.getElementById("adminPercentageEnabled").checked = false;
+        }
+        
+        document.getElementById('adminResults').style.display = 'block';
+      }
+    }
+    
+    // Regular lookup button
+    document.getElementById('btnQuick').addEventListener('click', function() {
+      console.log('Button clicked');
+      onUserActivity(); // Restart inactivity timer
+      
+      var email = document.getElementById('email').value.trim().toLowerCase();
+      console.log('Email:', email);
+      
+      if (!email || email.indexOf('@') === -1) {
+        setMessage('Please enter a valid email address', '#d00');
+        return;
+      }
+      
+      currentLookupEmail = email;
+      
+      // Check if user is admin (determined by backend on page load)
+      // Security: Use isAdmin from backend, NOT the entered email
+      if (isAdmin) {
+        console.log('Admin user detected, showing admin interface');
+        showAdminInterface();
+        return;
+      }
+      
+      var btn = document.getElementById('btnQuick');
+      btn.disabled = true;
+      btn.innerHTML = 'Looking up...';
+      setMessage('Fetching commission data...', '#333');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.innerHTML = 'Lookup Affiliate';
+          lastLookupData = result;
+          handleAffiliateSuccess(result, email);
+        })
+        .withFailureHandler(function(error) {
+          console.log('Error:', error);
+          btn.disabled = false;
+          btn.innerHTML = 'Lookup Affiliate';
+          setMessage('Error: ' + (error.message || error.toString()), '#d00');
+          document.getElementById('affiliateResults').style.display = 'none';
+        })
+        .lookupAffiliate(email);
+    });
+    
+    // Admin lookup button
+    if (document.getElementById('btnAdminLookup')) {
+      document.getElementById('btnAdminLookup').addEventListener('click', function() {
+        onUserActivity(); // Restart inactivity timer
+        
+        var email = document.getElementById('adminLookupEmail').value.trim().toLowerCase();
+        if (!email || email.indexOf('@') === -1) {
+          setMessage('Please enter a valid affiliate email to manage', '#d00');
+          return;
+        }
+        
+        currentLookupEmail = email;
+        
+        var btn = document.getElementById('btnAdminLookup');
+        btn.disabled = true;
+        btn.innerHTML = 'Looking up...';
+        setMessage('Fetching data for admin review...', '#333');
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            btn.disabled = false;
+            btn.innerHTML = 'Lookup & Manage';
+            result._from_admin = true;
+            handleAffiliateSuccess(result, email);
+          })
+          .withFailureHandler(function(error) {
+            console.log('Error:', error);
+            btn.disabled = false;
+            btn.innerHTML = 'Lookup & Manage';
+            setMessage('Error: ' + (error.message || error.toString()), '#d00');
+          })
+          .lookupAffiliate(email);
+      });
+    }
+    
+    // Save override button
+    if (document.getElementById('btnSaveAdminOverride')) {
+      document.getElementById('btnSaveAdminOverride').addEventListener('click', function() {
+        if (!currentLookupEmail) {
+          setMessage('Please lookup an affiliate first', '#d00');
+          return;
+        }
+        
+        var overrideData = {
+          unpaidAmount: document.getElementById('adminUnpaid').value ? Number(document.getElementById('adminUnpaid').value) : null,
+          dueNow: document.getElementById('adminDueNow').value ? Number(document.getElementById('adminDueNow').value) : null,
+          totalPaid: document.getElementById('adminTotalPaid').value ? Number(document.getElementById('adminTotalPaid').value) : null,
+          lastPayout: document.getElementById('adminLastPayout').value || null,
+          status: document.getElementById('adminStatus').value || null,
+          percentageMultiplier: document.getElementById('adminPercentage').value ? Number(document.getElementById('adminPercentage').value) : null,
+          percentageEnabled: document.getElementById('adminPercentageEnabled').checked
+        };
+        
+        console.log('Saving override:', overrideData);
+        
+        google.script.run
+          .withSuccessHandler(function(success) {
+            setMessage('Override saved successfully!', '#060');
+            // Refresh data
+            setTimeout(function() {
+              document.getElementById('btnAdminLookup').click();
+            }, 500);
+          })
+          .withFailureHandler(function(error) {
+            setMessage('Error saving override: ' + error.message, '#d00');
+          })
+          .saveAdminOverride(currentLookupEmail, overrideData);
+      });
+    }
+    
+    // Remove override button
+    if (document.getElementById('btnRemoveAdminOverride')) {
+      document.getElementById('btnRemoveAdminOverride').addEventListener('click', function() {
+        if (!currentLookupEmail) {
+          setMessage('Please lookup an affiliate first', '#d00');
+          return;
+        }
+        
+        google.script.run
+          .withSuccessHandler(function(success) {
+            setMessage('Override removed successfully!', '#060');
+            // Clear form and refresh
+            document.getElementById('adminUnpaid').value = "";
+            document.getElementById('adminDueNow').value = "";
+            document.getElementById('adminTotalPaid').value = "";
+            document.getElementById('adminLastPayout').value = "";
+            document.getElementById('adminStatus').value = "";
+            document.getElementById('adminPercentage').value = "";
+            document.getElementById('adminPercentageEnabled').checked = false;
+            setTimeout(function() {
+              document.getElementById('btnAdminLookup').click();
+            }, 500);
+          })
+          .withFailureHandler(function(error) {
+            setMessage('Error removing override: ' + error.message, '#d00');
+          })
+          .removeAdminOverride(currentLookupEmail);
+      });
+    }
+    
+    // Refresh data button
+    if (document.getElementById('btnRefreshData')) {
+      document.getElementById('btnRefreshData').addEventListener('click', function() {
+        if (currentLookupEmail) {
+          document.getElementById('btnAdminLookup').click();
+        }
+      });
+    }
+    
+    // Reset ALL tracking data button
+    if (document.getElementById('btnResetAllTracking')) {
+      document.getElementById('btnResetAllTracking').addEventListener('click', function() {
+        if (confirm('⚠️ WARNING: This will RESET ALL tracking data for ALL affiliates!\n\nUse this after system updates when old tracking data is incompatible.\n\nAll affiliates will re-initialize their baselines on next lookup.\n\nAre you sure?')) {
+          if (confirm('Are you REALLY sure? This action cannot be undone!')) {
+            setMessage('Resetting ALL tracking data...', '#f80');
+            google.script.run
+              .withSuccessHandler(function(result) {
+                if (result.success) {
+                  setMessage('✅ Successfully reset ALL tracking! Deleted ' + result.count + ' entries. All affiliates will re-initialize on next lookup.', '#060');
+                } else {
+                  setMessage('❌ Error: ' + (result.error || 'Unknown error'), '#d00');
+                }
+              })
+              .withFailureHandler(function(error) {
+                setMessage('Error resetting all tracking: ' + error.message, '#d00');
+              })
+              .resetAllIncrementalTracking();
+          }
+        }
+      });
+    }
+    
+    // Show RAW API data button
+    if (document.getElementById('btnShowRawApi')) {
+      document.getElementById('btnShowRawApi').addEventListener('click', function() {
+        if (!currentLookupEmail) {
+          alert('Please lookup an affiliate first');
+          return;
+        }
+        
+        setMessage('Fetching RAW API data...', '#9C27B0');
+        
+        google.script.run
+          .withSuccessHandler(function(rawData) {
+            console.log('RAW API Data:', rawData);
+            
+            if (rawData.error) {
+              alert('Error fetching RAW data: ' + rawData.error);
+              return;
+            }
+            
+            var msg = '=== RAW API DATA (No Modifications) ===\n\n';
+            msg += 'Email: ' + rawData.email + '\n';
+            msg += 'Affiliate ID: ' + rawData.affiliateId + '\n';
+            msg += 'Currency: ' + rawData.currency + '\n';
+            msg += 'Status: ' + rawData.status + '\n\n';
+            
+            msg += '--- Balance Fields from API ---\n';
+            msg += 'unpaid_balance: ' + (rawData.rawApiFields.unpaid_balance || 'null') + '\n';
+            msg += 'due_balance: ' + (rawData.rawApiFields.due_balance || 'null') + '\n';
+            msg += 'approved_balance: ' + (rawData.rawApiFields.approved_balance || 'null') + '\n';
+            msg += 'commissions_balance: ' + (rawData.rawApiFields.commissions_balance || 'null') + '\n';
+            msg += 'balance: ' + (rawData.rawApiFields.balance || 'null') + '\n\n';
+            
+            msg += '--- Calculated from Commissions ---\n';
+            msg += 'Paid: $' + rawData.calculatedFromCommissions.paid + ' ' + rawData.currency + '\n';
+            msg += 'Unpaid: $' + rawData.calculatedFromCommissions.unpaid + ' ' + rawData.currency + '\n';
+            msg += 'Due Now: $' + rawData.calculatedFromCommissions.dueNow + ' ' + rawData.currency + '\n';
+            msg += 'Last Payout: ' + (rawData.calculatedFromCommissions.lastPayout || 'None') + '\n';
+            
+            alert(msg);
+            setMessage('RAW API data displayed in alert', '#9C27B0');
+          })
+          .withFailureHandler(function(error) {
+            alert('Error: ' + error.message);
+            setMessage('Error fetching RAW data', '#d00');
+          })
+          .getRawApiData(currentLookupEmail);
+      });
+    }
+    
+    // Exit admin mode button
+    if (document.getElementById('btnExitAdmin')) {
+      document.getElementById('btnExitAdmin').addEventListener('click', function() {
+        if (confirm("Exit admin mode? This will clear all data and return to normal interface.")) {
+          forceResetAllData();
+        }
+      });
+    }
+    
+    // Initialize when page loads
+    window.addEventListener('load', function() {
+      console.log("Page loaded, initializing privacy protections...");
+      // Start inactivity timer
+      startInactivityTimer();
+      
+      // Track user activity to restart timer
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(function(event) {
+        document.addEventListener(event, onUserActivity, true);
+      });
+    });
+    
+    // Privacy: Reset on visibility change (tab switching) - but not during admin work
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        // Only reset if not in admin mode
+        if (!isInAdminMode) {
+          resetAllData();
+          setMessage("Welcome back! Enter email to lookup data.", "#333");
+        }
+      }
+    });
+    
+    // Privacy: Reset on focus (when window becomes active) - gentle for admins
+    window.addEventListener('focus', function() {
+      if (!isInAdminMode) {
+        resetAllData();
+      }
+    });
+    
+    // Privacy: Clear data when leaving page (always force)
+    window.addEventListener('beforeunload', function() {
+      forceResetAllData();
+    });
+    
+    // Privacy: Reset on any page refresh/reload from cache (always force)
+    window.addEventListener('pageshow', function(event) {
+      // Only reset if page is loaded from cache (back/forward button)
+      if (event.persisted) {
+        console.log("Page loaded from cache, resetting data");
+        forceResetAllData();
+      }
+    });
+  </script>
+</body>
+</html>

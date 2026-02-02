@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      max-width: 100%;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+    }
+    
+    *:not(html):not(body) {
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
+    
+    html, body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
+    
+    body {
+      padding: 20px 10px;
+    }
+    
+    .header {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0 auto 20px;
+      padding: 0 10px;
+    }
+    
+    .back-button {
+      background: rgba(255, 255, 255, 0.95);
+      color: #667eea;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .back-button:hover {
+      background: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      animation: fadeIn 0.6s ease-out;
+      width: calc(100% - 20px);
+      max-width: calc(100vw - 40px);
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    h2 {
+      color: #1e293b;
+      margin-bottom: 8px;
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+    }
+    
+    h3 {
+      color: #1e293b;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 24px 0 16px;
+    }
+    
+    .version-info {
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    
+    .info-box {
+      font-size: 13px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+      border-radius: 12px;
+      color: #1e40af;
+      border-left: 4px solid #3b82f6;
+      line-height: 1.6;
+    }
+    
+    label {
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 8px;
+      display: block;
+      font-size: 15px;
+    }
+    
+    .input {
+      width: 100%;
+      padding: 16px;
+      margin: 10px 0 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    .input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .btn {
+      padding: 16px 24px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      cursor: pointer;
+      margin: 8px 0;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      margin-left: 0;
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    
+    .msg {
+      margin-top: 20px;
+      font-size: 15px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f1f5f9;
+      border-left: 4px solid #667eea;
+      font-weight: 500;
+    }
+    
+    .card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 16px 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border: 2px solid #cbd5e1;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #64748b;
+      font-weight: 600;
+    }
+    
+    .student-list {
+      margin: 20px 0;
+    }
+    
+    .student-item {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    
+    .student-item:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      transform: translateX(4px);
+    }
+    
+    .student-info {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+    }
+    
+    .student-email {
+      font-weight: 600;
+      color: #1e293b;
+      word-break: break-word;
+    }
+    
+    .student-amount {
+      text-align: right;
+      font-weight: 600;
+      color: #475569;
+    }
+    
+    .student-amount.unpaid {
+      color: #f59e0b;
+    }
+    
+    .student-amount.due {
+      color: #10b981;
+    }
+    
+    .remove-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .remove-btn:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+    
+    .add-student-section {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border: 2px solid #60a5fa;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 20px 0;
+    }
+    
+    .totals-section {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 2px solid #fbbf24;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 20px 0;
+    }
+    
+    .percentage-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    
+    .percentage-input {
+      width: 120px;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    #loginSection {
+      display: block;
+    }
+    
+    #teacherDashboard {
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 10px 5px;
+      }
+      
+      .container {
+        padding: 24px 16px;
+        width: calc(100% - 10px);
+        max-width: calc(100vw - 20px);
+        border-radius: 16px;
+      }
+      
+      h2 {
+        font-size: 26px;
+      }
+      
+      .student-info {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .back-button {
+        width: 100%;
+        text-align: center;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 5px;
+      }
+      
+      .container {
+        padding: 16px 12px;
+        width: calc(100% - 10px);
+        max-width: calc(100vw - 10px);
+      }
+      
+      h2 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading overlay for session check -->
+  <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="text-align: center; color: white;">
+      <div style="width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;"></div>
+      <p style="font-size: 16px;">Loading Teacher Portal...</p>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+  </div>
+  
+  <!-- Access Denied overlay -->
+  <div id="accessDeniedOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); flex-direction: column; align-items: center; justify-content: center; z-index: 9998; padding: 20px;">
+    <div style="text-align: center; color: white; max-width: 400px;">
+      <div style="font-size: 64px; margin-bottom: 20px;">🚫</div>
+      <h2 style="font-size: 28px; margin-bottom: 16px;">Access Denied</h2>
+      <p style="font-size: 16px; margin-bottom: 24px; opacity: 0.9;">You must be a registered teacher to access the Teacher Portal. If you believe this is an error, please contact an administrator.</p>
+      <button id="goHomeBtn" style="background: white; color: #dc2626; border: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">← Back to Dashboard</button>
+    </div>
+  </div>
+  
+  <div class="header" id="mainHeader" style="display: none;">
+    <a href="#" class="back-button" id="backButton" style="text-decoration: none; display: inline-block;">
+      ← Back to Dashboard
+    </a>
+    <button id="headerLogoutBtn" class="back-button" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; cursor: pointer;">Sign Out</button>
+  </div>
+  
+  <!-- Admin "Managing User" Banner - only shown when admin is managing another user -->
+  <div id="adminManagingBanner" style="display: none; max-width: 1200px; margin: 0 auto 12px; padding: 12px 20px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; border: 2px solid #f59e0b; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 20px;">👤</span>
+        <div>
+          <div style="font-size: 12px; color: #92400e; font-weight: 600;">ADMIN: Managing User</div>
+          <div id="managingUserEmail" style="font-size: 15px; color: #78350f; font-weight: 700;"></div>
+        </div>
+      </div>
+      <button id="btnExitManage" onclick="exitManageMode()" style="padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+        ✕ Exit
+      </button>
+    </div>
+  </div>
+  
+  <div class="container">
+    <!-- Admin Search Bar - only visible to admins -->
+    <div id="adminSearchBar" style="display: none; margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 12px; border: 2px solid #3b82f6;">
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 18px;">🔍</span>
+        <input type="email" id="adminSearchEmail" placeholder="Enter user email to manage..." style="flex: 1; min-width: 200px; padding: 10px 14px; border: 2px solid #93c5fd; border-radius: 8px; font-size: 14px;">
+        <button id="btnAdminManage" onclick="startManageUser()" style="padding: 10px 20px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+          Manage User
+        </button>
+      </div>
+      <p style="font-size: 11px; color: #1d4ed8; margin-top: 8px;">Admin: Search by alias or internal email to view and edit their portal data.</p>
+    </div>
+    
+    <h2>Teacher Portal</h2>
+    <div class="version-info">v4.0 - Teacher Management System</div>
+    
+    <!-- Login Section -->
+    <div id="loginSection">
+      <div class="info-box">
+        <strong>Welcome, Teachers!</strong><br>
+        Enter your email to access your student dashboard and view commission reports.
+      </div>
+      
+      <label>Teacher Email</label>
+      <input id="teacherEmail" type="email" class="input" placeholder="Enter your teacher email address" autocomplete="email" />
+      
+      <label>Password</label>
+      <input id="teacherPassword" type="password" class="input" placeholder="Enter your password" autocomplete="current-password" />
+      
+      <div style="text-align: center; margin-top: 8px; margin-bottom: 16px;">
+        <a href="#" id="newHereLink" style="color: #667eea; font-size: 14px; text-decoration: none;">New here? Haven't set a password yet?</a>
+      </div>
+      
+      <button id="btnLogin" type="button" class="btn">Access Dashboard</button>
+      
+      <div id="loginMsg" class="msg" style="display: none;"></div>
+    </div>
+    
+    <!-- Teacher Dashboard -->
+    <div id="teacherDashboard">
+      <div class="info-box">
+        <strong>Dashboard:</strong> <span id="dashboardEmail"></span>
+      </div>
+      
+      <div class="info-box" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left-color: #f59e0b; color: #78350f;">
+        <strong>💡 How It Works:</strong><br>
+        • <strong>Top cards</strong> show all-time totals (100% raw values of all your students' commissions)<br>
+        • <strong>Locked Earnings</strong> 💎 show YOUR cumulative earnings that won't decrease when students get paid<br>
+        • <strong>Student list</strong> shows 30-day amounts (100% raw) with individual percentage controls<br>
+        • <strong>Your %</strong> on each student determines what percentage of their earnings goes to you (defaults to 10%)<br>
+        • Badge indicator: <span style="background: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">40%</span> = student's email percentage (shown for transparency)<br>
+        • Click <strong>"Update My Earnings"</strong> to check for new student commissions and add them to your locked totals
+      </div>
+      
+      <!-- Stats Overview -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statStudents">0</div>
+          <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statUnpaid">$0.00</div>
+          <div class="stat-label">Total Unpaid</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statDueNow">$0.00</div>
+          <div class="stat-label">Total Due Now</div>
+        </div>
+      </div>
+      
+      <!-- Percentage Adjustment & Locked Earnings -->
+      <div class="totals-section">
+        <h3>💰 Your Locked Earnings</h3>
+        <p style="margin-bottom: 16px; color: #92400e; font-size: 14px;">
+          These are your cumulative earnings that won't decrease when students get paid:
+        </p>
+        <div class="stats-grid">
+          <div class="stat-card" style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);">
+            <div class="stat-value" id="lockedUnpaid" style="color: #16a34a;">$0.00</div>
+            <div class="stat-label">💎 Locked Unpaid Earned</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);">
+            <div class="stat-value" id="lockedDueNow" style="color: #16a34a;">$0.00</div>
+            <div class="stat-label">💎 Locked Due Now Earned</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+            <div class="stat-value" id="lockedTotal" style="color: #2563eb;">$0.00</div>
+            <div class="stat-label">💎 Total Locked Earnings</div>
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <button id="btnUpdateEarnings" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: 100%;">🔄 Update My Earnings (Check for New Student Commissions)</button>
+        </div>
+        <p style="margin-top: 12px; font-size: 13px; color: #64748b; font-style: italic;">
+          💡 Click "Update My Earnings" to add any NEW student commissions since your last check. Your earnings are locked in and won't decrease when students get paid.<br>
+          💡 If you change a student's percentage, it only affects FUTURE earnings (not past earnings already locked).
+        </p>
+      </div>
+      
+      <!-- Add Student Section -->
+      <div class="add-student-section">
+        <h3>➕ Add Student</h3>
+        <p style="margin-bottom: 16px; color: #1e40af; font-size: 14px;">
+          Enter the student's email address to add them to your class:
+        </p>
+        <div style="margin-bottom: 12px;">
+          <label>Student Email</label>
+          <input id="studentEmail" type="email" class="input" placeholder="student@example.com" style="width: 100%;" />
+          <p style="font-size: 12px; color: #64748b; margin-top: 6px;">
+            💡 Use the email your student logs in with. If that doesn't work, ask admin.
+          </p>
+        </div>
+        <button id="btnAddStudent" class="btn btn-secondary">Add Student</button>
+        <div id="addStudentMsg" class="msg" style="display: none;"></div>
+      </div>
+      
+      <!-- Students List -->
+      <div class="card">
+        <h3>👥 My Students</h3>
+        <div id="studentsList" class="student-list">
+          <p style="color: #94a3b8; text-align: center; padding: 20px;">No students added yet.</p>
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
+        <button id="btnRefreshData" class="btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">🔄 Refresh Data</button>
+        <button id="btnLogout" class="btn" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);">Logout</button>
+      </div>
+    </div>
+    
+    <!-- Student Statistics View -->
+    <div id="studentStatsView" class="container" style="display: none; margin-top: 20px;">
+      <button onclick="closeStudentStats()" class="btn" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); margin-bottom: 20px;">← Back to Students</button>
+      
+      <h2 style="margin-bottom: 20px;">📊 Student Statistics</h2>
+      
+      <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; border-left: 4px solid #3b82f6;">
+        <h3 style="color: #1e40af; margin-bottom: 16px; margin-top: 0;">Student Information</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 4px;">Student Name</p>
+            <p id="statsStudentName" style="font-size: 18px; font-weight: 600; color: #1e293b;">-</p>
+          </div>
+          <div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 4px;">Email</p>
+            <p id="statsStudentEmail" style="font-size: 16px; font-weight: 500; color: #475569;">-</p>
+          </div>
+          <div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 4px;">Account Created</p>
+            <p id="statsAccountDate" style="font-size: 14px; font-weight: 500; color: #475569;">-</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 24px; margin-bottom: 24px; border-left: 4px solid #f59e0b;">
+        <h3 style="color: #92400e; margin-bottom: 16px; margin-top: 0;">📅 Attendance Summary</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
+          <div style="background: white; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="font-size: 32px; font-weight: 700; color: #3b82f6; margin-bottom: 4px;" id="statsTotalDays">0</p>
+            <p style="font-size: 13px; color: #64748b;">Total Days</p>
+          </div>
+          <div style="background: white; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="font-size: 32px; font-weight: 700; color: #10b981; margin-bottom: 4px;" id="statsConfirmed">0</p>
+            <p style="font-size: 13px; color: #64748b;">Confirmed</p>
+          </div>
+          <div style="background: white; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="font-size: 32px; font-weight: 700; color: #ef4444; margin-bottom: 4px;" id="statsMissed">0</p>
+            <p style="font-size: 13px; color: #64748b;">Missed</p>
+          </div>
+          <div style="background: white; border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="font-size: 32px; font-weight: 700; color: #8b5cf6; margin-bottom: 4px;" id="statsPercentage">0%</p>
+            <p style="font-size: 13px; color: #64748b;">Attendance %</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background: white; border-radius: 16px; padding: 24px; border: 2px solid #e2e8f0;">
+        <h3 style="color: #1e293b; margin-bottom: 16px; margin-top: 0;">📋 Recent Attendance History (Last 30 Days)</h3>
+        <div id="statsHistoryList" style="max-height: 400px; overflow-y: auto;">
+          <p style="color: #94a3b8; text-align: center; padding: 40px;">Loading...</p>
+        </div>
+      </div>
+      
+      <!-- Student Referrals Section (Leads + Conversions Toggle) -->
+      <div id="statsLeadsSection" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 24px; margin-top: 24px; border-left: 4px solid #f59e0b;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🔗</div>
+            <div>
+              <h3 style="color: #92400e; margin: 0; font-size: 18px;">Referrals</h3>
+              <p style="color: #b45309; font-size: 13px; margin: 4px 0 0 0;">Leads and conversions by this student</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Toggle: Leads / Conversions -->
+        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+          <div style="display: inline-flex; background: white; border-radius: 25px; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <button id="statsModeLdBtn" onclick="switchStatsMode('leads')" style="padding: 8px 20px; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+              Leads <span id="statsLeadsCountBadge" style="background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 10px; margin-left: 6px; font-size: 11px;">--</span>
+            </button>
+            <button id="statsModeConvBtn" onclick="switchStatsMode('conversions')" style="padding: 8px 20px; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #92400e;">
+              Conversions <span id="statsConversionsCountBadge" style="background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 10px; margin-left: 6px; font-size: 11px;">--</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Status -->
+        <div id="statsLeadStatus" style="font-size: 13px; color: #92400e; padding: 12px; background: rgba(255,255,255,0.5); border-radius: 8px; margin-bottom: 16px;">
+          <span id="statsLeadLastUpdated">Loading data...</span>
+        </div>
+        
+        <!-- Table -->
+        <div id="statsLeadsTableContainer" style="display: none;">
+          <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-height: 400px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; position: sticky; top: 0;">
+                  <th style="padding: 10px 8px; text-align: left; font-weight: 600;">State</th>
+                  <th style="padding: 10px 8px; text-align: left; font-weight: 600;">First Click</th>
+                  <th style="padding: 10px 8px; text-align: left; font-weight: 600;">Became Lead</th>
+                  <th style="padding: 10px 8px; text-align: left; font-weight: 600;">Converted</th>
+                </tr>
+              </thead>
+              <tbody id="statsLeadsTableBody"></tbody>
+            </table>
+          </div>
+          
+          <!-- Pagination Controls -->
+          <div id="statsPaginationControls" style="display: none; margin-top: 16px;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 16px;">
+              <button id="statsPrevPageBtn" onclick="goToStatsPage(statsCurrentPage - 1)" style="padding: 8px 16px; border: 2px solid #f59e0b; border-radius: 8px; background: white; color: #92400e; font-weight: 600; cursor: pointer;" disabled>
+                ← Prev
+              </button>
+              <span id="statsPageInfo" style="font-size: 13px; color: #92400e; font-weight: 500;">Page 1 of 1</span>
+              <button id="statsNextPageBtn" onclick="goToStatsPage(statsCurrentPage + 1)" style="padding: 8px 16px; border: 2px solid #f59e0b; border-radius: 8px; background: white; color: #92400e; font-weight: 600; cursor: pointer;" disabled>
+                Next →
+              </button>
+            </div>
+            <p style="font-size: 11px; color: #92400e; margin-top: 12px; text-align: center;">
+              Showing <span id="statsLeadsShownCount">0</span> of <span id="statsLeadsTotalCount">0</span> • Customer info hidden for privacy
+            </p>
+          </div>
+        </div>
+        
+        <!-- No Leads Message -->
+        <div id="statsNoLeadsMsg" style="display: none; text-align: center; padding: 20px; color: #92400e;">
+          No leads found for this student.
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    console.log('Teacher Portal loaded successfully');
+    
+    // Session management
+    var SESSION_TOKEN_KEY = 'tradersutopia_session_token';
+    var sessionUser = null;
+    
+    var currentTeacher = null;
+    var students = [];
+    var rawTotals = { unpaid: 0, dueNow: 0 };
+    
+    // Admin manage mode state
+    var isAdmin = false;
+    var managedUser = null; // { email, internalEmail, firstName, lastName } when managing another user
+    
+    // Check session on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      checkSession();
+    });
+    
+    function checkSession() {
+      var token = localStorage.getItem(SESSION_TOKEN_KEY);
+      
+      if (!token) {
+        console.log('No session token, redirecting to login');
+        redirectToLogin();
+        return;
+      }
+      
+      console.log('Validating session token...');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.valid) {
+            console.log('Session valid:', result.user);
+            sessionUser = result.user;
+            isAdmin = result.user.isAdmin || false;
+            
+            // Check if user has teacher access
+            if (result.user.isTeacher || result.user.isAdmin) {
+              initializeTeacherPortal();
+              
+              // Show admin search bar if admin
+              if (isAdmin) {
+                document.getElementById('adminSearchBar').style.display = 'block';
+              }
+            } else {
+              showAccessDenied();
+            }
+          } else {
+            console.log('Session invalid, redirecting to login');
+            localStorage.removeItem(SESSION_TOKEN_KEY);
+            redirectToLogin();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Session validation error:', error);
+          localStorage.removeItem(SESSION_TOKEN_KEY);
+          redirectToLogin();
+        })
+        .validateSessionToken(token);
+    }
+    
+    function redirectToLogin() {
+      google.script.run
+        .withSuccessHandler(function(appUrl) {
+          var url = appUrl + '?page=login';
+          try { window.top.location.href = url; } catch (e) { window.location.href = url; }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error getting app URL:', error);
+        })
+        .getWebAppUrl();
+    }
+    
+    function redirectToHome() {
+      google.script.run
+        .withSuccessHandler(function(appUrl) {
+          var url = appUrl + '?page=home';
+          try { window.top.location.href = url; } catch (e) { window.location.href = url; }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error getting app URL:', error);
+        })
+        .getWebAppUrl();
+    }
+    
+    function showAccessDenied() {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      document.getElementById('accessDeniedOverlay').style.display = 'flex';
+      
+      document.getElementById('goHomeBtn').addEventListener('click', function() {
+        redirectToHome();
+      });
+    }
+    
+    function initializeTeacherPortal() {
+      // Hide loading overlay
+      document.getElementById('loadingOverlay').style.display = 'none';
+      document.getElementById('mainHeader').style.display = 'flex';
+      
+      // Hide login section, show dashboard directly
+      document.getElementById('loginSection').style.display = 'none';
+      
+      // Set teacher email from session
+      currentTeacher = sessionUser.email;
+      
+      // Setup navigation handlers
+      document.getElementById('backButton').addEventListener('click', function(e) {
+        e.preventDefault();
+        redirectToHome();
+      });
+      
+      document.getElementById('headerLogoutBtn').addEventListener('click', function() {
+        var token = localStorage.getItem(SESSION_TOKEN_KEY);
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        if (token) {
+          google.script.run.logoutSession(token);
+        }
+        redirectToLogin();
+      });
+      
+      // Load teacher data
+      loadTeacherData();
+    }
+    
+    /**
+     * Load teacher data (can be called when switching managed users)
+     */
+    function loadTeacherData() {
+      console.log('Loading teacher data for:', currentTeacher);
+      
+      // Determine if we're managing another user
+      var managedEmail = managedUser ? managedUser.email : null;
+      
+      google.script.run
+        .withSuccessHandler(function(data) {
+          console.log('Teacher data loaded:', data);
+          students = data.students || [];
+          
+          // Update display - show managed user if applicable
+          if (managedUser) {
+            document.getElementById('dashboardEmail').textContent = managedUser.firstName + ' ' + managedUser.lastName + ' (' + managedUser.email + ')';
+          } else {
+            document.getElementById('dashboardEmail').textContent = sessionUser.name + ' (' + currentTeacher + ')';
+          }
+          
+          loadDashboard();
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading teacher data:', error);
+          alert('Error loading teacher data: ' + error.message);
+        })
+        .getTeacherDataWithContext(sessionUser.email, managedEmail);
+    }
+    
+    // Keep the "New here?" link handler for legacy/fallback purposes (hidden in session mode)
+    if (document.getElementById('newHereLink')) {
+      document.getElementById('newHereLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        var email = document.getElementById('teacherEmail').value.trim().toLowerCase();
+        
+        google.script.run
+          .withSuccessHandler(function(baseUrl) {
+            var url = baseUrl + '?page=set-password&return=teacher';
+            if (email) {
+              url += '&email=' + encodeURIComponent(email);
+            }
+            try { window.top.location.href = url; } catch (err) { window.location.href = url; }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error getting app URL:', error);
+          })
+          .getWebAppUrl();
+      });
+    }
+    
+    function loadDashboard() {
+      document.getElementById('dashboardEmail').textContent = currentTeacher;
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('teacherDashboard').style.display = 'block';
+      
+      // Load locked earnings history
+      google.script.run
+        .withSuccessHandler(function(earningsHistory) {
+          console.log('Loaded earnings history:', earningsHistory);
+          document.getElementById('lockedUnpaid').textContent = formatMoney(earningsHistory.totalUnpaidEarned || 0);
+          document.getElementById('lockedDueNow').textContent = formatMoney(earningsHistory.totalDueNowEarned || 0);
+          document.getElementById('lockedTotal').textContent = formatMoney(earningsHistory.totalEarned || 0);
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading earnings history:', error);
+        })
+        .getTeacherEarningsHistory(currentTeacher);
+      
+      if (students.length > 0) {
+        loadStudentData();
+      } else {
+        updateStats();
+        renderStudentsList();
+      }
+    }
+    
+    function loadStudentData() {
+      showMessage('addStudentMsg', 'Loading student commission data...', '#667eea');
+      
+      google.script.run
+        .withSuccessHandler(function(studentsData) {
+          console.log('Students commission data:', studentsData);
+          students = studentsData;
+          updateStats();
+          renderStudentsList();
+          document.getElementById('addStudentMsg').style.display = 'none';
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading student data:', error);
+          showMessage('addStudentMsg', 'Warning: Could not load all student data', '#f59e0b');
+          updateStats();
+          renderStudentsList();
+        })
+        .getStudentsCommissionData(currentTeacher);
+    }
+    
+    function updateStats() {
+      // Sum of ALL-TIME values from all students
+      var totalUnpaidAllTime = 0;
+      var totalDueNowAllTime = 0;
+      
+      students.forEach(function(student) {
+        // All-time totals
+        totalUnpaidAllTime += parseFloat(student.totalUnpaid || 0);
+        totalDueNowAllTime += parseFloat(student.totalDueNow || 0);
+      });
+      
+      // Store all-time totals for percentage adjustment
+      rawTotals.unpaid = totalUnpaidAllTime;
+      rawTotals.dueNow = totalDueNowAllTime;
+      
+      // Display all-time totals in top cards
+      document.getElementById('statStudents').textContent = students.length;
+      document.getElementById('statUnpaid').textContent = formatMoney(totalUnpaidAllTime);
+      document.getElementById('statDueNow').textContent = formatMoney(totalDueNowAllTime);
+    }
+    
+    function renderStudentsList() {
+      var container = document.getElementById('studentsList');
+      
+      if (students.length === 0) {
+        container.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 20px;">No students added yet.</p>';
+        return;
+      }
+      
+      var html = '';
+      students.forEach(function(student, index) {
+        html += '<div class="student-item">';
+        html += '<div class="student-info">';
+        html += '<div class="student-email">';
+        html += student.email;
+        
+        // Show percentage badge if student has email percentage
+        if (student.emailPercentage !== null && student.emailPercentage !== undefined) {
+          html += ' <span style="background: #fbbf24; color: #78350f; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;">' + student.emailPercentage + '%</span>';
+        }
+        
+        html += '</div>';
+        html += '<div class="student-amount unpaid" title="Last 30 days">30d Unpaid: ' + formatMoney(student.unpaid30Days || 0) + '</div>';
+        html += '<div class="student-amount due" title="Last 30 days">30d Due: ' + formatMoney(student.dueNow30Days || 0) + '</div>';
+        
+        // Add percentage control for this student
+        html += '<div style="display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">';
+        html += '<label style="font-size: 13px; color: #64748b; font-weight: 600;">Your %:</label>';
+        html += '<input type="number" id="pct_' + index + '" class="percentage-input" min="0" max="100" value="' + (student.teacherPercentage || '') + '" placeholder="10" style="width: 80px; padding: 6px; font-size: 13px;" />';
+        html += '<span style="font-size: 13px; font-weight: 700; color: #64748b;">%</span>';
+        html += '<button onclick="saveStudentPercentage(\'' + student.email + '\', ' + index + ')" class="btn" style="font-size: 12px; padding: 6px 12px; width: auto; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">💾 Save</button>';
+        html += '</div>';
+        
+        html += '</div>';
+        html += '<div style="display: flex; gap: 8px; flex-direction: column;">';
+        html += '<button class="remove-btn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); font-size: 13px; padding: 8px 12px;" onclick="viewStudentStats(\'' + student.email + '\')">📊 View Stats</button>';
+        html += '<button class="remove-btn" onclick="removeStudent(\'' + student.email + '\')">Remove</button>';
+        html += '</div>';
+        html += '</div>';
+      });
+      
+      container.innerHTML = html;
+    }
+    
+    // Add Student
+    document.getElementById('btnAddStudent').addEventListener('click', function() {
+      var studentEmail = document.getElementById('studentEmail').value.trim().toLowerCase();
+      
+      // Validate email format
+      if (!studentEmail || studentEmail.indexOf('@') === -1) {
+        showMessage('addStudentMsg', 'Please enter a valid email address', '#dc2626');
+        return;
+      }
+      
+      document.getElementById('btnAddStudent').disabled = true;
+      document.getElementById('btnAddStudent').innerHTML = 'Searching...';
+      showMessage('addStudentMsg', 'Looking up student: ' + studentEmail + '...', '#667eea');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          console.log('Add student result:', result);
+          if (result.success) {
+            showMessage('addStudentMsg', 'Student "' + result.studentName + '" added successfully!', '#10b981');
+            document.getElementById('studentEmail').value = '';
+            loadStudentData();
+          } else if (result.status === 'NOT_LINKED') {
+            showMessage('addStudentMsg', 'This email exists but is not linked to an internal account yet. Ask admin to approve/link it first.', '#f59e0b');
+          } else if (result.status === 'NOT_FOUND') {
+            showMessage('addStudentMsg', 'No student found with that email. Check spelling or ask them to request access.', '#dc2626');
+          } else if (result.status === 'ALREADY_ADDED') {
+            showMessage('addStudentMsg', 'This student is already in your list.', '#3b82f6');
+          } else {
+            showMessage('addStudentMsg', 'Error: ' + (result.error || 'Could not add student'), '#dc2626');
+          }
+          document.getElementById('btnAddStudent').disabled = false;
+          document.getElementById('btnAddStudent').innerHTML = 'Add Student';
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error adding student:', error);
+          showMessage('addStudentMsg', 'Error: ' + error.message, '#dc2626');
+          document.getElementById('btnAddStudent').disabled = false;
+          document.getElementById('btnAddStudent').innerHTML = 'Add Student';
+        })
+        .addStudentToTeacherWithContext(sessionUser.email, managedUser ? managedUser.email : null, studentEmail);
+    });
+    
+    // Remove Student
+    window.removeStudent = function(studentEmail) {
+      if (!confirm('Remove ' + studentEmail + ' from your student list?')) {
+        return;
+      }
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showMessage('addStudentMsg', 'Student removed successfully', '#10b981');
+            loadStudentData();
+          } else {
+            showMessage('addStudentMsg', 'Error removing student', '#dc2626');
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error removing student:', error);
+          showMessage('addStudentMsg', 'Error: ' + error.message, '#dc2626');
+        })
+        .removeStudentFromTeacher(currentTeacher, studentEmail);
+    };
+    
+    // Save Student-Specific Percentage
+    window.saveStudentPercentage = function(studentEmail, index) {
+      var input = document.getElementById('pct_' + index);
+      var value = input.value.trim();
+      
+      // If empty, use default 10%
+      if (value === '') {
+        value = '10';
+      }
+      
+      var percentage = parseFloat(value);
+      if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+        alert('Please enter a valid percentage between 0 and 100');
+        return;
+      }
+      
+      console.log('Saving percentage ' + percentage + '% for student ' + studentEmail);
+      
+      google.script.run
+        .withSuccessHandler(function() {
+          console.log('Student percentage saved');
+          showMessage('addStudentMsg', 'Saved ' + percentage + '% for ' + studentEmail, '#10b981');
+          // Update the student object in memory
+          var student = students.find(function(s) { return s.email === studentEmail; });
+          if (student) {
+            student.teacherPercentage = percentage;
+          }
+          // Update the input to show the saved value
+          input.value = percentage;
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error saving student percentage:', error);
+          showMessage('addStudentMsg', 'Error: ' + error.message, '#dc2626');
+        })
+        .setStudentPercentageOverride(currentTeacher, studentEmail, percentage);
+    };
+    
+    // Update Teacher Earnings (Locked Earnings System)
+    document.getElementById('btnUpdateEarnings').addEventListener('click', function() {
+      var btn = document.getElementById('btnUpdateEarnings');
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Checking for new earnings...';
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          console.log('Teacher earnings updated:', result);
+          
+          if (result.success) {
+            // Display the locked earnings
+            document.getElementById('lockedUnpaid').textContent = formatMoney(result.totalUnpaidEarned);
+            document.getElementById('lockedDueNow').textContent = formatMoney(result.totalDueNowEarned);
+            document.getElementById('lockedTotal').textContent = formatMoney(result.totalEarned);
+            
+            if (result.newEarningsUnpaid > 0 || result.newEarningsDueNow > 0) {
+              var msg = 'New earnings added! 💰\n';
+              msg += 'Unpaid: ' + formatMoney(result.newEarningsUnpaid) + '\n';
+              msg += 'Due Now: ' + formatMoney(result.newEarningsDueNow);
+              showMessage('addStudentMsg', msg, '#10b981');
+            } else {
+              showMessage('addStudentMsg', 'No new earnings to add. Your totals are up to date.', '#3b82f6');
+            }
+          } else {
+            showMessage('addStudentMsg', 'Error: ' + result.error, '#dc2626');
+          }
+          
+          btn.disabled = false;
+          btn.innerHTML = '🔄 Update My Earnings (Check for New Student Commissions)';
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error updating earnings:', error);
+          showMessage('addStudentMsg', 'Error: ' + error.message, '#dc2626');
+          btn.disabled = false;
+          btn.innerHTML = '🔄 Update My Earnings (Check for New Student Commissions)';
+        })
+        .updateTeacherEarnings(currentTeacher);
+    });
+    
+    // Refresh Data
+    document.getElementById('btnRefreshData').addEventListener('click', function() {
+      var btn = document.getElementById('btnRefreshData');
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Refreshing...';
+      
+      // Clear cache on backend
+      google.script.run
+        .withSuccessHandler(function() {
+          console.log('Cache cleared, reloading student data...');
+          // Reload the student data
+          loadStudentData();
+          btn.disabled = false;
+          btn.innerHTML = '🔄 Refresh Data';
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error clearing cache:', error);
+          alert('Error refreshing data. Please try again.');
+          btn.disabled = false;
+          btn.innerHTML = '🔄 Refresh Data';
+        })
+        .clearAllCaches();
+    });
+    
+    // Logout - now invalidates session
+    document.getElementById('btnLogout').addEventListener('click', function() {
+      var token = localStorage.getItem(SESSION_TOKEN_KEY);
+      localStorage.removeItem(SESSION_TOKEN_KEY);
+      
+      if (token) {
+        google.script.run.logoutSession(token);
+      }
+      
+      redirectToLogin();
+    });
+    
+    function showMessage(elementId, text, color) {
+      var el = document.getElementById(elementId);
+      if (el) {
+        el.innerHTML = text;
+        el.style.color = color || '#1e293b';
+        el.style.borderLeftColor = color || '#667eea';
+        el.style.display = 'block';
+      }
+    }
+    
+    function formatMoney(amount) {
+      if (amount == null || amount === '') return '$0.00';
+      return '$' + Number(amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' CAD';
+    }
+    
+    // ========== STUDENT STATISTICS FUNCTIONS ==========
+    
+    window.viewStudentStats = function(studentEmail) {
+      console.log('Viewing stats for:', studentEmail);
+      
+      // Hide dashboard, show stats view
+      document.getElementById('teacherDashboard').style.display = 'none';
+      document.getElementById('studentStatsView').style.display = 'block';
+      
+      // Show loading state
+      document.getElementById('statsHistoryList').innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 40px;">Loading attendance data...</p>';
+      
+      // Fetch student attendance stats
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            displayStudentStats(result);
+          } else {
+            alert('Error loading statistics: ' + (result.error || 'Unknown error'));
+            closeStudentStats();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error fetching stats:', error);
+          alert('Error loading statistics: ' + error.message);
+          closeStudentStats();
+        })
+        .getStudentAttendanceStats(studentEmail);
+    };
+    
+    window.closeStudentStats = function() {
+      document.getElementById('studentStatsView').style.display = 'none';
+      document.getElementById('teacherDashboard').style.display = 'block';
+    };
+    
+    function displayStudentStats(stats) {
+      console.log('Displaying stats:', stats);
+      
+      // Student Information
+      document.getElementById('statsStudentName').textContent = stats.studentName || '-';
+      document.getElementById('statsStudentEmail').textContent = stats.studentEmail || '-';
+      
+      if (stats.accountCreatedDate) {
+        var createdDate = new Date(stats.accountCreatedDate);
+        document.getElementById('statsAccountDate').textContent = createdDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      } else {
+        document.getElementById('statsAccountDate').textContent = '-';
+      }
+      
+      // Attendance Summary
+      document.getElementById('statsTotalDays').textContent = stats.totalDays || 0;
+      document.getElementById('statsConfirmed').textContent = stats.confirmedDays || 0;
+      document.getElementById('statsMissed').textContent = stats.missedDays || 0;
+      document.getElementById('statsPercentage').textContent = (stats.attendancePercentage || 0) + '%';
+      
+      // Attendance History
+      var historyHtml = '';
+      
+      if (!stats.recentRecords || stats.recentRecords.length === 0) {
+        historyHtml = '<p style="color: #94a3b8; text-align: center; padding: 40px;">No attendance records found</p>';
+      } else {
+        stats.recentRecords.forEach(function(record) {
+          var recordDate = new Date(record.date);
+          var dateStr = recordDate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+          
+          var statusClass = record.confirmed ? 'confirmed' : 'missed';
+          var statusIcon = record.confirmed ? '✅' : '❌';
+          var statusText = record.confirmed ? 'Confirmed' : 'Missed';
+          var statusColor = record.confirmed ? '#10b981' : '#ef4444';
+          
+          historyHtml += '<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8fafc; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid ' + statusColor + ';">';
+          historyHtml += '<div>';
+          historyHtml += '<p style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 4px;">' + dateStr + '</p>';
+          if (record.timestamp) {
+            var time = new Date(record.timestamp).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            historyHtml += '<p style="font-size: 12px; color: #64748b;">Confirmed at ' + time + '</p>';
+          }
+          historyHtml += '</div>';
+          historyHtml += '<div style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: ' + statusColor + ';">';
+          historyHtml += '<span>' + statusIcon + '</span>';
+          historyHtml += '<span>' + statusText + '</span>';
+          historyHtml += '</div>';
+          historyHtml += '</div>';
+        });
+      }
+      
+      document.getElementById('statsHistoryList').innerHTML = historyHtml;
+      
+      // Display Leads Data
+      displayStudentLeads(stats);
+    }
+    
+    /**
+     * ========== STUDENT REFERRALS (LEADS + CONVERSIONS TOGGLE) ==========
+     */
+    // State for referrals toggle in stats view
+    var statsCurrentMode = 'leads';       // 'leads' or 'conversions'
+    var statsCurrentPage = 1;
+    var statsTotalPages = 1;
+    var statsPageSize = 25;
+    var statsLeadsCount = 0;
+    var statsConversionsCount = 0;
+    var currentStatsStudentEmail = null;  // Email of student being viewed
+    
+    /**
+     * Switch between Leads and Conversions modes (Teacher Stats)
+     */
+    window.switchStatsMode = function(mode) {
+      if (mode === statsCurrentMode) return;
+      
+      statsCurrentMode = mode;
+      statsCurrentPage = 1; // Reset to page 1
+      
+      // Update toggle button styles
+      var leadsBtn = document.getElementById('statsModeLdBtn');
+      var conversionsBtn = document.getElementById('statsModeConvBtn');
+      
+      if (mode === 'leads') {
+        leadsBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        leadsBtn.style.color = 'white';
+        conversionsBtn.style.background = 'transparent';
+        conversionsBtn.style.color = '#92400e';
+      } else {
+        conversionsBtn.style.background = 'linear-gradient(135deg, #16a34a 0%, #059669 100%)';
+        conversionsBtn.style.color = 'white';
+        leadsBtn.style.background = 'transparent';
+        leadsBtn.style.color = '#92400e';
+      }
+      
+      // Reload data for new mode
+      loadStatsReferralsPage(statsCurrentPage);
+    };
+    
+    /**
+     * Go to a specific page (Teacher Stats)
+     */
+    window.goToStatsPage = function(page) {
+      if (page < 1 || page > statsTotalPages) return;
+      statsCurrentPage = page;
+      loadStatsReferralsPage(page);
+    };
+    
+    /**
+     * Initialize and display student referrals with mode toggle
+     */
+    function displayStudentLeads(stats) {
+      // Store student email for pagination
+      currentStatsStudentEmail = stats.studentEmail || stats.email;
+      
+      // Reset to leads mode and page 1
+      statsCurrentMode = 'leads';
+      statsCurrentPage = 1;
+      
+      // Reset toggle button styles
+      var leadsBtn = document.getElementById('statsModeLdBtn');
+      var conversionsBtn = document.getElementById('statsModeConvBtn');
+      if (leadsBtn) {
+        leadsBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        leadsBtn.style.color = 'white';
+      }
+      if (conversionsBtn) {
+        conversionsBtn.style.background = 'transparent';
+        conversionsBtn.style.color = '#92400e';
+      }
+      
+      // Use the data that came from getStudentAttendanceStats
+      if (stats.leads && stats.leads.length > 0) {
+        // Filter the leads for mode
+        var allLeads = stats.leads;
+        var leadsOnly = [];
+        var conversionsOnly = [];
+        
+        allLeads.forEach(function(lead) {
+          // Use isConversion flag if available, otherwise detect
+          var hasConversion = lead.isConversion === true || 
+                              !!lead.sale_occurred_at || 
+                              !!lead.becameConversionAt || 
+                              !!lead.became_conversion_at ||
+                              (lead.conversion_state || '').toLowerCase() === 'conversion';
+          if (hasConversion) {
+            conversionsOnly.push(lead);
+          } else {
+            leadsOnly.push(lead);
+          }
+        });
+        
+        statsLeadsCount = leadsOnly.length;
+        statsConversionsCount = conversionsOnly.length;
+        
+        // Update badge counts
+        document.getElementById('statsLeadsCountBadge').textContent = statsLeadsCount;
+        document.getElementById('statsConversionsCountBadge').textContent = statsConversionsCount;
+        
+        // Display leads (default mode)
+        var displayRows = leadsOnly.slice(0, statsPageSize);
+        statsTotalPages = Math.ceil(leadsOnly.length / statsPageSize) || 1;
+        
+        document.getElementById('statsLeadLastUpdated').textContent = 'Data loaded';
+        displayStatsReferralRows(displayRows);
+        updateStatsPaginationUI(leadsOnly.length);
+      } else {
+        // No data - show empty state
+        statsLeadsCount = 0;
+        statsConversionsCount = 0;
+        document.getElementById('statsLeadsCountBadge').textContent = '0';
+        document.getElementById('statsConversionsCountBadge').textContent = '0';
+        document.getElementById('statsLeadLastUpdated').textContent = 'No referral data';
+        displayStatsReferralRows([]);
+      }
+    }
+    
+    /**
+     * Load a specific page of referrals for student stats
+     */
+    function loadStatsReferralsPage(page) {
+      if (!currentStatsStudentEmail || !sessionUser || !sessionUser.email) return;
+      
+      var statusEl = document.getElementById('statsLeadLastUpdated');
+      statusEl.textContent = 'Loading page ' + page + '...';
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            statsTotalPages = result.totalPages || 1;
+            statsCurrentPage = result.page || 1;
+            
+            // Update counts
+            statsLeadsCount = result.leadsCount || 0;
+            statsConversionsCount = result.conversionsCount || 0;
+            document.getElementById('statsLeadsCountBadge').textContent = statsLeadsCount;
+            document.getElementById('statsConversionsCountBadge').textContent = statsConversionsCount;
+            
+            statusEl.textContent = 'Page ' + statsCurrentPage + ' of ' + statsTotalPages;
+            
+            displayStatsReferralRows(result.rows || []);
+            updateStatsPaginationUI(result.totalCount || 0);
+          } else {
+            statusEl.textContent = 'Error: ' + (result.error || 'Failed to load');
+          }
+        })
+        .withFailureHandler(function(error) {
+          statusEl.textContent = 'Error loading page';
+          console.error('Stats referral page error:', error);
+        })
+        .getStudentReferralsForTeacher(sessionUser.email, currentStatsStudentEmail, statsCurrentMode, page, statsPageSize);
+    }
+    
+    /**
+     * Display referral rows in the stats table
+     */
+    function displayStatsReferralRows(rows) {
+      var tableContainer = document.getElementById('statsLeadsTableContainer');
+      var tableBody = document.getElementById('statsLeadsTableBody');
+      var noLeadsMsg = document.getElementById('statsNoLeadsMsg');
+      
+      if (!rows || rows.length === 0) {
+        tableContainer.style.display = 'none';
+        if (noLeadsMsg) {
+          noLeadsMsg.style.display = 'block';
+          noLeadsMsg.textContent = statsCurrentMode === 'leads' ? 'No leads found for this student.' : 'No conversions found for this student.';
+        }
+        var paginationControls = document.getElementById('statsPaginationControls');
+        if (paginationControls) paginationControls.style.display = 'none';
+        return;
+      }
+      
+      tableContainer.style.display = 'block';
+      if (noLeadsMsg) noLeadsMsg.style.display = 'none';
+      tableBody.innerHTML = '';
+      
+      rows.forEach(function(lead, index) {
+        var row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f3f4f6';
+        if (index % 2 === 1) {
+          row.style.background = '#fffbeb';
+        }
+        
+        // State column - use isConversion flag if available, otherwise detect
+        var stateCell = document.createElement('td');
+        stateCell.style.padding = '8px';
+        var hasConversion = lead.isConversion === true || 
+                            !!lead.sale_occurred_at || 
+                            !!lead.becameConversionAt || 
+                            !!lead.became_conversion_at ||
+                            (lead.conversion_state || '').toLowerCase() === 'conversion';
+        var displayState = hasConversion ? 'conversion' : 'lead';
+        var stateColor = hasConversion ? '#16a34a' : '#f59e0b';
+        stateCell.innerHTML = '<span style="background: ' + stateColor + '20; color: ' + stateColor + '; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 10px; text-transform: uppercase;">' + displayState + '</span>';
+        row.appendChild(stateCell);
+        
+        // First click date
+        var firstClickCell = document.createElement('td');
+        firstClickCell.style.padding = '8px';
+        firstClickCell.style.color = '#475569';
+        firstClickCell.style.fontSize = '12px';
+        firstClickCell.textContent = formatLeadDate(lead.created_at || lead.createdAt || lead.firstClickAt);
+        row.appendChild(firstClickCell);
+        
+        // Became lead date
+        var leadDateCell = document.createElement('td');
+        leadDateCell.style.padding = '8px';
+        leadDateCell.style.color = '#475569';
+        leadDateCell.style.fontSize = '12px';
+        leadDateCell.textContent = formatLeadDate(lead.converted_at || lead.becameLeadAt) || '—';
+        row.appendChild(leadDateCell);
+        
+        // Conversion date
+        var conversionCell = document.createElement('td');
+        conversionCell.style.padding = '8px';
+        conversionCell.style.color = '#475569';
+        conversionCell.style.fontSize = '12px';
+        conversionCell.textContent = hasConversion ? formatLeadDate(lead.sale_occurred_at || lead.becameConversionAt || lead.conversionDate) : '—';
+        row.appendChild(conversionCell);
+        
+        tableBody.appendChild(row);
+      });
+    }
+    
+    /**
+     * Update pagination controls for stats
+     */
+    function updateStatsPaginationUI(totalCount) {
+      var paginationControls = document.getElementById('statsPaginationControls');
+      var prevBtn = document.getElementById('statsPrevPageBtn');
+      var nextBtn = document.getElementById('statsNextPageBtn');
+      var pageInfo = document.getElementById('statsPageInfo');
+      var shownCount = document.getElementById('statsLeadsShownCount');
+      var totalCountEl = document.getElementById('statsLeadsTotalCount');
+      
+      // Get the correct total from the mode
+      var modeTotal = statsCurrentMode === 'leads' ? statsLeadsCount : statsConversionsCount;
+      
+      if (modeTotal === 0 || statsTotalPages <= 1) {
+        if (paginationControls) paginationControls.style.display = modeTotal > 0 ? 'block' : 'none';
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        if (pageInfo) pageInfo.style.display = 'none';
+      } else {
+        if (paginationControls) paginationControls.style.display = 'block';
+        if (prevBtn) {
+          prevBtn.style.display = 'inline-block';
+          prevBtn.disabled = statsCurrentPage <= 1;
+        }
+        if (nextBtn) {
+          nextBtn.style.display = 'inline-block';
+          nextBtn.disabled = statsCurrentPage >= statsTotalPages;
+        }
+        if (pageInfo) {
+          pageInfo.style.display = 'inline';
+          pageInfo.textContent = 'Page ' + statsCurrentPage + ' of ' + statsTotalPages;
+        }
+      }
+      
+      // Calculate shown range
+      var startItem = modeTotal > 0 ? ((statsCurrentPage - 1) * statsPageSize) + 1 : 0;
+      var endItem = Math.min(statsCurrentPage * statsPageSize, modeTotal);
+      if (shownCount) shownCount.textContent = modeTotal > 0 ? startItem + '-' + endItem : '0';
+      if (totalCountEl) totalCountEl.textContent = modeTotal;
+    }
+    
+    /**
+     * Format a lead date for display
+     */
+    function formatLeadDate(dateStr) {
+      if (!dateStr) return '—';
+      try {
+        var date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      } catch (e) {
+        return '—';
+      }
+    }
+    
+    // ========== ADMIN MANAGE USER MODE ==========
+    
+    /**
+     * Start managing another user (admin only)
+     */
+    window.startManageUser = function() {
+      if (!isAdmin) {
+        alert('Admin access required');
+        return;
+      }
+      
+      var targetEmail = document.getElementById('adminSearchEmail').value.trim().toLowerCase();
+      if (!targetEmail || targetEmail.indexOf('@') === -1) {
+        alert('Please enter a valid email address');
+        return;
+      }
+      
+      var btn = document.getElementById('btnAdminManage');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.textContent = 'Manage User';
+          
+          if (result.success) {
+            // Set managed user state
+            managedUser = result.targetUser;
+            
+            // Show the managing banner
+            document.getElementById('adminManagingBanner').style.display = 'block';
+            document.getElementById('managingUserEmail').textContent = managedUser.email;
+            
+            // Hide the search bar while managing
+            document.getElementById('adminSearchBar').style.display = 'none';
+            
+            // Clear the search input
+            document.getElementById('adminSearchEmail').value = '';
+            
+            // Reload the teacher portal with managed user's data
+            currentTeacher = managedUser.email;
+            loadTeacherData();
+            
+            console.log('Now managing user:', managedUser);
+          } else {
+            alert('Error: ' + (result.error || 'Failed to find user'));
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.textContent = 'Manage User';
+          alert('Error: ' + (error.message || 'Connection error'));
+        })
+        .adminStartManageUser(sessionUser.email, targetEmail);
+    };
+    
+    /**
+     * Exit manage mode and return to admin's own view
+     */
+    window.exitManageMode = function() {
+      if (!managedUser) return;
+      
+      // Log the exit
+      google.script.run.adminStopManageUser(sessionUser.email, managedUser.email);
+      
+      // Clear managed user state
+      managedUser = null;
+      
+      // Hide the managing banner
+      document.getElementById('adminManagingBanner').style.display = 'none';
+      
+      // Show the search bar again
+      if (isAdmin) {
+        document.getElementById('adminSearchBar').style.display = 'block';
+      }
+      
+      // Reload with admin's own data
+      currentTeacher = sessionUser.email;
+      loadTeacherData();
+      
+      console.log('Exited manage mode, back to admin view');
+    };
+    
+    /**
+     * Get the effective user email (managed user or session user)
+     */
+    function getEffectiveUserEmail() {
+      if (managedUser && managedUser.email) {
+        return managedUser.email;
+      }
+      return sessionUser ? sessionUser.email : null;
+    }
+    
+    // Handle Enter key in search input
+    document.getElementById('adminSearchEmail').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        startManageUser();
+      }
+    });
+  </script>
+</body>
+</html>

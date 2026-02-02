@@ -1,0 +1,401 @@
+// ============================================================================
+// TradersUtopia Portal - Prisma Schema
+// ============================================================================
+// This schema models the legacy PropertiesService data in a relational format.
+// Key mappings from legacy:
+//   AUTH_* / AFFILIATE_AUTH_* -> User
+//   SESSION_* -> Session
+//   TEACHER_LINKS_* / TEACHER_STUDENTS_* -> TeacherStudentLink
+//   ATTENDANCE_USER_* -> AttendanceProfile
+//   ATTENDANCE_RECORD_* -> AttendanceRecord
+//   REFERRAL_DATA_* -> ReferralCache
+//   ADMIN_OVERRIDE_* -> CommissionOverride
+//   TEACHER_EARNINGS_* -> TeacherEarnings
+//   PWD_TOKEN_* -> PasswordResetToken
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// AUTHENTICATION & USERS
+// ============================================================================
+
+/// User account - maps to legacy AUTH_* / AFFILIATE_AUTH_* records
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Email system (dual email pattern from legacy)
+  aliasEmail    String  @unique // User-facing login email
+  internalEmail String? // Rewardful email (may contain encoded %)
+  email         String  @unique // Canonical email (usually same as aliasEmail)
+
+  // Original alias if changed by admin
+  originalAliasEmail String?
+
+  // User profile
+  firstName String?
+  lastName  String?
+
+  // Authentication
+  passwordHash String?
+  passwordSalt String?
+  passwordSetAt DateTime?
+
+  // Account status workflow: PENDING -> APPROVED -> COMPLETED/ACTIVE -> (REJECTED)
+  accountStatus AccountStatus @default(PENDING)
+  requestedAt   DateTime?
+  approvedAt    DateTime?
+  approvedBy    String?
+  rejectedAt    DateTime?
+  rejectedBy    String?
+  rejectionReason String?
+  completedAt   DateTime?
+
+  // Portal type requested (affiliate, teacher, student)
+  requestedPortalType String?
+
+  // Rate limiting
+  failedLoginCount   Int      @default(0)
+  lockUntilTimestamp DateTime?
+  lastLoginAt        DateTime?
+
+  // Rewardful integration
+  rewardfulAffiliateId String?
+
+  // Role flags (computed from email lists in legacy, stored for efficiency)
+  isAdmin   Boolean @default(false)
+  isTeacher Boolean @default(false)
+
+  // Relations
+  sessions             Session[]
+  attendanceProfile    AttendanceProfile?
+  teacherLinks         TeacherStudentLink[] @relation("TeacherLinks")
+  studentLinks         TeacherStudentLink[] @relation("StudentLinks")
+  commissionOverride   CommissionOverride?
+  teacherEarnings      TeacherEarnings?
+  passwordResetTokens  PasswordResetToken[]
+  auditLogs            AuditLog[]           @relation("UserAuditLogs")
+  adminAuditLogs       AuditLog[]           @relation("AdminAuditLogs")
+
+  @@index([aliasEmail])
+  @@index([internalEmail])
+  @@index([accountStatus])
+}
+
+enum AccountStatus {
+  PENDING    // Request submitted, awaiting admin approval
+  APPROVED   // Admin approved, awaiting password setup
+  COMPLETED  // Password set, account fully active
+  ACTIVE     // Alias for COMPLETED (legacy compatibility)
+  REJECTED   // Admin rejected the request
+}
+
+// ============================================================================
+// SESSIONS
+// ============================================================================
+
+/// Session - maps to legacy SESSION_* records
+model Session {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Token (64+ chars, unique)
+  token     String   @unique
+  expiresAt DateTime
+
+  // User reference
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Session metadata
+  lastSeenAt DateTime @default(now())
+  userAgent  String?
+  ipAddress  String?
+
+  @@index([token])
+  @@index([expiresAt])
+  @@index([userId])
+}
+
+// ============================================================================
+// PASSWORD RESET TOKENS
+// ============================================================================
+
+/// Password reset token - maps to legacy PWD_TOKEN_* records
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// TEACHER-STUDENT LINKING
+// ============================================================================
+
+/// Teacher-student link - maps to legacy TEACHER_LINKS_* (canonical) and TEACHER_STUDENTS_* (legacy)
+model TeacherStudentLink {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Teacher reference
+  teacherId String
+  teacher   User   @relation("TeacherLinks", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  // Student reference
+  studentId String
+  student   User   @relation("StudentLinks", fields: [studentId], references: [id], onDelete: Cascade)
+
+  // Link status (ACTIVE or REMOVED for soft delete)
+  status    LinkStatus @default(ACTIVE)
+
+  // Who created/removed the link
+  createdBy String? // 'student' | 'teacher' | 'admin' | 'migrated'
+  removedAt DateTime?
+  removedBy String?
+
+  // Student percentage override (set by teacher)
+  percentageOverride Float?
+
+  @@unique([teacherId, studentId])
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([status])
+}
+
+enum LinkStatus {
+  ACTIVE
+  REMOVED
+}
+
+// ============================================================================
+// ATTENDANCE SYSTEM
+// ============================================================================
+
+/// Attendance profile - maps to legacy ATTENDANCE_USER_* records
+model AttendanceProfile {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // User reference
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Currently equipped teacher email (for quick lookup)
+  currentTeacherEmail String?
+
+  // Legacy fields for migration
+  legacyPasswordHash String?
+
+  // Attendance records
+  records AttendanceRecord[]
+
+  @@index([currentTeacherEmail])
+}
+
+/// Attendance record - maps to legacy ATTENDANCE_RECORD_* records
+model AttendanceRecord {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Profile reference
+  profileId String
+  profile   AttendanceProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  // Record data
+  date        String   // YYYY-MM-DD format (user's local date)
+  confirmedAt DateTime
+  teacherEmail String? // Teacher at time of confirmation
+
+  // Multiple confirmations per day allowed
+  confirmationCount Int @default(1)
+
+  @@unique([profileId, date])
+  @@index([profileId])
+  @@index([date])
+}
+
+// ============================================================================
+// COMMISSION & OVERRIDES
+// ============================================================================
+
+/// Commission override - maps to legacy ADMIN_OVERRIDE_* records
+model CommissionOverride {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // User reference
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Override values (CAD)
+  unpaidAmount    Float?
+  dueNowAmount    Float?
+  totalPaidAmount Float?
+
+  // Metadata
+  note      String?
+  reason    String?
+  setBy     String? // Admin email who set the override
+  setAt     DateTime?
+}
+
+/// Incremental tracking - maps to legacy TRACKING_* records
+model CommissionTracking {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email               String @unique
+  lastApiAmount       Float  @default(0)
+  lastDisplayedAmount Float  @default(0)
+  lastFetchedAt       DateTime?
+
+  @@index([email])
+}
+
+// ============================================================================
+// TEACHER EARNINGS
+// ============================================================================
+
+/// Teacher earnings - maps to legacy TEACHER_EARNINGS_* records
+model TeacherEarnings {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Teacher reference
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Current locked earnings
+  lockedEarnings Float     @default(0)
+  lockedAt       DateTime?
+
+  // Totals
+  totalEarnedAllTime Float @default(0)
+  totalPaidAllTime   Float @default(0)
+
+  // Teacher's percentage cut
+  percentageCut Float @default(0)
+
+  // Payment history
+  payments TeacherPayment[]
+}
+
+/// Teacher payment record
+model TeacherPayment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Earnings reference
+  earningsId String
+  earnings   TeacherEarnings @relation(fields: [earningsId], references: [id], onDelete: Cascade)
+
+  // Payment data
+  amount    Float
+  paidAt    DateTime @default(now())
+  paidBy    String?  // Admin who processed payment
+  note      String?
+
+  // Earnings snapshot at time of payment
+  lockedEarningsBeforePayment Float?
+
+  @@index([earningsId])
+  @@index([paidAt])
+}
+
+// ============================================================================
+// REFERRAL/LEADS CACHE
+// ============================================================================
+
+/// Referral metadata cache - maps to legacy REFERRAL_DATA_* records
+model ReferralCache {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email       String @unique
+  affiliateId String?
+
+  // Counts
+  lastKnownLeadCount Int @default(0)
+  previousLeadCount  Int @default(0)
+
+  // Timestamps
+  lastSuccessfulFetchAt DateTime?
+  lastFetchedAt         DateTime?
+
+  // Fetch history (JSON array)
+  fetchHistory String? // JSON: [{ timestamp, count, delta }]
+
+  @@index([email])
+}
+
+// ============================================================================
+// AUDIT LOG
+// ============================================================================
+
+/// Audit log for admin actions
+model AuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Action details
+  action    String
+  details   String? // JSON object with action details
+  ipAddress String?
+  userAgent String?
+
+  // Who was affected
+  userId String?
+  user   User?   @relation("UserAuditLogs", fields: [userId], references: [id], onDelete: SetNull)
+
+  // Who performed the action
+  adminId String?
+  admin   User?   @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([action])
+  @@index([userId])
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// API CACHE (Optional - for caching Rewardful responses)
+// ============================================================================
+
+/// API response cache
+model ApiCache {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  cacheKey  String   @unique
+  data      String   // JSON response
+  expiresAt DateTime
+
+  @@index([cacheKey])
+  @@index([expiresAt])
+}

@@ -1,0 +1,3445 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Student Dashboard | TradersUtopia</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      max-width: 100%;
+    }
+    
+    *:not(html):not(body) {
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
+    
+    html, body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 0;
+      margin: 0;
+      overflow-x: hidden;
+      max-width: 100vw;
+      -webkit-text-size-adjust: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    body {
+      padding: 20px 10px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px 30px;
+      animation: fadeIn 0.6s ease-out;
+      width: calc(100% - 20px);
+      max-width: calc(100vw - 40px);
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e2e8f0;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    
+    .back-button, .logout-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .back-button:hover, .logout-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .logout-button {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    }
+    
+    h1 {
+      font-size: 36px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    h2 {
+      color: #1e293b;
+      font-size: 28px;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    
+    h3 {
+      color: #1e293b;
+      font-size: 22px;
+      margin: 24px 0 16px;
+      font-weight: 700;
+    }
+    
+    /* Auth Forms */
+    .auth-section {
+      max-width: 500px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 16px !important;
+      transition: all 0.3s ease;
+      background: white;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      touch-action: manipulation;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    /* Enhanced Select Dropdown Styling */
+    select,
+    .select-input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      font-size: 16px !important;
+      font-weight: 500;
+      color: #1e293b;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 20px;
+      padding-right: 50px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    
+    select:hover,
+    .select-input:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    select:focus,
+    .select-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), 0 4px 16px rgba(102, 126, 234, 0.1);
+    }
+    
+    select option {
+      padding: 12px 16px;
+      font-size: 15px;
+      background: white;
+      color: #1e293b;
+    }
+    
+    select option:hover,
+    select option:focus {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    /* Teacher Selection Card Style */
+    .teacher-select-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .teacher-select-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+    
+    .teacher-select-label span {
+      font-size: 20px;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 16px 24px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      cursor: pointer;
+      margin: 8px 0;
+      font-size: 16px !important;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      min-height: 50px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #475569;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-confirm {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-confirm:hover {
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-confirm:disabled {
+      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    }
+    
+    .msg {
+      margin-top: 20px;
+      font-size: 15px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f1f5f9;
+      border-left: 4px solid #667eea;
+      font-weight: 500;
+    }
+    
+    .msg.error {
+      background: #fee;
+      border-left-color: #dc2626;
+      color: #dc2626;
+    }
+    
+    .msg.success {
+      background: #f0fdf4;
+      border-left-color: #10b981;
+      color: #059669;
+    }
+    
+    .toggle-link {
+      text-align: center;
+      margin-top: 20px;
+      color: #667eea;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    
+    .toggle-link:hover {
+      text-decoration: underline;
+    }
+    
+    /* Dashboard */
+    .welcome-card {
+      background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 30px;
+      border-left: 4px solid #3b82f6;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    
+    .welcome-card h2 {
+      margin-bottom: 8px;
+      color: #1e40af;
+      word-wrap: break-word;
+    }
+    
+    .welcome-card .time-display {
+      font-size: 18px;
+      color: #1e40af;
+      font-weight: 600;
+      margin-top: 12px;
+      word-wrap: break-word;
+    }
+    
+    .attendance-card {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    
+    .today-card {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 2px solid #fbbf24;
+    }
+    
+    .attendance-status {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    
+    .status-valid {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-expired {
+      background: #fee;
+      color: #991b1b;
+    }
+    
+    .info-box {
+      font-size: 13px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+      border-radius: 12px;
+      color: #1e40af;
+      border-left: 4px solid #3b82f6;
+      line-height: 1.6;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #64748b;
+    }
+    
+    .empty-state svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 10px 5px;
+        overflow-x: hidden;
+      }
+      
+      .container {
+        padding: 20px 16px;
+        border-radius: 16px;
+        width: calc(100% - 10px);
+        max-width: calc(100vw - 20px);
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+      
+      .back-button, .logout-button {
+        width: 100%;
+        text-align: center;
+      }
+      
+      h1 {
+        font-size: 24px;
+      }
+      
+      h2 {
+        font-size: 20px;
+      }
+      
+      h3 {
+        font-size: 18px;
+      }
+      
+      .welcome-card .time-display {
+        font-size: 14px;
+      }
+      
+      .attendance-card {
+        padding: 16px;
+      }
+      
+      .btn {
+        font-size: 16px !important;
+        padding: 14px 20px;
+      }
+      
+      .search-box {
+        padding: 20px;
+      }
+      
+      #adminSearch {
+        font-size: 16px !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 5px;
+      }
+      
+      .container {
+        padding: 16px 12px;
+        width: calc(100% - 10px);
+        max-width: calc(100vw - 10px);
+        border-radius: 12px;
+      }
+      
+      h1 {
+        font-size: 20px;
+      }
+      
+      h2 {
+        font-size: 18px;
+      }
+      
+      .stats-grid-admin {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      
+      .stat-card-admin .stat-value {
+        font-size: 24px;
+      }
+      
+      .user-card {
+        padding: 16px;
+      }
+      
+      .user-detail-header {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+      
+      .user-detail-header > div {
+        width: 100%;
+      }
+      
+      .delete-user-btn, .back-to-search {
+        width: 100%;
+        margin-bottom: 8px;
+      }
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Admin Dashboard Styles */
+    .admin-dashboard {
+      min-height: 500px;
+    }
+    
+    .search-container {
+      position: relative;
+      margin-bottom: 40px;
+    }
+    
+    .search-box {
+      position: relative;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+    }
+    
+    .search-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(102, 126, 234, 0.4);
+      border-radius: 16px;
+      padding: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    .search-input-wrapper:focus-within {
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .search-icon {
+      padding: 0 16px;
+      color: #667eea;
+      font-size: 24px;
+    }
+    
+    #adminSearch {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 18px 8px;
+      font-size: 18px;
+      color: white;
+      font-weight: 500;
+    }
+    
+    #adminSearch::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+    
+    #adminSearch:focus {
+      outline: none;
+    }
+    
+    .search-results {
+      margin-top: 30px;
+    }
+    
+    .user-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      word-wrap: break-word;
+    }
+    
+    .user-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .user-card:hover {
+      transform: translateX(8px);
+      border-color: #667eea;
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+    
+    .user-card:hover::before {
+      opacity: 1;
+    }
+    
+    .user-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .user-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin: 0;
+    }
+    
+    .user-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(102, 126, 234, 0.2);
+      color: #667eea;
+      border: 1px solid rgba(102, 126, 234, 0.4);
+    }
+    
+    .user-email {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      margin-bottom: 8px;
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
+    
+    .user-created {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 13px;
+    }
+    
+    .user-details {
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(102, 126, 234, 0.2);
+    }
+    
+    .user-detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .back-to-search {
+      background: rgba(102, 126, 234, 0.2);
+      color: #667eea;
+      border: 1px solid rgba(102, 126, 234, 0.4);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .back-to-search:hover {
+      background: rgba(102, 126, 234, 0.3);
+      transform: translateX(-4px);
+    }
+    
+    .delete-user-btn {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .delete-user-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+      transform: scale(1.05);
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+    }
+    
+    .stats-grid-admin {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card-admin {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(102, 126, 234, 0.3);
+    }
+    
+    .stat-card-admin .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+    }
+    
+    .stat-card-admin .stat-label {
+      font-size: 13px;
+      color: #c7d2fe;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .admin-attendance-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.4);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      word-wrap: break-word;
+    }
+    
+    .admin-attendance-card p {
+      color: #ffffff;
+      margin: 4px 0;
+      font-size: 14px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    
+    .admin-attendance-card strong {
+      color: #a5b4fc;
+    }
+    
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .no-results svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+      50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
+    }
+    
+    .search-box {
+      animation: glow 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading overlay for session check -->
+  <div id="loadingOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="text-align: center; color: white;">
+      <div style="width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;"></div>
+      <p style="font-size: 16px;">Loading Student Dashboard...</p>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+  </div>
+  
+  <div class="container">
+    <div class="header">
+      <h1>📊 Student Dashboard</h1>
+      <div id="headerButtons">
+        <a href="#" class="back-button" id="backToHomeBtn">← Back to Dashboard</a>
+        <button class="logout-button" id="headerLogoutBtn" style="margin-left: 8px;">Sign Out</button>
+      </div>
+    </div>
+    
+    <!-- Login Section - hidden by default, shown only if needed -->
+    <div id="loginSection" class="auth-section hidden">
+      <h2>Welcome to Student Dashboard</h2>
+      
+      <div class="info-box">
+        <strong>📚 Your Personal Learning Hub</strong><br>
+        Track your attendance, view your referrals, and monitor your progress - all in one place.
+      </div>
+      
+      <form id="loginForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" placeholder="Enter your affiliate email" required autocomplete="email">
+        </div>
+        
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
+        </div>
+        
+        <div style="text-align: center; margin-top: 8px; margin-bottom: 16px;">
+          <a href="#" id="newHereLink" style="color: #667eea; font-size: 14px; text-decoration: none;">New here? Haven't set a password yet?</a>
+        </div>
+        
+        <button type="submit" class="btn" id="loginBtn">Continue</button>
+      </form>
+      
+      <div id="loginMsg" class="msg" style="display: none;"></div>
+    </div>
+    
+    <!-- Teacher Selection Section -->
+    <div id="teacherSelectionSection" class="auth-section hidden">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="font-size: 48px; margin-bottom: 12px;">👨‍🏫</div>
+        <h2 style="margin-bottom: 8px;">Select Your Teacher</h2>
+        <p style="color: #64748b; font-size: 14px;">Choose your teacher from the list below. This helps your teacher track your progress.</p>
+      </div>
+      
+      <div class="teacher-select-wrapper">
+        <div class="teacher-select-label">
+          <span>🎓</span> Your Teacher
+        </div>
+        <select id="teacherSelectLogin" class="select-input" required>
+          <option value="">-- Select a teacher --</option>
+        </select>
+      </div>
+      
+      <button class="btn btn-confirm" id="continueWithTeacherBtn" style="margin-top: 16px;">
+        ✓ Save Teacher
+      </button>
+      <button class="btn" onclick="showLogin(); return false;" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); margin-top: 10px;">← Back to Login</button>
+      
+      <div id="teacherMsg" class="msg" style="display: none;"></div>
+    </div>
+    
+    <!-- Admin Dashboard Section -->
+    <div id="adminDashboardSection" class="hidden admin-dashboard">
+      <div class="welcome-card" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-left-color: #667eea;">
+        <h2 style="color: #667eea;">System Administrator</h2>
+        <div class="time-display" id="adminTimeDisplay" style="color: rgba(255, 255, 255, 0.7);"></div>
+        <button class="logout-button" onclick="logout()" style="margin-top: 16px;">Logout</button>
+      </div>
+      
+      <div class="search-container">
+        <div class="search-box">
+          <h3 style="color: white; margin-bottom: 20px;">🔍 User Database Search</h3>
+          <div class="search-input-wrapper">
+            <span class="search-icon">⚡</span>
+            <input 
+              type="text" 
+              id="adminSearch" 
+              placeholder="Search by name or email..." 
+              autocomplete="off"
+            />
+          </div>
+          <p style="color: rgba(255, 255, 255, 0.4); font-size: 12px; margin-top: 12px;">
+            Type to search through all registered users in real-time
+          </p>
+        </div>
+      </div>
+      
+      <div id="searchResultsContainer" class="search-results">
+        <div class="no-results">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <p>Enter a search query to find users</p>
+        </div>
+      </div>
+      
+      <div id="userDetailsContainer" class="hidden">
+        <div class="user-details">
+          <div class="user-detail-header">
+            <h3 style="color: white;" id="detailUserName"></h3>
+            <div style="display: flex; gap: 12px;">
+              <button class="delete-user-btn" onclick="deleteUser()" title="Delete this user">
+                🗑️ Delete User
+              </button>
+              <button class="back-to-search" onclick="backToSearch()">← Back to Search</button>
+            </div>
+          </div>
+          
+          <div class="stats-grid-admin">
+            <div class="stat-card-admin">
+              <div class="stat-value" id="detailTotalDays">0</div>
+              <div class="stat-label">Total Days</div>
+            </div>
+            <div class="stat-card-admin">
+              <div class="stat-value" id="detailConfirmed">0</div>
+              <div class="stat-label">Confirmed</div>
+            </div>
+            <div class="stat-card-admin">
+              <div class="stat-value" id="detailMissed">0</div>
+              <div class="stat-label">Missed</div>
+            </div>
+            <div class="stat-card-admin">
+              <div class="stat-value" id="detailRate">0%</div>
+              <div class="stat-label">Attendance Rate</div>
+            </div>
+          </div>
+          
+          <h4 style="color: white; margin-top: 24px; margin-bottom: 16px;">📅 Attendance Records</h4>
+          <div id="detailAttendanceHistory"></div>
+        </div>
+      </div>
+      
+      <!-- Full Student Dashboard Viewer (Admin Only) -->
+      <div id="studentDashboardViewer" class="hidden">
+        <div style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); border-radius: 16px; padding: 24px; border: 2px solid rgba(102, 126, 234, 0.4);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
+            <h3 style="color: white; margin: 0;">📊 Student Dashboard View</h3>
+            <button onclick="closeStudentDashboard()" style="padding: 10px 20px; background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">← Back to Search</button>
+          </div>
+          
+          <!-- Student Info Card -->
+          <div id="studentInfoCard" style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(102, 126, 234, 0.3);">
+            <h4 style="color: #a5b4fc; margin: 0 0 16px 0;">👤 Student Information</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+              <div>
+                <label style="color: rgba(255,255,255,0.6); font-size: 12px; display: block; margin-bottom: 4px;">Name</label>
+                <div id="viewStudentName" style="color: white; font-size: 16px; font-weight: 600;">-</div>
+              </div>
+              <div>
+                <label style="color: rgba(255,255,255,0.6); font-size: 12px; display: block; margin-bottom: 4px;">Alias Email (Login)</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="email" id="viewAliasEmail" style="flex: 1; padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 6px; color: white; font-size: 14px;" />
+                  <button onclick="saveAliasEmail()" style="padding: 8px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">Save</button>
+                </div>
+              </div>
+              <div>
+                <label style="color: rgba(255,255,255,0.6); font-size: 12px; display: block; margin-bottom: 4px;">Internal/Affiliate Email</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="email" id="viewInternalEmail" style="flex: 1; padding: 8px 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 6px; color: #fbbf24; font-size: 14px; font-family: monospace;" />
+                  <button onclick="saveInternalEmail()" style="padding: 8px 16px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">Save</button>
+                </div>
+                <p style="color: rgba(255,255,255,0.4); font-size: 11px; margin: 4px 0 0 0;">Must exist in affiliate database</p>
+              </div>
+              <div>
+                <label style="color: rgba(255,255,255,0.6); font-size: 12px; display: block; margin-bottom: 4px;">Joined</label>
+                <div id="viewJoinedDate" style="color: white; font-size: 14px;">-</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Teacher Assignment -->
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(102, 126, 234, 0.3);">
+            <h4 style="color: #a5b4fc; margin: 0 0 16px 0;">👨‍🏫 Teacher Assignment</h4>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <select id="viewTeacherSelect" style="flex: 1; min-width: 200px; padding: 10px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 8px; color: white; font-size: 14px;">
+                <option value="">-- No Teacher --</option>
+              </select>
+              <button onclick="saveStudentTeacher()" style="padding: 10px 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Save Teacher</button>
+            </div>
+            <div id="currentTeacherDisplay" style="margin-top: 12px; color: rgba(255,255,255,0.7); font-size: 13px;"></div>
+          </div>
+          
+          <!-- Attendance Stats -->
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(102, 126, 234, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <h4 style="color: #a5b4fc; margin: 0;">📅 Attendance Statistics</h4>
+              <button onclick="toggleAttendanceHistory()" id="toggleAttendanceBtn" style="padding: 8px 16px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">Show History</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px;">
+              <div style="text-align: center; padding: 16px; background: rgba(102, 126, 234, 0.2); border-radius: 10px;">
+                <div id="viewTotalDays" style="font-size: 28px; font-weight: 700; color: #a5b4fc;">0</div>
+                <div style="color: rgba(255,255,255,0.6); font-size: 12px;">Total Days</div>
+              </div>
+              <div style="text-align: center; padding: 16px; background: rgba(16, 185, 129, 0.2); border-radius: 10px;">
+                <div id="viewConfirmed" style="font-size: 28px; font-weight: 700; color: #10b981;">0</div>
+                <div style="color: rgba(255,255,255,0.6); font-size: 12px;">Confirmed</div>
+              </div>
+              <div style="text-align: center; padding: 16px; background: rgba(239, 68, 68, 0.2); border-radius: 10px;">
+                <div id="viewMissed" style="font-size: 28px; font-weight: 700; color: #ef4444;">0</div>
+                <div style="color: rgba(255,255,255,0.6); font-size: 12px;">Missed</div>
+              </div>
+              <div style="text-align: center; padding: 16px; background: rgba(251, 191, 36, 0.2); border-radius: 10px;">
+                <div id="viewRate" style="font-size: 28px; font-weight: 700; color: #fbbf24;">0%</div>
+                <div style="color: rgba(255,255,255,0.6); font-size: 12px;">Rate</div>
+              </div>
+            </div>
+            
+            <!-- Attendance History (Collapsible) -->
+            <div id="viewAttendanceHistory" style="display: none; margin-top: 16px; max-height: 300px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead style="position: sticky; top: 0; background: #1e293b;">
+                  <tr>
+                    <th style="padding: 10px 8px; text-align: left; color: #a5b4fc; border-bottom: 1px solid rgba(102, 126, 234, 0.3);">Date</th>
+                    <th style="padding: 10px 8px; text-align: left; color: #a5b4fc; border-bottom: 1px solid rgba(102, 126, 234, 0.3);">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="viewAttendanceTableBody">
+                  <tr><td colspan="2" style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">No attendance records</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <!-- Referrals/Leads Section -->
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; border: 1px solid rgba(102, 126, 234, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <h4 style="color: #a5b4fc; margin: 0;">🔗 Referrals & Conversions</h4>
+              <button onclick="refreshStudentReferrals()" style="padding: 8px 16px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;">🔄 Refresh</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px;">
+              <div style="text-align: center; padding: 16px; background: rgba(251, 191, 36, 0.2); border-radius: 10px;">
+                <div id="viewLeadsCount" style="font-size: 28px; font-weight: 700; color: #fbbf24;">0</div>
+                <div style="color: rgba(255,255,255,0.6); font-size: 12px;">Leads</div>
+              </div>
+              <div style="text-align: center; padding: 16px; background: rgba(16, 185, 129, 0.2); border-radius: 10px;">
+                <div id="viewConversionsCount" style="font-size: 28px; font-weight: 700; color: #10b981;">0</div>
+                <div style="color: rgba(255,255,255,0.6); font-size: 12px;">Conversions</div>
+              </div>
+            </div>
+            <div id="viewReferralStatus" style="color: rgba(255,255,255,0.6); font-size: 12px; text-align: center; margin-bottom: 16px;"></div>
+            
+            <!-- Tab buttons for leads/conversions -->
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+              <button id="viewLeadsTabBtn" onclick="showLeadsTab('leads')" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #1e293b; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">View Leads</button>
+              <button id="viewConversionsTabBtn" onclick="showLeadsTab('conversions')" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">View Conversions</button>
+            </div>
+            
+            <!-- Leads table -->
+            <div id="viewLeadsTable" style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead style="position: sticky; top: 0; background: #1e293b;">
+                  <tr>
+                    <th style="padding: 12px 8px; text-align: left; color: #a5b4fc; border-bottom: 1px solid rgba(102, 126, 234, 0.3);">ID</th>
+                    <th style="padding: 12px 8px; text-align: left; color: #a5b4fc; border-bottom: 1px solid rgba(102, 126, 234, 0.3);">Status</th>
+                    <th style="padding: 12px 8px; text-align: left; color: #a5b4fc; border-bottom: 1px solid rgba(102, 126, 234, 0.3);">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="viewLeadsTableBody">
+                  <tr><td colspan="3" style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">No data to display</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="hidden">
+      <div class="welcome-card">
+        <h2 id="welcomeText">Welcome back!</h2>
+        <div class="time-display" id="currentTimeDisplay"></div>
+        <button class="logout-button" onclick="logout()" style="margin-top: 16px;">Logout</button>
+      </div>
+      
+      <!-- Teacher Selection -->
+      <div style="background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); padding: 24px; border-radius: 16px; margin-top: 20px; border: 2px solid #bfdbfe;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">👨‍🏫</div>
+          <div>
+            <h3 style="color: #1e40af; margin: 0; font-size: 18px;">Select Your Teacher</h3>
+            <p style="color: #3b82f6; font-size: 13px; margin: 4px 0 0 0;">Choose your teacher from the list below</p>
+          </div>
+        </div>
+        <div class="teacher-select-wrapper" style="margin-bottom: 12px;">
+          <select id="teacherSelect" class="select-input">
+            <option value="">Loading teachers...</option>
+          </select>
+        </div>
+        <button id="saveTeacherBtn" class="btn btn-confirm" style="font-size: 15px !important;">✓ Save Teacher</button>
+        <div id="dashboardTeacherMsg" style="margin-top: 12px; font-size: 13px; padding: 12px; border-radius: 8px; display: none;"></div>
+      </div>
+      
+      <!-- Today's Attendance -->
+      <div class="attendance-card today-card">
+        <h3>Today's Attendance</h3>
+        <p><strong>Date:</strong> <span id="todayDate"></span></p>
+        <p><strong>Deadline:</strong> 11:59 PM today</p>
+        <div id="todayAttendanceStatus"></div>
+        <button class="btn btn-confirm" id="confirmAttendanceBtn" style="margin-top: 16px;">
+          ✓ Confirm Attendance
+        </button>
+      </div>
+      
+      <!-- Referrals Section (Leads + Conversions) -->
+      <div id="referralsSection" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 24px; border-radius: 16px; margin-top: 20px; border: 2px solid #fbbf24; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">🔗</div>
+            <div>
+              <h3 style="color: #92400e; margin: 0; font-size: 18px;">Referrals</h3>
+              <p style="color: #b45309; font-size: 13px; margin: 4px 0 0 0;">Track your leads and conversions</p>
+            </div>
+          </div>
+          <button id="refreshReferralsBtn" class="btn" style="padding: 10px 16px; font-size: 14px !important; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+            🔄 Refresh
+          </button>
+        </div>
+        
+        <!-- Toggle: Leads / Conversions -->
+        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+          <div id="referralModeToggle" style="display: inline-flex; background: white; border-radius: 25px; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <button id="modeLeadsBtn" onclick="switchReferralMode('leads')" style="padding: 8px 20px; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+              Leads <span id="leadsCountBadge" style="background: rgba(255,255,255,0.3); padding: 2px 8px; border-radius: 10px; margin-left: 6px; font-size: 11px;">--</span>
+            </button>
+            <button id="modeConversionsBtn" onclick="switchReferralMode('conversions')" style="padding: 8px 20px; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #92400e;">
+              Conversions <span id="conversionsCountBadge" style="background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 10px; margin-left: 6px; font-size: 11px;">--</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Status -->
+        <div id="referralStatus" style="font-size: 13px; color: #92400e; padding: 12px; background: rgba(255,255,255,0.5); border-radius: 8px; margin-bottom: 16px;">
+          <span id="referralLastUpdated">Loading data...</span>
+        </div>
+        
+        <!-- Error display -->
+        <div id="referralError" style="display: none; margin-bottom: 16px; padding: 12px; background: #fee2e2; border-radius: 8px; color: #991b1b; font-size: 13px;"></div>
+        
+        <!-- Table Container -->
+        <div id="leadsTableContainer" style="display: none;">
+          <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                  <th style="padding: 10px 8px; text-align: left; font-weight: 600;">State</th>
+                  <th style="padding: 10px 8px; text-align: left; font-weight: 600;">First Click</th>
+                  <th style="padding: 10px 8px; text-align: left; font-weight: 600;">Became Lead</th>
+                  <th style="padding: 10px 8px; text-align: left; font-weight: 600;">Converted</th>
+                </tr>
+              </thead>
+              <tbody id="leadsTableBody">
+                <!-- Populated by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Pagination Controls -->
+          <div id="paginationControls" style="display: none; margin-top: 16px;">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 16px;">
+              <button id="prevPageBtn" onclick="goToPage(currentPage - 1)" style="padding: 8px 16px; border: 2px solid #f59e0b; border-radius: 8px; background: white; color: #92400e; font-weight: 600; cursor: pointer; transition: all 0.2s;" disabled>
+                ← Prev
+              </button>
+              <span id="pageInfo" style="font-size: 13px; color: #92400e; font-weight: 500;">Page 1 of 1</span>
+              <button id="nextPageBtn" onclick="goToPage(currentPage + 1)" style="padding: 8px 16px; border: 2px solid #f59e0b; border-radius: 8px; background: white; color: #92400e; font-weight: 600; cursor: pointer; transition: all 0.2s;" disabled>
+                Next →
+              </button>
+            </div>
+            <p style="font-size: 11px; color: #92400e; margin-top: 12px; text-align: center;">
+              Showing <span id="leadsShownCount">0</span> of <span id="leadsTotalCount">0</span> • Customer info hidden for privacy
+            </p>
+          </div>
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyReferralsMsg" style="display: none; text-align: center; padding: 30px; background: rgba(255,255,255,0.5); border-radius: 12px;">
+          <p style="font-size: 48px; margin-bottom: 8px;">📭</p>
+          <p id="emptyModeText" style="color: #92400e; font-size: 14px;">No leads found</p>
+        </div>
+      </div>
+      
+      <!-- Attendance History -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0;">Attendance History</h3>
+        <button class="logout-button" id="resetAllAttendanceBtn" style="font-size: 14px; padding: 8px 16px;">
+          🗑️ Reset All Attendance
+        </button>
+      </div>
+      <div id="attendanceHistory">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+        </svg>
+          <p>Loading attendance history...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    console.log('Student Dashboard loaded');
+    
+    // Unified session management
+    var SESSION_TOKEN_KEY = 'tradersutopia_session_token';
+    var sessionUser = null;
+    
+    var currentUser = null;
+    var isAdminUser = false;
+    var allUsers = [];
+    var selectedUser = null;
+    
+    // Initialize - check unified session first
+    window.addEventListener('load', function() {
+      checkUnifiedSession();
+      updateTimeDisplay();
+      setInterval(updateTimeDisplay, 1000);
+      
+      // Setup admin search
+      setupAdminSearch();
+    });
+    
+    // Time display
+    function updateTimeDisplay() {
+      var now = new Date();
+      var timeString = now.toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      
+      var el = document.getElementById('currentTimeDisplay');
+      if (el) {
+        el.textContent = '🕐 ' + timeString;
+      }
+      
+      var adminEl = document.getElementById('adminTimeDisplay');
+      if (adminEl) {
+        adminEl.textContent = '🕐 ' + timeString;
+      }
+      
+      var todayEl = document.getElementById('todayDate');
+      if (todayEl) {
+        todayEl.textContent = now.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+    }
+    
+    // Check unified session (localStorage token)
+    function checkUnifiedSession() {
+      var token = localStorage.getItem(SESSION_TOKEN_KEY);
+      
+      if (!token) {
+        console.log('No session token, redirecting to login');
+        redirectToLogin();
+        return;
+      }
+      
+      console.log('Validating session token...');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.valid) {
+            console.log('Session valid:', result.user);
+            sessionUser = result.user;
+            initializeStudentPortal();
+          } else {
+            console.log('Session invalid, redirecting to login');
+            localStorage.removeItem(SESSION_TOKEN_KEY);
+            redirectToLogin();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Session validation error:', error);
+          localStorage.removeItem(SESSION_TOKEN_KEY);
+          redirectToLogin();
+        })
+        .validateSessionToken(token);
+    }
+    
+    function redirectToLogin() {
+      google.script.run
+        .withSuccessHandler(function(appUrl) {
+          var url = appUrl + '?page=login';
+          try { window.top.location.href = url; } catch (e) { window.location.href = url; }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error getting app URL:', error);
+        })
+        .getWebAppUrl();
+    }
+    
+    function redirectToHome() {
+      google.script.run
+        .withSuccessHandler(function(appUrl) {
+          var url = appUrl + '?page=home';
+          try { window.top.location.href = url; } catch (e) { window.location.href = url; }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error getting app URL:', error);
+        })
+        .getWebAppUrl();
+    }
+    
+    function initializeStudentPortal() {
+      // Hide loading overlay
+      document.getElementById('loadingOverlay').style.display = 'none';
+      
+      // Setup navigation handlers
+      document.getElementById('backToHomeBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        redirectToHome();
+      });
+      
+      document.getElementById('headerLogoutBtn').addEventListener('click', function() {
+        var token = localStorage.getItem(SESSION_TOKEN_KEY);
+        localStorage.removeItem(SESSION_TOKEN_KEY);
+        sessionStorage.removeItem('attendanceUser');
+        if (token) {
+          google.script.run.logoutSession(token);
+        }
+        redirectToLogin();
+      });
+      
+      // Proceed with attendance login flow using session email
+      console.log('Proceeding with session email:', sessionUser.email);
+      isAdminUser = sessionUser.isAdmin || false;
+      
+      // Login with the session user's email
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            if (result.isAdmin) {
+              currentUser = result.user;
+              isAdminUser = true;
+              sessionStorage.setItem('attendanceUser', JSON.stringify(result.user));
+              showAdminDashboard();
+            } else if (result.needsTeacherSelection) {
+              currentUser = result.user;
+              // Keep login hidden, show teacher selection
+              showTeacherSelection();
+            } else {
+              currentUser = result.user;
+              sessionStorage.setItem('attendanceUser', JSON.stringify(result.user));
+              showDashboard();
+            }
+          } else {
+            console.error('Attendance login failed:', result.error);
+            // Show login section as fallback (remove hidden class)
+            document.getElementById('loginSection').classList.remove('hidden');
+            showMessage('loginMsg', result.error || 'Login failed. Please try again.', 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error during attendance login:', error);
+          // Show login section as fallback (remove hidden class)
+          document.getElementById('loginSection').classList.remove('hidden');
+          showMessage('loginMsg', 'An error occurred. Please try again.', 'error');
+        })
+        .loginAttendanceWithEmail(sessionUser.email);
+    }
+    
+    // Legacy session check (for backwards compatibility)
+    function checkSession() {
+      // Now handled by checkUnifiedSession
+    }
+    
+    // "New here?" link handler - uses server-side URL to avoid userCodeAppPanel issues
+    document.getElementById('newHereLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('loginEmail').value.trim();
+      
+      // Get the correct web app URL from server
+      google.script.run
+        .withSuccessHandler(function(baseUrl) {
+          var url = baseUrl + '?page=set-password&return=student';
+          if (email) {
+            url += '&email=' + encodeURIComponent(email);
+          }
+          try {
+            window.top.location.href = url;
+          } catch (err) {
+            window.location.href = url;
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error getting app URL:', error);
+          showMessage('loginMsg', 'Unable to navigate. Please try again.', 'error');
+        })
+        .getWebAppUrl();
+    });
+    
+    // Login with password authentication
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      var email = document.getElementById('loginEmail').value.trim();
+      var password = document.getElementById('loginPassword').value;
+      
+      if (!email) {
+        showMessage('loginMsg', 'Please enter your email', 'error');
+        return;
+      }
+      
+      if (!password) {
+        showMessage('loginMsg', 'Please enter your password', 'error');
+        return;
+      }
+      
+      var btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+      showMessage('loginMsg', 'Verifying credentials...', '');
+      
+      // First verify password
+      google.script.run
+        .withSuccessHandler(function(authResult) {
+          if (!authResult.success) {
+            btn.disabled = false;
+            btn.textContent = 'Continue';
+            
+            // If no password set, guide to password setup
+            if (authResult.noPasswordSet) {
+              showMessage('loginMsg', authResult.error, 'error');
+            } else {
+              showMessage('loginMsg', authResult.error || 'Authentication failed', 'error');
+            }
+            return;
+          }
+          
+          // Password verified - now proceed with attendance login
+          showMessage('loginMsg', 'Password verified. Loading dashboard...', '');
+          
+          google.script.run
+            .withSuccessHandler(function(result) {
+              btn.disabled = false;
+              btn.textContent = 'Continue';
+              
+              if (result.success) {
+                if (result.isAdmin) {
+                  // Admin login - go straight to dashboard
+                  currentUser = result.user;
+                  isAdminUser = true;
+                  sessionStorage.setItem('attendanceUser', JSON.stringify(result.user));
+                  showMessage('loginMsg', 'Admin login successful!', 'success');
+                  setTimeout(function() {
+                    showAdminDashboard();
+                  }, 500);
+                } else if (result.needsTeacherSelection) {
+                  // First time user - show teacher selection
+                  currentUser = result.user;
+                  showMessage('loginMsg', 'Email verified! Please select your teacher.', 'success');
+                  setTimeout(function() {
+                    showTeacherSelection();
+                  }, 500);
+                } else {
+                  // Returning user - go straight to dashboard
+                  currentUser = result.user;
+                  sessionStorage.setItem('attendanceUser', JSON.stringify(result.user));
+                  showMessage('loginMsg', 'Welcome back! Redirecting to dashboard...', 'success');
+                  setTimeout(function() {
+                    showDashboard();
+                  }, 500);
+                }
+              } else {
+                showMessage('loginMsg', result.error || 'Email not found in system', 'error');
+              }
+            })
+            .withFailureHandler(function(error) {
+              btn.disabled = false;
+              btn.textContent = 'Continue';
+              showMessage('loginMsg', 'Error: ' + error.message, 'error');
+            })
+            .loginAttendanceWithEmail(email);
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.textContent = 'Continue';
+          showMessage('loginMsg', 'Error verifying credentials. Please try again.', 'error');
+        })
+        .verifyAffiliatePassword(email, password);
+    });
+    
+    // Teacher selection
+    document.getElementById('continueWithTeacherBtn').addEventListener('click', function() {
+      var teacherEmail = document.getElementById('teacherSelectLogin').value;
+      
+      if (!teacherEmail) {
+        showMessage('teacherMsg', 'Please select a teacher', 'error');
+        return;
+      }
+      
+      if (!currentUser || !currentUser.email) {
+        showMessage('teacherMsg', 'Session error. Please log in again.', 'error');
+        return;
+      }
+      
+      var btn = document.getElementById('continueWithTeacherBtn');
+      btn.disabled = true;
+      btn.textContent = 'Setting up...';
+      showMessage('teacherMsg', 'Adding you to teacher\'s students...', '');
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.textContent = 'Continue to Dashboard';
+          
+          if (result.success) {
+            currentUser = result.user;
+            sessionStorage.setItem('attendanceUser', JSON.stringify(result.user));
+            showMessage('teacherMsg', 'Setup complete!', 'success');
+            setTimeout(function() {
+              showDashboard();
+            }, 500);
+          } else {
+            showMessage('teacherMsg', result.error || 'Failed to complete setup', 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.textContent = 'Continue to Dashboard';
+          showMessage('teacherMsg', 'Error: ' + error.message, 'error');
+        })
+        .completeAttendanceLoginWithTeacher(currentUser.email, teacherEmail);
+    });
+    
+    // Confirm Attendance
+    document.getElementById('confirmAttendanceBtn').addEventListener('click', function() {
+      if (!currentUser) return;
+      
+      var btn = document.getElementById('confirmAttendanceBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Confirming...';
+      
+      // Get user's local date (YYYY-MM-DD format)
+      var localDate = getUserLocalDateString();
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            loadAttendanceData();
+          } else {
+            // Check if user needs to select a teacher (Issue 2 & 3 fix)
+            if (result.requiresTeacherSelection) {
+              alert('⚠️ ' + (result.error || 'Please select a teacher first.'));
+              // Redirect to teacher selection
+              showTeacherSelection();
+            } else {
+              alert(result.error || 'Failed to confirm attendance');
+            }
+            btn.disabled = false;
+            btn.textContent = '✓ Confirm Attendance';
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Confirm attendance error:', error);
+          alert('Error: ' + error.message);
+          btn.disabled = false;
+          btn.textContent = '✓ Confirm Attendance';
+        })
+        .confirmAttendance(currentUser.email, localDate);
+    });
+    
+    // Reset All Attendance Button
+    document.getElementById('resetAllAttendanceBtn').addEventListener('click', resetAllAttendance);
+    
+    // Show/Hide sections
+    function showLogin() {
+      document.getElementById('loginSection').classList.remove('hidden');
+      document.getElementById('teacherSelectionSection').classList.add('hidden');
+      document.getElementById('dashboardSection').classList.add('hidden');
+      document.getElementById('adminDashboardSection').classList.add('hidden');
+    }
+    
+    function showTeacherSelection() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('teacherSelectionSection').classList.remove('hidden');
+      document.getElementById('dashboardSection').classList.add('hidden');
+      document.getElementById('adminDashboardSection').classList.add('hidden');
+      
+      // Load teachers
+      document.getElementById('teacherSelectLogin').innerHTML = '<option value="">Loading teachers...</option>';
+      
+      // Check if current user is a teacher (can select "None")
+      var isCurrentUserTeacher = currentUser && currentUser.isTeacher;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          var select = document.getElementById('teacherSelectLogin');
+          select.innerHTML = '<option value="">-- Choose your teacher --</option>';
+          
+          // If current user is a teacher, add "None" option at the top
+          if (isCurrentUserTeacher) {
+            var noneOption = document.createElement('option');
+            noneOption.value = 'none';
+            noneOption.textContent = '🚫 None (I am a teacher)';
+            noneOption.style.fontWeight = 'bold';
+            select.appendChild(noneOption);
+          }
+          
+          if (result && result.success && result.teachers) {
+            result.teachers.forEach(function(teacher) {
+              var option = document.createElement('option');
+              option.value = teacher.email;
+              // Only show teacher name, not email (confidential)
+              option.textContent = teacher.name;
+              select.appendChild(option);
+            });
+            
+            if (result.teachers.length === 0 && !isCurrentUserTeacher) {
+              select.innerHTML = '<option value="">No teachers available</option>';
+              showMessage('teacherMsg', 'No teachers available. Please contact admin.', 'error');
+            }
+          } else {
+            if (!isCurrentUserTeacher) {
+              select.innerHTML = '<option value="">Error loading teachers</option>';
+              showMessage('teacherMsg', 'Failed to load teachers', 'error');
+            }
+          }
+        })
+        .withFailureHandler(function(error) {
+          var select = document.getElementById('teacherSelectLogin');
+          if (isCurrentUserTeacher) {
+            // Teachers can still select "None" even if loading fails
+            select.innerHTML = '<option value="">-- Choose your teacher --</option>';
+            var noneOption = document.createElement('option');
+            noneOption.value = 'none';
+            noneOption.textContent = '🚫 None (I am a teacher)';
+            select.appendChild(noneOption);
+          } else {
+            select.innerHTML = '<option value="">Error loading teachers</option>';
+            showMessage('teacherMsg', 'Failed to load teachers: ' + error.message, 'error');
+          }
+        })
+        .getAllValidTeachers();
+    }
+    
+    function showDashboard() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('teacherSelectionSection').classList.add('hidden');
+      document.getElementById('dashboardSection').classList.remove('hidden');
+      document.getElementById('adminDashboardSection').classList.add('hidden');
+      
+      if (currentUser) {
+        document.getElementById('welcomeText').textContent = 'Welcome back, ' + currentUser.name + '!';
+        loadAttendanceData();
+      }
+    }
+    
+    function showAdminDashboard() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('teacherSelectionSection').classList.add('hidden');
+      document.getElementById('dashboardSection').classList.add('hidden');
+      document.getElementById('adminDashboardSection').classList.remove('hidden');
+      
+      // Load all users for admin
+      loadAllUsers();
+    }
+    
+    function logout() {
+      // Clear unified session
+      var token = localStorage.getItem(SESSION_TOKEN_KEY);
+      localStorage.removeItem(SESSION_TOKEN_KEY);
+      sessionStorage.removeItem('attendanceUser');
+      
+      if (token) {
+        google.script.run.logoutSession(token);
+      }
+      
+      currentUser = null;
+      isAdminUser = false;
+      allUsers = [];
+      selectedUser = null;
+      
+      redirectToLogin();
+    }
+    
+    // Helper function to get user's local date in YYYY-MM-DD format
+    function getUserLocalDateString() {
+      var now = new Date();
+      var year = now.getFullYear();
+      var month = String(now.getMonth() + 1).padStart(2, '0');
+      var day = String(now.getDate()).padStart(2, '0');
+      return year + '-' + month + '-' + day;
+    }
+    
+    // Load attendance data
+    function loadAttendanceData() {
+      if (!currentUser) return;
+      
+      // Get user's local date to correctly identify "today"
+      var userLocalDate = getUserLocalDateString();
+      
+      google.script.run
+        .withSuccessHandler(function(data) {
+          // Check if user has a valid teacher assignment
+          // "none" is valid for teachers (they selected "None - I am a teacher")
+          var hasValidTeacher = data.teacherEmail && data.teacherEmail !== '';
+          var isTeacherWithNone = data.teacherEmail === 'none';
+          
+          if (!hasValidTeacher && !isTeacherWithNone) {
+            console.warn('User has no teacher assigned. Redirecting to teacher selection.');
+            var statusEl = document.getElementById('todayAttendanceStatus');
+            if (statusEl) {
+              statusEl.innerHTML = '<span class="attendance-status status-pending" style="background: #fef3c7; color: #92400e;">⚠️ No teacher assigned. Please select a teacher to confirm attendance.</span>';
+            }
+            // Disable confirm button and show warning
+            var btn = document.getElementById('confirmAttendanceBtn');
+            if (btn) {
+              btn.disabled = true;
+              btn.textContent = '⚠️ Select Teacher First';
+              btn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+              btn.onclick = function() {
+                showTeacherSelection();
+              };
+            }
+          }
+          
+          // Combine today's records with history for display
+          var allHistory = [];
+          
+          // Add today's records to history if they exist
+          if (data.today && data.today.length > 0) {
+            allHistory = allHistory.concat(data.today);
+          }
+          
+          // Add regular history
+          if (data.history && data.history.length > 0) {
+            allHistory = allHistory.concat(data.history);
+          }
+          
+          renderAttendanceHistory(allHistory);
+          
+          // Update today status if teacher is assigned (including "none" for teachers)
+          if (hasValidTeacher || isTeacherWithNone) {
+            updateTodayStatus(data.today);
+          }
+          
+          // Log stats if available
+          if (data.stats) {
+            console.log('Attendance stats:', data.stats);
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading attendance:', error);
+        })
+        .getAttendanceData(currentUser.email, userLocalDate);
+    }
+    
+    // Update today's status
+    function updateTodayStatus(todayData) {
+      var statusEl = document.getElementById('todayAttendanceStatus');
+      var btn = document.getElementById('confirmAttendanceBtn');
+      
+      // todayData is now an array of records
+      if (todayData && todayData.length > 0) {
+        var html = '';
+        
+        // Show all today's confirmations
+        todayData.forEach(function(record, index) {
+          var time = new Date(record.timestamp).toLocaleTimeString();
+          var statusClass = index === 0 ? 'status-valid' : 'status-valid';
+          html += '<span class="attendance-status ' + statusClass + '" style="margin-right: 8px; margin-bottom: 8px; display: inline-block;">✓ Confirmed at ' + time + '</span>';
+        });
+        
+        html += '<p style="margin-top: 12px; font-size: 13px; color: #92400e;">Total confirmations today: <strong>' + todayData.length + '</strong></p>';
+        html += '<p style="margin-top: 4px; font-size: 13px; color: #92400e;">You can confirm again to add another record</p>';
+        
+        statusEl.innerHTML = html;
+        btn.disabled = false;
+        btn.textContent = '✓ Confirm Attendance Again';
+      } else {
+        statusEl.innerHTML = '<span class="attendance-status status-pending">⏰ Pending - Please confirm before 11:59 PM</span>';
+        btn.disabled = false;
+        btn.textContent = '✓ Confirm Attendance';
+      }
+    }
+    
+    // Render attendance history (now includes missed days!)
+    function renderAttendanceHistory(history) {
+      var container = document.getElementById('attendanceHistory');
+      
+      if (!history || history.length === 0) {
+        container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg><p>No attendance history yet. Start by confirming today\'s attendance!</p></div>';
+        return;
+      }
+      
+      // Group records by date (for confirmed entries with multiple confirmations)
+      var recordsByDate = {};
+      var processedDates = {};
+      
+      history.forEach(function(record) {
+        if (!recordsByDate[record.date]) {
+          recordsByDate[record.date] = [];
+        }
+        recordsByDate[record.date].push(record);
+      });
+      
+      var html = '';
+      
+      // Count stats for summary
+      var confirmedDays = 0;
+      var missedDays = 0;
+      
+      history.forEach(function(record) {
+        // Only show each date once
+        if (processedDates[record.date]) return;
+        processedDates[record.date] = true;
+        
+        var dateRecords = recordsByDate[record.date];
+        
+        // Parse date in timezone-safe way (YYYY-MM-DD)
+        var dateParts = record.date.split('-');
+        var date = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+        var formattedDate = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        
+        // Check if this is a MISSED day (Issue 1 fix)
+        if (record.missed === true) {
+          // MISSED DAY - show with red styling
+          missedDays++;
+          html += '<div class="attendance-card" style="border-left: 4px solid #ef4444; background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);">';
+          html += '<p><strong>Date:</strong> ' + formattedDate + '</p>';
+          html += '<span class="attendance-status status-expired" style="background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); color: #991b1b;">✗ Missed - No Attendance Confirmed</span>';
+          html += '</div>';
+        } else if (dateRecords.length > 0 && dateRecords[0].confirmed) {
+          // CONFIRMED DAY - show normally
+          confirmedDays++;
+          html += '<div class="attendance-card">';
+          html += '<p><strong>Date:</strong> ' + formattedDate + '</p>';
+          html += '<p><strong>Confirmations:</strong> ' + dateRecords.length + '</p>';
+          
+          dateRecords.forEach(function(r, index) {
+            if (r.confirmed && r.timestamp) {
+              html += '<div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-left: 16px; margin-bottom: 4px;">';
+              html += '<span>• ' + new Date(r.timestamp).toLocaleString() + '</span>';
+              html += '<button class="logout-button" onclick="deleteRecord(' + r.recordId + ')" style="font-size: 11px; padding: 4px 8px; margin-left: 8px;">🗑️ Delete</button>';
+              html += '</div>';
+            }
+          });
+          
+          html += '<span class="attendance-status status-valid">✓ Confirmed</span>';
+          html += '</div>';
+        }
+      });
+      
+      // Add summary at the top if there's history
+      if (confirmedDays > 0 || missedDays > 0) {
+        var summaryHtml = '<div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 16px; border-radius: 12px; margin-bottom: 16px; display: flex; gap: 24px; flex-wrap: wrap;">';
+        summaryHtml += '<div style="text-align: center;"><div style="font-size: 24px; font-weight: 700; color: #16a34a;">' + confirmedDays + '</div><div style="font-size: 12px; color: #475569;">Days Confirmed</div></div>';
+        summaryHtml += '<div style="text-align: center;"><div style="font-size: 24px; font-weight: 700; color: #dc2626;">' + missedDays + '</div><div style="font-size: 12px; color: #475569;">Days Missed</div></div>';
+        var rate = confirmedDays + missedDays > 0 ? Math.round((confirmedDays / (confirmedDays + missedDays)) * 100) : 0;
+        var rateColor = rate >= 80 ? '#16a34a' : (rate >= 60 ? '#d97706' : '#dc2626');
+        summaryHtml += '<div style="text-align: center;"><div style="font-size: 24px; font-weight: 700; color: ' + rateColor + ';">' + rate + '%</div><div style="font-size: 12px; color: #475569;">Attendance Rate</div></div>';
+        summaryHtml += '</div>';
+        html = summaryHtml + html;
+      }
+      
+      container.innerHTML = html;
+    }
+    
+    // Delete a single attendance record
+    window.deleteRecord = function(recordId) {
+      if (!currentUser) return;
+      
+      if (!confirm('Are you sure you want to delete this attendance record?')) {
+        return;
+      }
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            // Reload attendance data to reflect changes
+            loadAttendanceData();
+          } else {
+            alert('Error: ' + (result.error || 'Failed to delete record'));
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('Error: ' + error.message);
+        })
+        .deleteAttendanceRecord(currentUser.email, recordId);
+    };
+    
+    // Reset all attendance records
+    function resetAllAttendance() {
+      if (!currentUser) return;
+      
+      if (!confirm('⚠️ WARNING: This will delete ALL your attendance records!\n\nAre you absolutely sure?')) {
+        return;
+      }
+      
+      // Double confirmation
+      if (!confirm('This action cannot be undone. Delete all attendance records?')) {
+        return;
+      }
+      
+      var btn = document.getElementById('resetAllAttendanceBtn');
+      btn.disabled = true;
+      btn.textContent = '🗑️ Deleting...';
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.textContent = '🗑️ Reset All Attendance';
+          
+          if (result.success) {
+            alert('✅ All attendance records deleted (' + result.deletedCount + ' records)');
+            // Reload attendance data to reflect changes
+            loadAttendanceData();
+          } else {
+            alert('Error: ' + (result.error || 'Failed to reset attendance'));
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.textContent = '🗑️ Reset All Attendance';
+          alert('Error: ' + error.message);
+        })
+        .resetAllAttendance(currentUser.email);
+    }
+    
+    // Show message
+    function showMessage(elementId, text, type) {
+      var el = document.getElementById(elementId);
+      el.textContent = text;
+      el.className = 'msg';
+      if (type) el.classList.add(type);
+      el.style.display = 'block';
+    }
+    
+    /* ===== ADMIN FUNCTIONS ===== */
+    
+    // Setup admin search
+    function setupAdminSearch() {
+      var searchInput = document.getElementById('adminSearch');
+      if (!searchInput) return;
+      
+      var searchTimeout;
+      searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+          var query = searchInput.value.trim();
+          performSearch(query);
+        }, 300); // Debounce for 300ms
+      });
+    }
+    
+    // Load all users
+    function loadAllUsers() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            allUsers = result.users;
+            displaySearchResults(allUsers);
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading users:', error);
+        })
+        .getAllAttendanceUsers();
+    }
+    
+    // Perform search
+    function performSearch(query) {
+      if (!query || query.length === 0) {
+        displaySearchResults(allUsers);
+        return;
+      }
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            displaySearchResults(result.users);
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error searching users:', error);
+        })
+        .searchAttendanceUsers(query);
+    }
+    
+    // Display search results
+    function displaySearchResults(users) {
+      var container = document.getElementById('searchResultsContainer');
+      
+      if (!users || users.length === 0) {
+        container.innerHTML = '<div class="no-results"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><p>No users found</p></div>';
+        return;
+      }
+      
+      // Separate users into categories
+      var migratedUsers = [];
+      var legacyUsers = [];
+      var orphanedLegacyUsers = [];
+      
+      users.forEach(function(user) {
+        if (user.isOrphanedLegacy) {
+          orphanedLegacyUsers.push(user);
+        } else if (user.isLegacy) {
+          legacyUsers.push(user);
+        } else {
+          migratedUsers.push(user);
+        }
+      });
+      
+      var html = '';
+      
+      // Add results header with stats
+      html += '<div style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.3);">';
+      html += '<h3 style="color: white; margin: 0 0 8px 0; font-size: 18px;">📊 User Database</h3>';
+      html += '<div style="display: flex; gap: 20px; flex-wrap: wrap; color: rgba(255, 255, 255, 0.7); font-size: 13px;">';
+      html += '<span style="color: #10b981;">✓ Migrated: ' + migratedUsers.length + '</span>';
+      html += '<span style="color: #fbbf24;">⏳ Legacy: ' + legacyUsers.length + '</span>';
+      if (orphanedLegacyUsers.length > 0) {
+        html += '<span style="color: #ef4444;">⚠ Orphaned: ' + orphanedLegacyUsers.length + '</span>';
+      }
+      html += '</div>';
+      if (orphanedLegacyUsers.length > 0) {
+        html += '<div style="margin-top: 12px;">';
+        html += '<button onclick="cleanupAllOrphaned()" style="padding: 8px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px;">🗑️ Cleanup All Orphaned (' + orphanedLegacyUsers.length + ')</button>';
+        html += '</div>';
+      }
+      html += '</div>';
+      
+      // Migrated Users Section
+      if (migratedUsers.length > 0) {
+        html += '<div style="margin-bottom: 16px;">';
+        html += '<h4 style="color: #10b981; margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">✓ Migrated Accounts (' + migratedUsers.length + ')</h4>';
+        migratedUsers.forEach(function(user) {
+          html += renderUserCard(user, 'migrated');
+        });
+        html += '</div>';
+      }
+      
+      // Legacy Users Section (not orphaned)
+      if (legacyUsers.length > 0) {
+        html += '<div style="margin-bottom: 16px; margin-top: 24px;">';
+        html += '<h4 style="color: #fbbf24; margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">⏳ Legacy Accounts - Not Migrated (' + legacyUsers.length + ')</h4>';
+        html += '<p style="color: rgba(255,255,255,0.5); font-size: 12px; margin: 0 0 12px 0;">These users have the same alias and internal email. They need to migrate to a new alias.</p>';
+        legacyUsers.forEach(function(user) {
+          html += renderUserCard(user, 'legacy');
+        });
+        html += '</div>';
+      }
+      
+      // Orphaned Legacy Section
+      if (orphanedLegacyUsers.length > 0) {
+        html += '<div style="margin-bottom: 16px; margin-top: 24px;">';
+        html += '<h4 style="color: #ef4444; margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">⚠ Orphaned Legacy - Safe to Delete (' + orphanedLegacyUsers.length + ')</h4>';
+        html += '<p style="color: rgba(255,255,255,0.5); font-size: 12px; margin: 0 0 12px 0;">These are old records from users who have already migrated. They can be safely deleted.</p>';
+        orphanedLegacyUsers.forEach(function(user) {
+          html += renderUserCard(user, 'orphaned');
+        });
+        html += '</div>';
+      }
+      
+      container.innerHTML = html;
+    }
+    
+    // Render a single user card
+    function renderUserCard(user, type) {
+      var createdDate = new Date(user.createdDate);
+      var aliasEmail = user.aliasEmail || user.email;
+      var internalEmail = user.internalEmail || user.email;
+      var isTeacher = user.isTeacher ? true : false;
+      
+      var borderColor = 'rgba(102, 126, 234, 0.3)';
+      var badgeStyle = '';
+      var statusBadge = '<span class="user-badge">ACTIVE</span>';
+      
+      if (type === 'legacy') {
+        borderColor = 'rgba(251, 191, 36, 0.3)';
+        statusBadge = '<span class="user-badge" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #1e293b;">LEGACY</span>';
+      } else if (type === 'orphaned') {
+        borderColor = 'rgba(239, 68, 68, 0.3)';
+        statusBadge = '<span class="user-badge" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">ORPHANED</span>';
+      }
+      
+      var html = '<div class="user-card" style="cursor: default; border-color: ' + borderColor + ';">';
+      html += '<div class="user-card-header">';
+      html += '<h3 class="user-name">' + escapeHtml(user.name || 'Unknown') + '</h3>';
+      html += '<div style="display: flex; gap: 8px;">';
+      if (isTeacher) {
+        html += '<span class="user-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">TEACHER</span>';
+      }
+      html += statusBadge;
+      html += '</div>';
+      html += '</div>';
+      
+      // Alias Email (Login Email)
+      html += '<div style="margin: 8px 0;">';
+      html += '<div style="color: rgba(255,255,255,0.5); font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Alias Email (Login)</div>';
+      html += '<div style="color: #a5b4fc; font-size: 14px;">🔑 ' + escapeHtml(aliasEmail) + '</div>';
+      html += '</div>';
+      
+      // Internal/Rewardful Email
+      html += '<div style="margin: 8px 0;">';
+      html += '<div style="color: rgba(255,255,255,0.5); font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Internal/Affiliate Email</div>';
+      html += '<div style="color: #fbbf24; font-size: 14px; font-family: monospace;">📧 ' + escapeHtml(internalEmail) + '</div>';
+      html += '</div>';
+      
+      // Show migrated info for orphaned
+      if (type === 'orphaned' && user.migratedTo) {
+        html += '<div style="margin: 8px 0; padding: 10px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">';
+        html += '<div style="color: rgba(255,255,255,0.5); font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Migrated To</div>';
+        html += '<div style="color: #10b981; font-size: 14px;">→ ' + escapeHtml(user.migratedTo) + '</div>';
+        html += '</div>';
+      }
+      
+      // Teacher info if assigned
+      if (user.teacherEmail) {
+        html += '<div style="margin: 8px 0;">';
+        html += '<div style="color: rgba(255,255,255,0.5); font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">Assigned Teacher</div>';
+        html += '<div style="color: #10b981; font-size: 14px;">👨‍🏫 ' + escapeHtml(user.teacherEmail) + '</div>';
+        html += '</div>';
+      }
+      
+      html += '<div class="user-created">🕒 Joined ' + createdDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + '</div>';
+      
+      // Action buttons based on type
+      html += '<div style="margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap;">';
+      
+      if (type === 'orphaned') {
+        html += '<button onclick="deleteOrphanedLegacy(\'' + escapeJs(user.email) + '\')" style="padding: 10px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">🗑️ Delete Orphan</button>';
+      } else {
+        html += '<button onclick="viewUserDetails(\'' + escapeJs(user.email) + '\')" style="padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">📅 Attendance</button>';
+        html += '<button onclick="openStudentDashboard(\'' + escapeJs(user.email) + '\')" style="padding: 10px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;">📊 Full Dashboard</button>';
+      }
+      
+      html += '</div>';
+      html += '</div>';
+      
+      return html;
+    }
+    
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      if (!text) return '';
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Escape for use in JavaScript string literals (onclick handlers)
+    function escapeJs(text) {
+      if (!text) return '';
+      return text.replace(/\\/g, '\\\\')
+                 .replace(/'/g, "\\'")
+                 .replace(/"/g, '\\"')
+                 .replace(/\n/g, '\\n')
+                 .replace(/\r/g, '\\r');
+    }
+    
+    // Delete a single orphaned legacy account
+    window.deleteOrphanedLegacy = function(email) {
+      if (!confirm('Delete orphaned legacy account?\n\nEmail: ' + email + '\n\nThis account is a leftover from migration and can be safely deleted. The user\'s migrated account will remain intact.')) {
+        return;
+      }
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          console.log('Delete result:', result);
+          if (result.success) {
+            var msg = 'Orphaned account deleted successfully!\n\n';
+            msg += 'Deleted: ' + result.deletedEmail + '\n';
+            msg += 'Migrated version: ' + result.migratedTo + '\n';
+            msg += 'Records deleted: ' + result.deletedRecords;
+            if (result.deletedKeys) {
+              msg += '\n\nKeys: ' + result.deletedKeys.join(', ');
+            }
+            alert(msg);
+            loadAllUsers(); // Refresh the list
+          } else {
+            alert('Error: ' + (result.error || 'Unknown error') + '\n\nEmail: ' + email);
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Delete failed:', error);
+          alert('Error: ' + error.message);
+        })
+        .adminDeleteOrphanedLegacy(email);
+    };
+    
+    // Cleanup all orphaned legacy accounts
+    window.cleanupAllOrphaned = function() {
+      try {
+        console.log('cleanupAllOrphaned called');
+        
+        var confirmed1 = confirm('⚠️ BULK DELETE ALL ORPHANED ACCOUNTS?\n\nThis will delete all legacy accounts that have a corresponding migrated version.\n\nThis action cannot be undone!\n\nAre you sure?');
+        if (!confirmed1) {
+          console.log('User cancelled first confirmation');
+          return;
+        }
+        
+        // Double confirmation
+        var confirmed2 = confirm('🚨 FINAL CONFIRMATION\n\nYou are about to permanently delete multiple orphaned legacy accounts.\n\nClick OK to proceed or Cancel to abort.');
+        if (!confirmed2) {
+          console.log('User cancelled second confirmation');
+          return;
+        }
+        
+        console.log('User confirmed, starting cleanup...');
+        alert('Starting cleanup... Please wait. This may take a moment.');
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            console.log('Cleanup result:', result);
+            if (result.success) {
+              var msg = 'Bulk cleanup completed!\n\n';
+              msg += 'Deleted: ' + result.deletedCount + ' accounts\n';
+              if (result.failedCount > 0) {
+                msg += 'Failed: ' + result.failedCount + ' accounts\n\n';
+                msg += 'Failed emails:\n';
+                result.failed.forEach(function(f) {
+                  msg += '- ' + f.email + ': ' + f.error + '\n';
+                });
+              }
+              alert(msg);
+              loadAllUsers(); // Refresh the list
+            } else {
+              alert('Error: ' + (result.error || 'Unknown error'));
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Cleanup failed:', error);
+            alert('Error: ' + error.message);
+          })
+          .adminCleanupAllOrphanedLegacy();
+          
+      } catch(e) {
+        console.error('Exception in cleanupAllOrphaned:', e);
+        alert('Error: ' + e.message);
+      }
+    };
+    
+    // View user details
+    window.viewUserDetails = function(email) {
+      selectedUser = email;
+      
+      // Hide search results, show details
+      document.getElementById('searchResultsContainer').classList.add('hidden');
+      document.getElementById('userDetailsContainer').classList.remove('hidden');
+      
+      // Get admin's local date to correctly identify "today"
+      var userLocalDate = getUserLocalDateString();
+      
+      // Load user's attendance data
+      google.script.run
+        .withSuccessHandler(function(data) {
+          displayUserDetails(email, data);
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading user details:', error);
+          alert('Error loading user attendance data');
+        })
+        .getAttendanceData(email, userLocalDate);
+    };
+    
+    // Display user details
+    function displayUserDetails(email, data) {
+      // Find user info
+      var userInfo = allUsers.find(function(u) { return u.email === email; });
+      if (!userInfo) return;
+      
+      document.getElementById('detailUserName').textContent = userInfo.name + ' (' + email + ')';
+      
+      // Calculate stats
+      var totalDays = 0;
+      var confirmedDays = 0;
+      var missedDays = 0;
+      
+      // Count today if it exists (now an array)
+      var hasTodayRecord = data.today && data.today.length > 0;
+      if (hasTodayRecord) {
+        totalDays++;
+        confirmedDays++; // If we have today records, it means it's confirmed
+      }
+      
+      // Count history (already excludes today)
+      if (data.history && data.history.length > 0) {
+        data.history.forEach(function(record) {
+          totalDays++;
+          if (record.confirmed) {
+            confirmedDays++;
+          } else {
+            missedDays++;
+          }
+        });
+      }
+      
+      var attendanceRate = totalDays > 0 ? Math.round((confirmedDays / totalDays) * 100) : 0;
+      
+      document.getElementById('detailTotalDays').textContent = totalDays;
+      document.getElementById('detailConfirmed').textContent = confirmedDays;
+      document.getElementById('detailMissed').textContent = missedDays;
+      document.getElementById('detailRate').textContent = attendanceRate + '%';
+      
+      // Display attendance history
+      var historyHtml = '';
+      
+      // Show today first (now an array of records)
+      if (hasTodayRecord) {
+        var todayDate = new Date(data.today[0].date);
+        
+        historyHtml += '<div class="admin-attendance-card" style="border-color: #fbbf24; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);">';
+        historyHtml += '<p><strong>📅 TODAY:</strong> ' + todayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '</p>';
+        historyHtml += '<p><strong>Total Confirmations:</strong> ' + data.today.length + '</p>';
+        
+        // Show all today's confirmations
+        data.today.forEach(function(record, index) {
+          historyHtml += '<p style="font-size: 13px; margin-left: 16px;">• ' + new Date(record.timestamp).toLocaleString() + '</p>';
+        });
+        
+        historyHtml += '<span class="attendance-status status-valid">✓ Confirmed</span>';
+        historyHtml += '</div>';
+      }
+      
+      // Show history - group by date and show all confirmations per date
+      var recordsByDate = {};
+      if (data.history && data.history.length > 0) {
+        data.history.forEach(function(record) {
+          if (!recordsByDate[record.date]) {
+            recordsByDate[record.date] = [];
+          }
+          recordsByDate[record.date].push(record);
+        });
+        
+        // Get unique dates and sort
+        var dates = Object.keys(recordsByDate).sort().reverse();
+        
+        dates.forEach(function(dateStr) {
+          var records = recordsByDate[dateStr];
+          var date = new Date(dateStr);
+          
+          historyHtml += '<div class="admin-attendance-card">';
+          historyHtml += '<p><strong>Date:</strong> ' + date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '</p>';
+          
+          if (records.length > 0 && records[0].confirmed) {
+            historyHtml += '<p><strong>Confirmations:</strong> ' + records.length + '</p>';
+            records.forEach(function(r) {
+              historyHtml += '<p style="font-size: 13px; margin-left: 16px;">• ' + new Date(r.timestamp).toLocaleString() + '</p>';
+            });
+            historyHtml += '<span class="attendance-status status-valid">✓ Confirmed</span>';
+          } else {
+            historyHtml += '<span class="attendance-status status-expired">✗ Not Confirmed</span>';
+          }
+          
+          historyHtml += '</div>';
+        });
+      }
+      
+      if (!historyHtml) {
+        historyHtml = '<div class="no-results"><p>No attendance records yet</p></div>';
+      }
+      
+      document.getElementById('detailAttendanceHistory').innerHTML = historyHtml;
+    }
+    
+    // Back to search
+    window.backToSearch = function() {
+      document.getElementById('searchResultsContainer').classList.remove('hidden');
+      document.getElementById('userDetailsContainer').classList.add('hidden');
+      document.getElementById('studentDashboardViewer').classList.add('hidden');
+      selectedUser = null;
+    };
+    
+    // ========== FULL STUDENT DASHBOARD VIEWER (ADMIN) ==========
+    var currentStudentDashboard = null;
+    
+    // Open full student dashboard
+    window.openStudentDashboard = function(email) {
+      selectedUser = email;
+      
+      // Hide other containers
+      document.getElementById('searchResultsContainer').classList.add('hidden');
+      document.getElementById('userDetailsContainer').classList.add('hidden');
+      document.getElementById('studentDashboardViewer').classList.remove('hidden');
+      
+      // Show loading state
+      document.getElementById('viewStudentName').textContent = 'Loading...';
+      document.getElementById('viewAliasEmail').value = '';
+      document.getElementById('viewInternalEmail').value = '';
+      document.getElementById('viewJoinedDate').textContent = '-';
+      document.getElementById('viewTotalDays').textContent = '...';
+      document.getElementById('viewConfirmed').textContent = '...';
+      document.getElementById('viewMissed').textContent = '...';
+      document.getElementById('viewRate').textContent = '...';
+      document.getElementById('viewLeadsCount').textContent = '...';
+      document.getElementById('viewConversionsCount').textContent = '...';
+      document.getElementById('viewReferralStatus').textContent = 'Loading data...';
+      document.getElementById('currentTeacherDisplay').textContent = 'Loading...';
+      
+      // Fetch complete student data
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            currentStudentDashboard = result;
+            displayStudentDashboard(result);
+          } else {
+            alert('Error loading student dashboard: ' + (result.error || 'Unknown error'));
+            closeStudentDashboard();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading student dashboard:', error);
+          alert('Error loading student dashboard: ' + error.message);
+          closeStudentDashboard();
+        })
+        .adminGetStudentDashboard(email);
+    };
+    
+    // Display student dashboard data
+    function displayStudentDashboard(data) {
+      // Student info
+      document.getElementById('viewStudentName').textContent = data.student.name || 'Unknown';
+      document.getElementById('viewAliasEmail').value = data.student.aliasEmail || data.student.email;
+      document.getElementById('viewInternalEmail').value = data.student.internalEmail || data.student.email;
+      
+      if (data.student.createdDate) {
+        var joinDate = new Date(data.student.createdDate);
+        document.getElementById('viewJoinedDate').textContent = joinDate.toLocaleDateString('en-US', { 
+          month: 'long', day: 'numeric', year: 'numeric' 
+        });
+      }
+      
+      // Populate teacher select
+      var teacherSelect = document.getElementById('viewTeacherSelect');
+      teacherSelect.innerHTML = '<option value="">-- No Teacher --</option>';
+      if (data.teachersList && data.teachersList.length > 0) {
+        data.teachersList.forEach(function(teacher) {
+          var opt = document.createElement('option');
+          opt.value = teacher.email;
+          opt.textContent = teacher.name + ' (' + teacher.email + ')';
+          if (data.teacher && data.teacher.email && teacher.email.toLowerCase() === data.teacher.email.toLowerCase()) {
+            opt.selected = true;
+          }
+          teacherSelect.appendChild(opt);
+        });
+      }
+      
+      // Current teacher display
+      if (data.teacher && data.teacher.email) {
+        document.getElementById('currentTeacherDisplay').innerHTML = 
+          '<span style="color: #10b981;">Currently assigned: ' + escapeHtml(data.teacher.name || data.teacher.email) + '</span>';
+      } else {
+        document.getElementById('currentTeacherDisplay').innerHTML = 
+          '<span style="color: rgba(255,255,255,0.5);">No teacher currently assigned</span>';
+      }
+      
+      // Attendance stats
+      if (data.attendance) {
+        var totalDays = 0;
+        var confirmed = 0;
+        var missed = 0;
+        
+        // Store attendance data for history table
+        currentAttendanceData = data.attendance.attendance || {};
+        
+        if (data.attendance.attendance) {
+          for (var date in data.attendance.attendance) {
+            var status = data.attendance.attendance[date];
+            totalDays++;
+            if (status === 'confirmed') {
+              confirmed++;
+            } else if (status === 'missed') {
+              missed++;
+            }
+          }
+        }
+        
+        var rate = totalDays > 0 ? Math.round((confirmed / totalDays) * 100) : 0;
+        
+        document.getElementById('viewTotalDays').textContent = totalDays;
+        document.getElementById('viewConfirmed').textContent = confirmed;
+        document.getElementById('viewMissed').textContent = missed;
+        document.getElementById('viewRate').textContent = rate + '%';
+        
+        // Render attendance history table
+        renderAttendanceHistory(currentAttendanceData);
+        
+        // Reset toggle state
+        attendanceHistoryVisible = false;
+        document.getElementById('viewAttendanceHistory').style.display = 'none';
+        var btn = document.getElementById('toggleAttendanceBtn');
+        btn.textContent = 'Show History';
+        btn.style.background = 'rgba(255,255,255,0.1)';
+        btn.style.border = '1px solid rgba(255,255,255,0.2)';
+      }
+      
+      // Referrals/Leads
+      if (data.referrals && data.referrals.success) {
+        // Count leads vs conversions from the leads array
+        var leadsCount = 0;
+        var conversionsCount = 0;
+        
+        // Store leads data for table rendering
+        currentLeadsData = data.referrals.leads || [];
+        
+        if (data.referrals.leads && Array.isArray(data.referrals.leads)) {
+          data.referrals.leads.forEach(function(lead) {
+            if (lead.isConversion) {
+              conversionsCount++;
+            } else {
+              leadsCount++;
+            }
+          });
+        }
+        
+        // Use totalLeads if available as fallback
+        var total = data.referrals.totalLeads || (leadsCount + conversionsCount);
+        
+        document.getElementById('viewLeadsCount').textContent = leadsCount;
+        document.getElementById('viewConversionsCount').textContent = conversionsCount;
+        document.getElementById('viewReferralStatus').innerHTML = 
+          '<span style="color: #10b981;">Total referrals: ' + total + ' | From cache: ' + (data.referrals.fromCache ? 'Yes' : 'No') + '</span>';
+        
+        // Render leads table (default to leads tab)
+        currentLeadsTab = 'leads';
+        showLeadsTab('leads');
+      } else {
+        document.getElementById('viewLeadsCount').textContent = '-';
+        document.getElementById('viewConversionsCount').textContent = '-';
+        document.getElementById('viewReferralStatus').innerHTML = 
+          '<span style="color: #ef4444;">Could not load referral data: ' + (data.referrals ? data.referrals.error : 'No data') + '</span>';
+        currentLeadsData = [];
+        renderLeadsTable([], 'leads');
+      }
+    }
+    
+    // Close student dashboard
+    window.closeStudentDashboard = function() {
+      document.getElementById('studentDashboardViewer').classList.add('hidden');
+      document.getElementById('searchResultsContainer').classList.remove('hidden');
+      currentStudentDashboard = null;
+    };
+    
+    // Save alias email
+    window.saveAliasEmail = function() {
+      if (!selectedUser || !currentStudentDashboard) {
+        alert('No student selected');
+        return;
+      }
+      
+      var newAliasEmail = document.getElementById('viewAliasEmail').value.trim();
+      if (!newAliasEmail) {
+        alert('Please enter a valid alias email');
+        return;
+      }
+      
+      if (!confirm('Update alias email to: ' + newAliasEmail + '?\n\nThis will change how this user logs in.')) {
+        return;
+      }
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            alert('Alias email updated successfully!');
+            // Refresh the dashboard
+            openStudentDashboard(selectedUser);
+            // Also refresh the main user list
+            loadAllUsers();
+          } else {
+            alert('Error updating alias email: ' + (result.error || 'Unknown error'));
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('Error updating alias email: ' + error.message);
+        })
+        .adminUpdateAliasEmail(selectedUser, newAliasEmail);
+    };
+    
+    // Save internal/affiliate email
+    window.saveInternalEmail = function() {
+      if (!selectedUser || !currentStudentDashboard) {
+        alert('No student selected');
+        return;
+      }
+      
+      var newInternalEmail = document.getElementById('viewInternalEmail').value.trim();
+      if (!newInternalEmail) {
+        alert('Please enter a valid internal email');
+        return;
+      }
+      
+      // Get current internal email for comparison
+      var currentInternal = currentStudentDashboard.student.internalEmail || '';
+      if (newInternalEmail.toLowerCase() === currentInternal.toLowerCase()) {
+        alert('Email is the same as current. No changes made.');
+        return;
+      }
+      
+      if (!confirm('Update internal/affiliate email to: ' + newInternalEmail + '?\n\nThis will be validated against the affiliate database.\nThe user\'s referral data will be linked to this new email.')) {
+        return;
+      }
+      
+      // Show loading state
+      var saveBtn = event.target;
+      var originalText = saveBtn.textContent;
+      saveBtn.textContent = 'Checking...';
+      saveBtn.disabled = true;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          saveBtn.textContent = originalText;
+          saveBtn.disabled = false;
+          
+          if (result.success) {
+            alert('Internal email updated successfully!\n\nReferral data will now be pulled from: ' + result.newInternal);
+            // Refresh the dashboard to show new data
+            openStudentDashboard(selectedUser);
+            // Also refresh the main user list
+            loadAllUsers();
+          } else {
+            alert('Error: ' + (result.error || 'Unknown error'));
+            // Reset to original value
+            document.getElementById('viewInternalEmail').value = currentInternal;
+          }
+        })
+        .withFailureHandler(function(error) {
+          saveBtn.textContent = originalText;
+          saveBtn.disabled = false;
+          alert('Error: ' + error.message);
+          // Reset to original value
+          document.getElementById('viewInternalEmail').value = currentInternal;
+        })
+        .adminUpdateInternalEmail(selectedUser, newInternalEmail);
+    };
+    
+    // Save student teacher assignment
+    window.saveStudentTeacher = function() {
+      if (!selectedUser) {
+        alert('No student selected');
+        return;
+      }
+      
+      var newTeacherEmail = document.getElementById('viewTeacherSelect').value;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            alert('Teacher assignment updated successfully!');
+            // Refresh the dashboard
+            openStudentDashboard(selectedUser);
+            // Also refresh the main user list
+            loadAllUsers();
+          } else {
+            alert('Error updating teacher: ' + (result.error || 'Unknown error'));
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('Error updating teacher: ' + error.message);
+        })
+        .adminUpdateStudentTeacher(selectedUser, newTeacherEmail);
+    };
+    
+    // Current leads tab and data
+    var currentLeadsTab = 'leads';
+    var currentLeadsData = [];
+    var currentAttendanceData = {};
+    var attendanceHistoryVisible = false;
+    
+    // Toggle attendance history
+    window.toggleAttendanceHistory = function() {
+      var historyDiv = document.getElementById('viewAttendanceHistory');
+      var btn = document.getElementById('toggleAttendanceBtn');
+      
+      attendanceHistoryVisible = !attendanceHistoryVisible;
+      
+      if (attendanceHistoryVisible) {
+        historyDiv.style.display = 'block';
+        btn.textContent = 'Hide History';
+        btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        btn.style.border = 'none';
+      } else {
+        historyDiv.style.display = 'none';
+        btn.textContent = 'Show History';
+        btn.style.background = 'rgba(255,255,255,0.1)';
+        btn.style.border = '1px solid rgba(255,255,255,0.2)';
+      }
+    };
+    
+    // Render attendance history table
+    function renderAttendanceHistory(attendanceData) {
+      var tbody = document.getElementById('viewAttendanceTableBody');
+      
+      if (!attendanceData || Object.keys(attendanceData).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">No attendance records</td></tr>';
+        return;
+      }
+      
+      // Sort dates in descending order (most recent first)
+      var dates = Object.keys(attendanceData).sort(function(a, b) {
+        return b.localeCompare(a);
+      });
+      
+      var html = '';
+      dates.forEach(function(date) {
+        var status = attendanceData[date];
+        var statusColor = '#a5b4fc';
+        var statusText = status;
+        var statusEmoji = '⏳';
+        
+        if (status === 'confirmed') {
+          statusColor = '#10b981';
+          statusText = 'Confirmed';
+          statusEmoji = '✅';
+        } else if (status === 'missed') {
+          statusColor = '#ef4444';
+          statusText = 'Missed';
+          statusEmoji = '❌';
+        } else if (status === 'pending') {
+          statusColor = '#fbbf24';
+          statusText = 'Pending';
+          statusEmoji = '⏳';
+        }
+        
+        var displayDate = formatDate(date);
+        
+        html += '<tr style="border-bottom: 1px solid rgba(102, 126, 234, 0.15);">';
+        html += '<td style="padding: 10px 8px; color: white;">' + displayDate + '</td>';
+        html += '<td style="padding: 10px 8px;"><span style="color: ' + statusColor + ';">' + statusEmoji + ' ' + statusText + '</span></td>';
+        html += '</tr>';
+      });
+      
+      tbody.innerHTML = html;
+    }
+    
+    // Show leads/conversions tab
+    window.showLeadsTab = function(tab) {
+      currentLeadsTab = tab;
+      
+      // Update button styles
+      var leadsBtn = document.getElementById('viewLeadsTabBtn');
+      var convBtn = document.getElementById('viewConversionsTabBtn');
+      
+      if (tab === 'leads') {
+        leadsBtn.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+        leadsBtn.style.color = '#1e293b';
+        leadsBtn.style.border = 'none';
+        convBtn.style.background = 'rgba(255,255,255,0.1)';
+        convBtn.style.color = 'white';
+        convBtn.style.border = '1px solid rgba(255,255,255,0.2)';
+      } else {
+        convBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        convBtn.style.color = 'white';
+        convBtn.style.border = 'none';
+        leadsBtn.style.background = 'rgba(255,255,255,0.1)';
+        leadsBtn.style.color = 'white';
+        leadsBtn.style.border = '1px solid rgba(255,255,255,0.2)';
+      }
+      
+      // Render table for current tab
+      renderLeadsTable(currentLeadsData, tab);
+    };
+    
+    // Render leads table
+    function renderLeadsTable(leads, tabFilter) {
+      var tbody = document.getElementById('viewLeadsTableBody');
+      
+      if (!leads || leads.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">No data to display</td></tr>';
+        return;
+      }
+      
+      // Filter leads based on tab
+      var filtered = leads.filter(function(lead) {
+        if (tabFilter === 'leads') {
+          return !lead.isConversion;
+        } else {
+          return lead.isConversion;
+        }
+      });
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="padding: 20px; text-align: center; color: rgba(255,255,255,0.5);">No ' + tabFilter + ' to display</td></tr>';
+        return;
+      }
+      
+      var html = '';
+      filtered.forEach(function(lead) {
+        var statusColor = lead.isConversion ? '#10b981' : '#fbbf24';
+        var statusText = lead.isConversion ? 'Conversion' : 'Lead';
+        var dateStr = '-';
+        
+        if (lead.isConversion && lead.becameConversionAt) {
+          dateStr = formatDate(lead.becameConversionAt);
+        } else if (lead.becameLeadAt) {
+          dateStr = formatDate(lead.becameLeadAt);
+        } else if (lead.createdAt) {
+          dateStr = formatDate(lead.createdAt);
+        }
+        
+        html += '<tr style="border-bottom: 1px solid rgba(102, 126, 234, 0.15);">';
+        html += '<td style="padding: 10px 8px; color: white; font-family: monospace;">' + (lead.id || '-') + '</td>';
+        html += '<td style="padding: 10px 8px;"><span style="background: ' + statusColor + '20; color: ' + statusColor + '; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">' + statusText + '</span></td>';
+        html += '<td style="padding: 10px 8px; color: rgba(255,255,255,0.7);">' + dateStr + '</td>';
+        html += '</tr>';
+      });
+      
+      tbody.innerHTML = html;
+    }
+    
+    // Format date helper
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      try {
+        var date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      } catch(e) {
+        return dateStr;
+      }
+    }
+    
+    // Refresh student referrals
+    window.refreshStudentReferrals = function() {
+      if (!selectedUser) return;
+      
+      document.getElementById('viewLeadsCount').textContent = '...';
+      document.getElementById('viewConversionsCount').textContent = '...';
+      document.getElementById('viewReferralStatus').innerHTML = 
+        '<span style="color: #fbbf24;">Refreshing from Rewardful API...</span>';
+      
+      // Re-fetch the full dashboard which includes fresh referral data
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success && result.referrals) {
+            if (result.referrals.success) {
+              // Count leads vs conversions from the leads array
+              var leadsCount = 0;
+              var conversionsCount = 0;
+              
+              // Store leads data for table rendering
+              currentLeadsData = result.referrals.leads || [];
+              
+              if (result.referrals.leads && Array.isArray(result.referrals.leads)) {
+                result.referrals.leads.forEach(function(lead) {
+                  if (lead.isConversion) {
+                    conversionsCount++;
+                  } else {
+                    leadsCount++;
+                  }
+                });
+              }
+              
+              document.getElementById('viewLeadsCount').textContent = leadsCount;
+              document.getElementById('viewConversionsCount').textContent = conversionsCount;
+              document.getElementById('viewReferralStatus').innerHTML = 
+                '<span style="color: #10b981;">Data refreshed successfully</span>';
+              
+              // Re-render current tab
+              renderLeadsTable(currentLeadsData, currentLeadsTab);
+            } else {
+              document.getElementById('viewReferralStatus').innerHTML = 
+                '<span style="color: #ef4444;">Error: ' + (result.referrals.error || 'Unknown') + '</span>';
+            }
+          }
+        })
+        .withFailureHandler(function(error) {
+          document.getElementById('viewReferralStatus').innerHTML = 
+            '<span style="color: #ef4444;">Error: ' + error.message + '</span>';
+        })
+        .adminGetStudentDashboard(selectedUser);
+    };
+    
+    // Delete user
+    window.deleteUser = function() {
+      if (!selectedUser) return;
+      
+      // Get user info for confirmation
+      var userInfo = allUsers.find(function(u) { return u.email === selectedUser; });
+      if (!userInfo) return;
+      
+      // Confirm deletion
+      var confirmed = confirm(
+        '⚠️ DELETE USER ACCOUNT\n\n' +
+        'User: ' + userInfo.name + '\n' +
+        'Email: ' + userInfo.email + '\n\n' +
+        'This will permanently delete:\n' +
+        '• User account\n' +
+        '• All attendance records\n' +
+        '• Cannot be undone\n\n' +
+        'Are you sure you want to delete this user?'
+      );
+      
+      if (!confirmed) return;
+      
+      // Double confirmation for safety
+      var doubleCheck = confirm(
+        '🚨 FINAL WARNING\n\n' +
+        'This is your last chance!\n\n' +
+        'Delete ' + userInfo.email + ' permanently?'
+      );
+      
+      if (!doubleCheck) return;
+      
+      // Perform deletion
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            alert('✅ User deleted successfully!\n\n' +
+                  'Deleted ' + result.deletedRecords + ' attendance records.');
+            
+            // Refresh user list and go back to search
+            allUsers = allUsers.filter(function(u) { return u.email !== selectedUser; });
+            selectedUser = null;
+            document.getElementById('searchResultsContainer').classList.remove('hidden');
+            document.getElementById('userDetailsContainer').classList.add('hidden');
+            loadAllUsers(); // Reload to refresh
+          } else {
+            alert('❌ Error deleting user:\n\n' + result.error);
+          }
+        })
+        .withFailureHandler(function(error) {
+          alert('❌ Error deleting user:\n\n' + error.message);
+        })
+        .deleteAttendanceUser(selectedUser);
+    };
+    
+    // ========== TEACHER SELECTION FUNCTIONS ==========
+    
+    function loadTeachersList() {
+      console.log('Loading teachers list');
+      
+      // Check if current user is a teacher
+      var isCurrentUserTeacher = currentUser && currentUser.isTeacher;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          var selectEl = document.getElementById('teacherSelect');
+          selectEl.innerHTML = '<option value="">-- Choose your teacher --</option>';
+          
+          // If current user is a teacher, add "None" option at the top
+          if (isCurrentUserTeacher) {
+            var noneOption = document.createElement('option');
+            noneOption.value = 'none';
+            noneOption.textContent = '🚫 None (I am a teacher)';
+            selectEl.appendChild(noneOption);
+          }
+          
+          if (result.success && result.teachers && result.teachers.length > 0) {
+            result.teachers.forEach(function(teacher) {
+              var option = document.createElement('option');
+              option.value = teacher.email;
+              // Only show teacher name, not email (confidential)
+              option.textContent = teacher.name;
+              selectEl.appendChild(option);
+            });
+            
+            // Load current teacher assignment
+            loadCurrentTeacher();
+          } else if (!isCurrentUserTeacher) {
+            selectEl.innerHTML = '<option value="">No teachers available</option>';
+          } else {
+            // Teacher with no other teachers - still load current assignment
+            loadCurrentTeacher();
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading teachers:', error);
+          var selectEl = document.getElementById('teacherSelect');
+          if (isCurrentUserTeacher) {
+            // Teachers can still select "None" even if loading fails
+            selectEl.innerHTML = '<option value="">-- Choose your teacher --</option>';
+            var noneOption = document.createElement('option');
+            noneOption.value = 'none';
+            noneOption.textContent = '🚫 None (I am a teacher)';
+            selectEl.appendChild(noneOption);
+          } else {
+            selectEl.innerHTML = '<option value="">Error loading teachers</option>';
+          }
+        })
+        .getAllValidTeachers();
+    }
+    
+    function loadCurrentTeacher() {
+      if (!currentUser) return;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success && result.teacherEmail) {
+            document.getElementById('teacherSelect').value = result.teacherEmail;
+            // Find teacher name from dropdown to show (not email)
+            var selectEl = document.getElementById('teacherSelect');
+            var selectedOption = selectEl.options[selectEl.selectedIndex];
+            var teacherName = selectedOption ? selectedOption.text : 'your teacher';
+            showDashboardTeacherMessage('✓ Currently assigned to: ' + teacherName, 'success');
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Error loading current teacher:', error);
+        })
+        .getTeacherForAttendanceUser(currentUser.email);
+    }
+    
+    function showDashboardTeacherMessage(msg, type) {
+      var msgEl = document.getElementById('dashboardTeacherMsg');
+      if (!msgEl) return;
+      msgEl.textContent = msg;
+      msgEl.style.display = 'block';
+      if (type === 'success') {
+        msgEl.style.background = '#d1fae5';
+        msgEl.style.color = '#065f46';
+        msgEl.style.border = '1px solid #10b981';
+      } else {
+        msgEl.style.background = '#fee2e2';
+        msgEl.style.color = '#991b1b';
+        msgEl.style.border = '1px solid #ef4444';
+      }
+    }
+    
+    // Save Teacher button handler
+    document.getElementById('saveTeacherBtn').addEventListener('click', function() {
+      if (!currentUser) return;
+      
+      var selectEl = document.getElementById('teacherSelect');
+      var teacherEmail = selectEl.value;
+      
+      if (!teacherEmail) {
+        showDashboardTeacherMessage('Please select a teacher', 'error');
+        return;
+      }
+      
+      var btn = document.getElementById('saveTeacherBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Saving...';
+      
+      // Get teacher name for success message
+      var selectedOption = selectEl.options[selectEl.selectedIndex];
+      var teacherName = selectedOption ? selectedOption.text : 'your teacher';
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.textContent = '✓ Save Teacher';
+          
+          if (result.success) {
+            showDashboardTeacherMessage('✅ Assigned to: ' + teacherName, 'success');
+            // Re-enable confirm attendance button if it was disabled
+            var confirmBtn = document.getElementById('confirmAttendanceBtn');
+            if (confirmBtn) {
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = '✓ Confirm Attendance';
+              confirmBtn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+              confirmBtn.onclick = null; // Remove the redirect onclick
+            }
+            // Reload attendance data to update teacher status
+            loadAttendanceData();
+          } else {
+            showDashboardTeacherMessage('❌ Error: ' + result.error, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.textContent = '✓ Save Teacher';
+          showDashboardTeacherMessage('❌ Error: ' + error.message, 'error');
+        })
+        .setTeacherForAttendanceUser(currentUser.email, teacherEmail);
+    });
+    
+    // Load teachers list when dashboard is shown
+    var originalShowDashboard = showDashboard;
+    showDashboard = function() {
+      originalShowDashboard();
+      loadTeachersList();
+      loadReferralData(false); // Load referrals (from cache if available)
+    };
+    
+    // ========== REFERRALS / LEADS FUNCTIONS ==========
+    
+    // State for referrals panel
+    var currentMode = 'leads';       // 'leads' or 'conversions'
+    var currentPage = 1;
+    var totalPages = 1;
+    var pageSize = 25;
+    var leadsCount = 0;
+    var conversionsCount = 0;
+    
+    // Refresh Referrals button handler
+    document.getElementById('refreshReferralsBtn').addEventListener('click', function() {
+      loadReferralData(true); // Force refresh from API
+    });
+    
+    /**
+     * Switch between Leads and Conversions modes
+     */
+    window.switchReferralMode = function(mode) {
+      if (mode === currentMode) return;
+      
+      currentMode = mode;
+      currentPage = 1; // Reset to page 1
+      
+      // Update toggle button styles
+      var leadsBtn = document.getElementById('modeLeadsBtn');
+      var conversionsBtn = document.getElementById('modeConversionsBtn');
+      
+      if (mode === 'leads') {
+        leadsBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        leadsBtn.style.color = 'white';
+        conversionsBtn.style.background = 'transparent';
+        conversionsBtn.style.color = '#92400e';
+      } else {
+        conversionsBtn.style.background = 'linear-gradient(135deg, #16a34a 0%, #059669 100%)';
+        conversionsBtn.style.color = 'white';
+        leadsBtn.style.background = 'transparent';
+        leadsBtn.style.color = '#92400e';
+      }
+      
+      // Reload data for new mode
+      loadReferralsPage(currentPage);
+    };
+    
+    /**
+     * Go to a specific page
+     */
+    window.goToPage = function(page) {
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      loadReferralsPage(page);
+    };
+    
+    /**
+     * Load referral data with mode toggle support
+     */
+    function loadReferralData(forceRefresh) {
+      if (!currentUser || !currentUser.email) {
+        console.log('No user logged in, skipping referral load');
+        return;
+      }
+      
+      var section = document.getElementById('referralsSection');
+      var statusEl = document.getElementById('referralLastUpdated');
+      var errorEl = document.getElementById('referralError');
+      var btn = document.getElementById('refreshReferralsBtn');
+      
+      // Show the section
+      section.style.display = 'block';
+      
+      // Show loading state
+      btn.disabled = true;
+      btn.textContent = '⏳ Loading...';
+      statusEl.textContent = 'Fetching data...';
+      errorEl.style.display = 'none';
+      
+      // Reset to page 1
+      currentPage = 1;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          btn.disabled = false;
+          btn.textContent = '🔄 Refresh';
+          
+          console.log('Referrals result:', result);
+          
+          if (result.success) {
+            // Update counts in toggle badges
+            leadsCount = result.leadsCount || 0;
+            conversionsCount = result.conversionsCount || 0;
+            document.getElementById('leadsCountBadge').textContent = leadsCount;
+            document.getElementById('conversionsCountBadge').textContent = conversionsCount;
+            
+            // Update pagination state
+            totalPages = result.totalPages || 1;
+            currentPage = result.page || 1;
+            
+            // Update status
+            statusEl.textContent = 'Data loaded';
+            
+            // Display the rows
+            displayReferralRows(result.rows || []);
+            
+          } else {
+            // Show error state
+            statusEl.textContent = 'Failed to load data';
+            errorEl.textContent = '❌ ' + (result.error || 'Unknown error');
+            errorEl.style.display = 'block';
+            errorEl.style.background = '#fee2e2';
+            errorEl.style.color = '#991b1b';
+            document.getElementById('leadsTableContainer').style.display = 'none';
+            document.getElementById('emptyReferralsMsg').style.display = 'none';
+            console.error('Referral load error:', result.error);
+          }
+        })
+        .withFailureHandler(function(error) {
+          btn.disabled = false;
+          btn.textContent = '🔄 Refresh';
+          statusEl.textContent = 'Failed to load data';
+          errorEl.textContent = '❌ Error: ' + error.message;
+          errorEl.style.display = 'block';
+          errorEl.style.background = '#fee2e2';
+          errorEl.style.color = '#991b1b';
+          console.error('Referral load failure:', error);
+        })
+        .getReferralsWithMode({
+          email: currentUser.email,
+          mode: currentMode,
+          page: 1,
+          pageSize: pageSize
+        });
+    }
+    
+    /**
+     * Display a batch of leads in the table
+     * @param {number} startIndex - Starting index in allLeadsData
+     * @param {number} count - Number of leads to display
+     */
+    function displayLeadsBatch(startIndex, count) {
+      var tableBody = document.getElementById('leadsTableBody');
+      var endIndex = Math.min(startIndex + count, allLeadsData.length);
+      
+      for (var i = startIndex; i < endIndex; i++) {
+        var lead = allLeadsData[i];
+        var row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f3f4f6';
+        
+        // Alternate row background for better readability
+        if (i % 2 === 1) {
+          row.style.background = '#fffbeb';
+        }
+        
+        // State column
+        var stateCell = document.createElement('td');
+        stateCell.style.padding = '10px 8px';
+        stateCell.innerHTML = '<span style="background: #fbbf24; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;">Lead</span>';
+        row.appendChild(stateCell);
+        
+        // First Click column
+        var firstClickCell = document.createElement('td');
+        firstClickCell.style.padding = '10px 8px';
+        firstClickCell.style.color = '#475569';
+        firstClickCell.textContent = formatLeadDate(lead.createdAt);
+        row.appendChild(firstClickCell);
+        
+        // Became Lead column
+        var becameLeadCell = document.createElement('td');
+        becameLeadCell.style.padding = '10px 8px';
+        becameLeadCell.style.color = '#475569';
+        becameLeadCell.textContent = formatLeadDate(lead.becameLeadAt);
+        row.appendChild(becameLeadCell);
+        
+        // Converted column
+        var convertedCell = document.createElement('td');
+        convertedCell.style.padding = '10px 8px';
+        convertedCell.style.color = '#475569';
+        convertedCell.textContent = lead.becameConversionAt ? formatLeadDate(lead.becameConversionAt) : '—';
+        row.appendChild(convertedCell);
+        
+        tableBody.appendChild(row);
+      }
+      
+      leadsDisplayedCount = endIndex;
+    }
+    
+    /**
+     * Load referrals for a specific page (mode-aware)
+     */
+    function loadReferralsPage(page) {
+      if (!currentUser || !currentUser.email) return;
+      
+      var statusEl = document.getElementById('referralLastUpdated');
+      statusEl.textContent = 'Loading page ' + page + '...';
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            totalPages = result.totalPages || 1;
+            currentPage = result.page || 1;
+            
+            // Update counts in badges
+            leadsCount = result.leadsCount || 0;
+            conversionsCount = result.conversionsCount || 0;
+            document.getElementById('leadsCountBadge').textContent = leadsCount;
+            document.getElementById('conversionsCountBadge').textContent = conversionsCount;
+            
+            statusEl.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+            
+            displayReferralRows(result.rows || []);
+            updatePaginationUI(result.totalCount || 0);
+          } else {
+            statusEl.textContent = 'Error: ' + (result.error || 'Failed');
+          }
+        })
+        .withFailureHandler(function(error) {
+          statusEl.textContent = 'Error loading page';
+          console.error('Page load error:', error);
+        })
+        .getReferralsWithMode({
+          email: currentUser.email,
+          mode: currentMode,
+          page: page,
+          pageSize: pageSize
+        });
+    }
+    
+    /**
+     * Display referral rows in the table (mode-aware)
+     */
+    function displayReferralRows(rows) {
+      var tableContainer = document.getElementById('leadsTableContainer');
+      var tableBody = document.getElementById('leadsTableBody');
+      var emptyMsg = document.getElementById('emptyReferralsMsg');
+      var emptyText = document.getElementById('emptyModeText');
+      
+      if (!rows || rows.length === 0) {
+        tableContainer.style.display = 'none';
+        emptyMsg.style.display = 'block';
+        emptyText.textContent = currentMode === 'leads' ? 'No leads found' : 'No conversions found';
+        document.getElementById('paginationControls').style.display = 'none';
+        return;
+      }
+      
+      tableContainer.style.display = 'block';
+      emptyMsg.style.display = 'none';
+      tableBody.innerHTML = '';
+      
+      rows.forEach(function(lead, index) {
+        var row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f3f4f6';
+        if (index % 2 === 1) {
+          row.style.background = '#fffbeb';
+        }
+        
+        // State column - use isConversion flag if available, otherwise detect
+        var stateCell = document.createElement('td');
+        stateCell.style.padding = '8px';
+        var hasConversion = lead.isConversion === true || 
+                            !!lead.sale_occurred_at || 
+                            !!lead.becameConversionAt || 
+                            !!lead.became_conversion_at ||
+                            (lead.conversion_state || '').toLowerCase() === 'conversion';
+        var displayState = hasConversion ? 'conversion' : 'lead';
+        var stateColor = hasConversion ? '#16a34a' : '#f59e0b';
+        stateCell.innerHTML = '<span style="background: ' + stateColor + '20; color: ' + stateColor + '; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 10px; text-transform: uppercase;">' + displayState + '</span>';
+        row.appendChild(stateCell);
+        
+        // First click date
+        var firstClickCell = document.createElement('td');
+        firstClickCell.style.padding = '8px';
+        firstClickCell.style.color = '#475569';
+        firstClickCell.style.fontSize = '12px';
+        firstClickCell.textContent = formatLeadDate(lead.created_at || lead.createdAt || lead.firstClickAt);
+        row.appendChild(firstClickCell);
+        
+        // Became lead date
+        var leadDateCell = document.createElement('td');
+        leadDateCell.style.padding = '8px';
+        leadDateCell.style.color = '#475569';
+        leadDateCell.style.fontSize = '12px';
+        leadDateCell.textContent = formatLeadDate(lead.converted_at || lead.becameLeadAt) || '—';
+        row.appendChild(leadDateCell);
+        
+        // Conversion date
+        var conversionCell = document.createElement('td');
+        conversionCell.style.padding = '8px';
+        conversionCell.style.color = '#475569';
+        conversionCell.style.fontSize = '12px';
+        conversionCell.textContent = hasConversion ? formatLeadDate(lead.sale_occurred_at || lead.becameConversionAt || lead.conversionDate) : '—';
+        row.appendChild(conversionCell);
+        
+        tableBody.appendChild(row);
+      });
+      
+      updatePaginationUI(rows.length);
+    }
+    
+    /**
+     * Update pagination controls
+     */
+    function updatePaginationUI(totalCount) {
+      var paginationControls = document.getElementById('paginationControls');
+      var prevBtn = document.getElementById('prevPageBtn');
+      var nextBtn = document.getElementById('nextPageBtn');
+      var pageInfo = document.getElementById('pageInfo');
+      var shownCount = document.getElementById('leadsShownCount');
+      var totalCountEl = document.getElementById('leadsTotalCount');
+      
+      // Get the correct total from the mode
+      var modeTotal = currentMode === 'leads' ? leadsCount : conversionsCount;
+      
+      if (modeTotal === 0 || totalPages <= 1) {
+        paginationControls.style.display = modeTotal > 0 ? 'block' : 'none';
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        if (pageInfo) pageInfo.style.display = 'none';
+      } else {
+        paginationControls.style.display = 'block';
+        if (prevBtn) {
+          prevBtn.style.display = 'inline-block';
+          prevBtn.disabled = currentPage <= 1;
+        }
+        if (nextBtn) {
+          nextBtn.style.display = 'inline-block';
+          nextBtn.disabled = currentPage >= totalPages;
+        }
+        if (pageInfo) {
+          pageInfo.style.display = 'inline';
+          pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+        }
+      }
+      
+      // Calculate shown range
+      var startItem = modeTotal > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+      var endItem = Math.min(currentPage * pageSize, modeTotal);
+      if (shownCount) shownCount.textContent = modeTotal > 0 ? startItem + '-' + endItem : '0';
+      if (totalCountEl) totalCountEl.textContent = modeTotal;
+    }
+    
+    /**
+     * Format a lead date for display
+     */
+    function formatLeadDate(dateStr) {
+      if (!dateStr) return '—';
+      try {
+        var date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      } catch (e) {
+        return '—';
+      }
+    }
+    
+    /**
+     * Format a timestamp for display
+     */
+    function formatTimestamp(timestamp) {
+      if (!timestamp) return 'Never';
+      try {
+        var date = new Date(timestamp);
+        return date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return 'Unknown';
+      }
+    }
+  </script>
+</body>
+</html>
+

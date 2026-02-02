@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    .test-container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 500px;
+    }
+    
+    h1 {
+      color: #667eea;
+      margin-bottom: 20px;
+    }
+    
+    .status {
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 10px;
+      background: #f0f9ff;
+      border: 2px solid #bae6fd;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>🧪 Test Page</h1>
+    <p>If you can see this, HTML is loading correctly!</p>
+    
+    <div class="status" id="status">
+      Status: Page loaded ✅
+    </div>
+    
+    <button onclick="testNavigation()">Test Navigation to Home</button>
+    <button onclick="testCommission()">Test Commission Page</button>
+    <button onclick="testBackendConnection()">Test Backend Connection</button>
+    
+    <div class="status" id="result" style="display: none; background: #fef3c7; border-color: #fbbf24;">
+      <strong>Result:</strong><br>
+      <span id="resultText"></span>
+    </div>
+  </div>
+  
+  <script>
+    console.log('✅ Test page JavaScript loaded');
+    
+    window.testNavigation = function() {
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('resultText').innerHTML = 'Navigating to home...';
+      setTimeout(function() {
+        var homeUrl = 'https://script.google.com/macros/s/AKfycbxec_gT1Pw6c77caBrnFqMDuG6DoMy4I_ORL-ruleuJXSYDC3Dts4mzUf5wt6ZNcTtw/exec';
+        try {
+          window.top.location.href = homeUrl;
+        } catch(e) {
+          window.open(homeUrl, '_top');
+        }
+      }, 500);
+    };
+    
+    window.testCommission = function() {
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('resultText').innerHTML = 'Navigating to commission page...';
+      setTimeout(function() {
+        var commissionUrl = 'https://script.google.com/macros/s/AKfycbxec_gT1Pw6c77caBrnFqMDuG6DoMy4I_ORL-ruleuJXSYDC3Dts4mzUf5wt6ZNcTtw/exec?page=commission';
+        try {
+          window.top.location.href = commissionUrl;
+        } catch(e) {
+          window.open(commissionUrl, '_top');
+        }
+      }, 500);
+    };
+    
+    window.testBackendConnection = function() {
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('resultText').innerHTML = 'Testing backend connection...';
+      
+      try {
+        google.script.run
+          .withSuccessHandler(function(status) {
+            console.log('✅ Backend connection successful:', status);
+            document.getElementById('resultText').innerHTML = 
+              '✅ Backend Connected!<br>Email: ' + (status.email || 'N/A') + 
+              '<br>Is Admin: ' + (status.isAdmin ? 'Yes' : 'No');
+          })
+          .withFailureHandler(function(error) {
+            console.error('❌ Backend connection failed:', error);
+            document.getElementById('resultText').innerHTML = 
+              '❌ Backend Error:<br>' + error.message;
+          })
+          .getCurrentUserStatus();
+      } catch(e) {
+        console.error('❌ Exception calling backend:', e);
+        document.getElementById('resultText').innerHTML = 
+          '❌ Exception:<br>' + e.message;
+      }
+    };
+    
+    // Auto-test on load
+    setTimeout(function() {
+      console.log('Running auto-test...');
+      document.getElementById('status').innerHTML = 'Status: JavaScript working ✅<br>google.script: ' + 
+        (typeof google !== 'undefined' && typeof google.script !== 'undefined' ? '✅ Available' : '❌ Not found');
+    }, 100);
+  </script>
+</body>
+</html>
+
