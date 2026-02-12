@@ -37,6 +37,7 @@ interface Teacher { email: string; name: string; }
 
 interface ReferralRow {
   state?: string; firstClickAt?: string; becameLeadAt?: string; convertedAt?: string;
+  becameConversionAt?: string; createdAt?: string;
   [key: string]: unknown;
 }
 

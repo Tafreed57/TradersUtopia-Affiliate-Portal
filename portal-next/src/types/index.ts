@@ -268,8 +268,10 @@ export interface ReferralRow {
   id: string;
   state: 'lead' | 'conversion';
   createdAt: string;
+  firstClickAt: string;
   becameLeadAt: string;
   becameConversionAt: string | null;
+  convertedAt: string | null;
   isConversion: boolean;
   isLead: boolean;
 }

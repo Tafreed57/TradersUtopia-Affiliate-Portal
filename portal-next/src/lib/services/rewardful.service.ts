@@ -45,6 +45,14 @@ interface RewardfulReferral {
   became_lead_at?: string;
   became_conversion_at?: string;
   sale_occurred_at?: string;
+  first_click_at?: string;
+  customer?: {
+    name?: string;
+    email?: string;
+  };
+  link?: {
+    url?: string;
+  };
 }
 
 interface RewardfulCampaign {
@@ -193,8 +201,10 @@ class RewardfulApiClient {
     affiliateId: string
   ): Promise<{ unpaid: number; dueNow: number; paid: number }> {
     try {
+      // CRITICAL: Must use ?expand=true to get commission_stats in the response
+      // (legacy code: var affByIdUrl = BASE_URL + '/affiliates/' + aff.id + '?expand=true')
       const affiliate = await this.request<RewardfulAffiliate>(
-        `/affiliates/${affiliateId}`
+        `/affiliates/${affiliateId}?expand=true`
       );
 
       const stats = affiliate.commission_stats?.currencies;
@@ -234,13 +244,27 @@ class RewardfulApiClient {
     perPage: number = 100
   ): Promise<{ success: boolean; referrals: RewardfulReferral[]; hasMore: boolean }> {
     try {
-      const response = await this.request<{
-        data: RewardfulReferral[];
-        pagination?: { has_more: boolean };
-      }>(`/referrals?affiliate_id=${affiliateId}&page=${page}&per_page=${perPage}`);
+      // CRITICAL: Rewardful uses 'limit', not 'per_page'
+      // (legacy code comment: "Rewardful uses 'limit', not 'per_page'")
+      const response = await this.request<unknown>(
+        `/referrals?affiliate_id=${affiliateId}&page=${page}&limit=${perPage}`
+      );
 
-      const referrals = response.data || [];
-      const hasMore = response.pagination?.has_more || referrals.length >= perPage;
+      // Rewardful may return array directly OR wrapped in { data: [...] }
+      let referrals: RewardfulReferral[] = [];
+      if (Array.isArray(response)) {
+        referrals = response;
+      } else if (response && typeof response === 'object') {
+        const obj = response as Record<string, unknown>;
+        if (Array.isArray(obj.data)) {
+          referrals = obj.data;
+        } else if (Array.isArray(obj.referrals)) {
+          referrals = obj.referrals as RewardfulReferral[];
+        }
+      }
+
+      // If we got a full page, there might be more
+      const hasMore = referrals.length >= perPage;
 
       return { success: true, referrals, hasMore };
     } catch (error) {

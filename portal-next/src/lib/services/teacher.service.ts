@@ -26,14 +26,17 @@ export async function verifyTeacherAccess(
   email: string
 ): Promise<{ hasAccess: boolean; isAdmin: boolean; isTeacher: boolean; reason?: string }> {
   const normalizedEmail = normalizeEmail(email);
+  log.info('verifyTeacherAccess called', { email: normalizedEmail });
 
   // Check admin
   if (isAdminEmail(normalizedEmail)) {
+    log.info('Teacher access: admin email', { email: normalizedEmail });
     return { hasAccess: true, isAdmin: true, isTeacher: true };
   }
 
   // Check override list
   if (isTeacherOverrideEmail(normalizedEmail)) {
+    log.info('Teacher access: override list', { email: normalizedEmail });
     return { hasAccess: true, isAdmin: false, isTeacher: true };
   }
 
@@ -42,18 +45,35 @@ export async function verifyTeacherAccess(
     where: { aliasEmail: normalizedEmail },
   });
 
+  log.info('Teacher access: DB user lookup', {
+    email: normalizedEmail,
+    found: !!user,
+    internalEmail: user?.internalEmail || 'NULL',
+    isTeacherInDB: user?.isTeacher,
+  });
+
   if (user?.isTeacher) {
     return { hasAccess: true, isAdmin: user.isAdmin, isTeacher: true };
   }
 
   // Check Rewardful for "teacher" in name
-  const affiliateResult = await rewardfulApi.getAffiliateByEmail(
-    user?.internalEmail || normalizedEmail
-  );
+  const lookupEmail = user?.internalEmail || normalizedEmail;
+  log.info('Teacher access: querying Rewardful API', { lookupEmail });
+
+  const affiliateResult = await rewardfulApi.getAffiliateByEmail(lookupEmail);
+
+  log.info('Teacher access: Rewardful API result', {
+    lookupEmail,
+    success: affiliateResult.success,
+    affiliateFound: !!affiliateResult.affiliate,
+    firstName: affiliateResult.affiliate?.first_name || 'N/A',
+    error: affiliateResult.error,
+  });
 
   if (affiliateResult.success && affiliateResult.affiliate) {
     const firstName = affiliateResult.affiliate.first_name || '';
     if (firstName.toLowerCase().includes('teacher')) {
+      log.info('Teacher access: GRANTED via Rewardful first_name', { email: normalizedEmail, firstName });
       // Update user record
       if (user) {
         await prisma.user.update({
@@ -65,6 +85,7 @@ export async function verifyTeacherAccess(
     }
   }
 
+  log.warn('Teacher access: DENIED', { email: normalizedEmail, lookupEmail });
   return {
     hasAccess: false,
     isAdmin: false,

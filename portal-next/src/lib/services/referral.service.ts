@@ -24,6 +24,14 @@ interface RawReferral {
   became_lead_at?: string;
   became_conversion_at?: string;
   sale_occurred_at?: string;
+  first_click_at?: string;
+  customer?: {
+    name?: string;
+    email?: string;
+  };
+  link?: {
+    url?: string;
+  };
 }
 
 /**
@@ -63,13 +71,16 @@ function isConversion(ref: RawReferral): boolean {
 function prepareReferralRow(ref: RawReferral): ReferralRow {
   const conv = isConversion(ref);
   const lead = isLead(ref);
+  const convertedAt = ref.became_conversion_at || ref.sale_occurred_at || null;
 
   return {
     id: ref.id.toString().slice(-6),
     state: conv ? 'conversion' : 'lead',
     createdAt: ref.created_at || '',
+    firstClickAt: ref.first_click_at || ref.created_at || '',
     becameLeadAt: ref.became_lead_at || ref.created_at || '',
-    becameConversionAt: ref.became_conversion_at || ref.sale_occurred_at || null,
+    becameConversionAt: convertedAt,
+    convertedAt,
     isConversion: conv,
     isLead: lead,
   };
@@ -85,7 +96,7 @@ function prepareReferralRow(ref: RawReferral): ReferralRow {
  */
 export async function getReferralData(
   email: string,
-  forceRefresh?: boolean
+  _forceRefresh?: boolean
 ): Promise<ApiResponse & {
   totalLeads?: number;
   previousCount?: number;
@@ -95,28 +106,10 @@ export async function getReferralData(
   const normalizedEmail = normalizeEmail(email);
 
   try {
-    // Check cache
+    // Get cached count for delta calculation
     const cached = await prisma.referralCache.findUnique({
       where: { email: normalizedEmail },
     });
-
-    const cacheAge = cached?.lastSuccessfulFetchAt
-      ? Date.now() - cached.lastSuccessfulFetchAt.getTime()
-      : Infinity;
-
-    const cacheTtl = 15 * 60 * 1000; // 15 minutes
-
-    // Use cache if valid and not forcing refresh
-    if (!forceRefresh && cached && cacheAge < cacheTtl) {
-      return {
-        success: true,
-        totalLeads: cached.lastKnownLeadCount,
-        previousCount: cached.previousLeadCount,
-        deltaSinceLastFetch: 0,
-        fromCache: true,
-        leads: [],
-      };
-    }
 
     // Fetch from API
     // First get affiliate
@@ -200,8 +193,8 @@ export async function getReferralsWithMode(
   const normalizedEmail = normalizeEmail(email);
 
   try {
-    // Get all referral data
-    const data = await getReferralData(normalizedEmail, false);
+    // Always force refresh to get actual referral rows (not just cached counts)
+    const data = await getReferralData(normalizedEmail, true);
 
     if (!data.success) {
       return {

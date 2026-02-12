@@ -127,12 +127,17 @@ export async function createSession(aliasEmail: string): Promise<ApiResponse & {
     if (!isTeacher) {
       try {
         const { verifyTeacherAccess } = await import('@/lib/services/teacher.service');
+        log.info('Running live teacher check for', { email, internalEmail: user.internalEmail });
         const teacherCheck = await verifyTeacherAccess(email);
+        log.info('Teacher check result', { email, hasAccess: teacherCheck.hasAccess, reason: teacherCheck.reason });
         if (teacherCheck.hasAccess) {
           isTeacher = true;
         }
-      } catch {
-        // Silent - use DB value
+      } catch (err) {
+        log.error('Teacher check FAILED — falling back to DB value', {
+          email,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 
@@ -299,14 +304,19 @@ export async function checkPortalAccess(
     // The session flag might be stale -- do a live check
     try {
       const { verifyTeacherAccess } = await import('@/lib/services/teacher.service');
+      log.info('Portal access: live teacher check for', { email: user.email });
       const teacherCheck = await verifyTeacherAccess(user.email);
+      log.info('Portal access: teacher check result', { email: user.email, hasAccess: teacherCheck.hasAccess, reason: teacherCheck.reason });
       if (teacherCheck.hasAccess) {
         // Update the session user to reflect the new status
         user.isTeacher = true;
         return { hasAccess: true, user };
       }
-    } catch {
-      // Fall through to deny
+    } catch (err) {
+      log.error('Portal access: teacher check FAILED', {
+        email: user.email,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
     return { hasAccess: false, reason: 'not_teacher', user };
   }
