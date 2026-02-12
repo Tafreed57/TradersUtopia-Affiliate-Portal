@@ -245,9 +245,9 @@ function StudentContent() {
               <button
                 className={`confirm-btn ${todayConfirmed ? 'confirmed' : ''}`}
                 onClick={handleConfirm}
-                disabled={confirming || todayConfirmed}
+                disabled={confirming}
               >
-                {todayConfirmed ? 'Attendance Confirmed' : confirming ? 'Confirming...' : 'Confirm Attendance'}
+                {confirming ? 'Confirming...' : todayConfirmed ? 'Confirm Attendance Again' : 'Confirm Attendance'}
               </button>
             </div>
 

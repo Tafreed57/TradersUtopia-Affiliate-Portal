@@ -70,42 +70,51 @@ export function Navigation({ title, variant = 'dark-bg', hideBack = false }: Nav
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 16px 24px;
+          padding: 12px 16px;
           flex-wrap: wrap;
-          gap: 12px;
+          gap: 8px;
+          min-width: 0;
+          overflow: hidden;
         }
 
         .header-left {
           display: flex;
           align-items: center;
-          gap: 16px;
+          gap: 12px;
+          min-width: 0;
+          flex-shrink: 1;
         }
 
         .header-right {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
+          min-width: 0;
+          flex-shrink: 1;
         }
 
         .header-title {
-          font-size: 1.25rem;
+          font-size: 1.15rem;
           font-weight: 700;
           color: ${isDark ? '#ffffff' : '#1e293b'};
           margin: 0;
+          white-space: nowrap;
         }
 
         .header-btn {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 10px 20px;
+          gap: 6px;
+          padding: 8px 14px;
           border: none;
-          border-radius: 12px;
-          font-size: 14px;
+          border-radius: 10px;
+          font-size: 13px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.3s ease;
           font-family: inherit;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .back-btn {
@@ -139,11 +148,15 @@ export function Navigation({ title, variant = 'dark-bg', hideBack = false }: Nav
         }
 
         .user-info {
-          font-size: 14px;
+          font-size: 13px;
           color: ${isDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b'};
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 220px;
         }
 
         .role-badge {
