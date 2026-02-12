@@ -73,9 +73,8 @@ function StudentContent() {
     setLoading(true);
     try {
       const token = getStoredToken();
-      const today = new Date().toISOString().split('T')[0];
       const result = await gsCall<{ success: boolean; data?: AttendancePageData; error?: string }>(
-        'getAttendanceData', user.email, today
+        'getAttendanceData', user.email, token
       );
       if (result.success && result.data) {
         setData(result.data);
@@ -153,7 +152,8 @@ function StudentContent() {
   const handleDeleteRecord = async (recordId: string) => {
     if (!confirm('Delete this attendance record?')) return;
     try {
-      await gsCall('deleteAttendanceRecord', user?.email, recordId);
+      const token = getStoredToken();
+      await gsCall('deleteAttendanceRecord', user?.email, recordId, token);
       loadData();
     } catch (err) {
       setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });

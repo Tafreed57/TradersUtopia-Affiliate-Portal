@@ -165,15 +165,14 @@ function CommissionContent() {
   const handleSaveOverride = async () => {
     if (!currentEmail) { showMsg('Lookup an affiliate first', '#dc2626'); return; }
     try {
+      const token = getStoredToken();
       await gsCall('saveAdminOverride', currentEmail, {
         unpaidAmount: adminUnpaid ? Number(adminUnpaid) : null,
-        dueNow: adminDueNow ? Number(adminDueNow) : null,
-        totalPaid: adminTotalPaid ? Number(adminTotalPaid) : null,
-        lastPayout: adminLastPayout || null,
-        status: adminStatus || null,
-        percentageMultiplier: adminPercentage ? Number(adminPercentage) : null,
-        percentageEnabled,
-      });
+        dueNowAmount: adminDueNow ? Number(adminDueNow) : null,
+        totalPaidAmount: adminTotalPaid ? Number(adminTotalPaid) : null,
+        note: adminLastPayout || null,
+        reason: adminStatus || null,
+      }, token);
       showMsg('Override saved successfully!', '#059669');
       setTimeout(() => fetchData(currentEmail, true), 500);
     } catch (err) {
@@ -184,7 +183,8 @@ function CommissionContent() {
   const handleRemoveOverride = async () => {
     if (!currentEmail) return;
     try {
-      await gsCall('removeAdminOverride', currentEmail);
+      const token = getStoredToken();
+      await gsCall('removeAdminOverride', currentEmail, token);
       showMsg('Override removed!', '#059669');
       setAdminUnpaid(''); setAdminDueNow(''); setAdminTotalPaid('');
       setAdminLastPayout(''); setAdminStatus(''); setAdminPercentage('');

@@ -72,10 +72,8 @@ function TeacherContent() {
     setLoading(true);
     try {
       const token = getStoredToken();
-      const callerEmail = user?.email || '';
-      const managedTarget = email !== callerEmail ? email : '';
       const result = await gsCall<{ success: boolean; data?: TeacherPageData; error?: string }>(
-        'getTeacherDataWithContext', callerEmail, managedTarget || token
+        'getTeacherDataWithContext', email, token
       );
       if (result.success && result.data) {
         setData(result.data);
@@ -97,8 +95,9 @@ function TeacherContent() {
 
   const loadCommissionData = useCallback(async (email: string) => {
     try {
-      const result = await gsCall<{ success: boolean; data?: Record<string, Record<string, unknown>> }>(
-        'getStudentsCommissionData', email
+      const token = getStoredToken();
+      const result = await gsCall<{ success: boolean; data?: Record<string, Record<string, unknown>>; students?: Record<string, unknown>[] }>(
+        'getStudentsCommissionData', email, token
       );
       if (result.success && result.data) {
         setCommissionData(result.data);
@@ -122,7 +121,7 @@ function TeacherContent() {
     try {
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; error?: string }>(
-        'addStudentToTeacherWithContext', user?.email, isManaging ? managedEmail : '', newStudentEmail.trim(), token
+        'addStudentToTeacherWithContext', targetEmail, newStudentEmail.trim(), token
       );
       if (result.success) {
         setMsg({ text: 'Student added!', type: 'success' });
@@ -162,7 +161,8 @@ function TeacherContent() {
 
   const handleUpdateEarnings = async () => {
     try {
-      await gsCall('updateTeacherEarnings', targetEmail);
+      const token = getStoredToken();
+      await gsCall('updateTeacherEarnings', targetEmail, token);
       setMsg({ text: 'Earnings updated!', type: 'success' });
       loadTeacherData(targetEmail);
     } catch (err) {
@@ -176,8 +176,9 @@ function TeacherContent() {
     setStatsLoading(true);
     setStatsData(null);
     try {
+      const token = getStoredToken();
       const result = await gsCall<Record<string, unknown>>(
-        'getStudentAttendanceStats', studentEmail
+        'getStudentAttendanceStats', targetEmail, studentEmail, token
       );
       setStatsData(result);
     } catch {
