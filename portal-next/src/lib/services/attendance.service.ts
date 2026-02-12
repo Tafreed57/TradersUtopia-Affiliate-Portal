@@ -26,7 +26,8 @@ export async function loginAttendanceWithEmail(
 ): Promise<ApiResponse & {
   needsTeacherSelection?: boolean;
   isAdmin?: boolean;
-  user?: { email: string; name: string; teacherEmail?: string };
+  isTeacher?: boolean;
+  user?: { email: string; name: string; teacherEmail?: string; isTeacher?: boolean; isAdmin?: boolean };
 }> {
   const normalizedEmail = normalizeEmail(email);
 
@@ -49,7 +50,7 @@ export async function loginAttendanceWithEmail(
   }
 
   try {
-    // Find or create attendance profile
+    // Find user in DB
     const user = await prisma.user.findUnique({
       where: { aliasEmail: normalizedEmail },
       include: { attendanceProfile: true },
@@ -62,22 +63,47 @@ export async function loginAttendanceWithEmail(
     // Check if admin
     const isAdmin = isAdminEmail(normalizedEmail);
 
+    // Check teacher status (matches GAS: checks override list + Rewardful first_name)
+    let isTeacher = user.isTeacher;
+    if (!isTeacher && !isAdmin) {
+      if (isTeacherOverrideEmail(normalizedEmail)) {
+        isTeacher = true;
+      } else {
+        // Check Rewardful first_name for "teacher"
+        const emailForApi = user.internalEmail || normalizedEmail;
+        try {
+          const affResult = await rewardfulApi.getAffiliateByEmail(emailForApi);
+          if (affResult.success && affResult.affiliate) {
+            const firstName = affResult.affiliate.first_name || '';
+            isTeacher = firstName.toLowerCase().includes('teacher');
+          }
+        } catch {
+          // Silent — use DB value
+        }
+      }
+    }
+
     // Get name
     const name =
       [user.firstName, user.lastName].filter(Boolean).join(' ') || normalizedEmail;
 
     // Check if teacher is assigned
     const teacherEmail = user.attendanceProfile?.currentTeacherEmail;
-    const needsTeacherSelection = !teacherEmail && !isAdmin;
+    const hasTeacher = !!teacherEmail && teacherEmail !== 'none';
+    // Teachers who selected "none" don't need teacher selection
+    const needsTeacherSelection = !hasTeacher && !isAdmin && !isTeacher;
 
     return {
       success: true,
       needsTeacherSelection,
       isAdmin,
+      isTeacher,
       user: {
         email: normalizedEmail,
         name,
         teacherEmail: teacherEmail || undefined,
+        isTeacher,
+        isAdmin,
       },
     };
   } catch (error) {
@@ -305,6 +331,37 @@ export async function confirmAttendance(
       });
     }
 
+    // Validate teacher assignment (matches GAS: ensures student still has a valid teacher)
+    const teacherEmail = profile.currentTeacherEmail;
+    if (!teacherEmail) {
+      return { success: false, error: 'No teacher assigned. Please select a teacher first.' };
+    }
+
+    // Teachers who selected "none" can skip teacher validation
+    if (teacherEmail !== 'none') {
+      // Verify teacher-student link still exists
+      const teacher = await prisma.user.findUnique({
+        where: { aliasEmail: teacherEmail },
+      });
+      if (teacher) {
+        const link = await prisma.teacherStudentLink.findFirst({
+          where: {
+            teacherId: teacher.id,
+            studentId: user.id,
+            status: 'ACTIVE',
+          },
+        });
+        if (!link) {
+          // Student was removed by teacher — require re-selection
+          return {
+            success: false,
+            error: 'Your teacher has removed you from their list. Please select a new teacher.',
+            requiresTeacherSelection: true,
+          };
+        }
+      }
+    }
+
     // Check for existing record
     const existing = await prisma.attendanceRecord.findUnique({
       where: {
@@ -375,12 +432,15 @@ export async function getAllValidTeachers(): Promise<ApiResponse & { teachers?: 
     // Also get from override list
     const overrideEmails = config.admin.teacherOverrideEmails;
 
-    const teachers: TeacherOption[] = affiliates.map((aff) => ({
-      email: aff.email,
-      name: `${aff.first_name || ''} ${aff.last_name || ''}`.trim(),
-      firstName: aff.first_name || '',
-      lastName: aff.last_name || '',
-    }));
+    // Filter out admins (legacy: teachers who are admins are excluded from selection)
+    const teachers: TeacherOption[] = affiliates
+      .filter((aff) => aff.email && !isAdminEmail(aff.email))
+      .map((aff) => ({
+        email: aff.email,
+        name: `${aff.first_name || ''} ${aff.last_name || ''}`.trim(),
+        firstName: aff.first_name || '',
+        lastName: aff.last_name || '',
+      }));
 
     // Add override emails that aren't already in the list
     for (const email of overrideEmails) {
@@ -417,6 +477,7 @@ export async function setTeacherForAttendanceUser(
 ): Promise<ApiResponse> {
   const normalizedStudent = normalizeEmail(studentEmail);
   const normalizedTeacher = normalizeEmail(teacherEmail);
+  const isNoneSelection = normalizedTeacher === 'none';
 
   try {
     // Find student
@@ -427,6 +488,42 @@ export async function setTeacherForAttendanceUser(
 
     if (!student) {
       return { success: false, error: 'Student not found' };
+    }
+
+    // If selecting "none", verify the student is actually a teacher
+    // (only teachers can skip teacher assignment — matches GAS behavior)
+    if (isNoneSelection) {
+      if (!student.isTeacher && !isTeacherOverrideEmail(normalizedStudent)) {
+        // Do a Rewardful check
+        const emailForApi = student.internalEmail || normalizedStudent;
+        const affResult = await rewardfulApi.getAffiliateByEmail(emailForApi);
+        const firstName = affResult.affiliate?.first_name || '';
+        if (!firstName.toLowerCase().includes('teacher')) {
+          return { success: false, error: 'Only teachers can skip teacher selection' };
+        }
+      }
+    }
+
+    // Unlink from old teacher first (matches GAS behavior)
+    const oldTeacherEmail = student.attendanceProfile?.currentTeacherEmail;
+    if (oldTeacherEmail && oldTeacherEmail !== normalizedTeacher && oldTeacherEmail !== 'none') {
+      const oldTeacher = await prisma.user.findUnique({
+        where: { aliasEmail: oldTeacherEmail },
+      });
+      if (oldTeacher) {
+        await prisma.teacherStudentLink.updateMany({
+          where: {
+            teacherId: oldTeacher.id,
+            studentId: student.id,
+            status: 'ACTIVE',
+          },
+          data: {
+            status: 'REMOVED',
+            removedAt: new Date(),
+            removedBy: 'teacher_change',
+          },
+        });
+      }
     }
 
     // Update or create attendance profile
@@ -444,31 +541,33 @@ export async function setTeacherForAttendanceUser(
       });
     }
 
-    // Also create teacher-student link
-    const teacher = await prisma.user.findUnique({
-      where: { aliasEmail: normalizedTeacher },
-    });
+    // Create teacher-student link (unless selecting "none")
+    if (!isNoneSelection) {
+      const teacher = await prisma.user.findUnique({
+        where: { aliasEmail: normalizedTeacher },
+      });
 
-    if (teacher) {
-      await prisma.teacherStudentLink.upsert({
-        where: {
-          teacherId_studentId: {
+      if (teacher) {
+        await prisma.teacherStudentLink.upsert({
+          where: {
+            teacherId_studentId: {
+              teacherId: teacher.id,
+              studentId: student.id,
+            },
+          },
+          create: {
             teacherId: teacher.id,
             studentId: student.id,
+            status: 'ACTIVE',
+            createdBy: 'student',
           },
-        },
-        create: {
-          teacherId: teacher.id,
-          studentId: student.id,
-          status: 'ACTIVE',
-          createdBy: 'student',
-        },
-        update: {
-          status: 'ACTIVE',
-          removedAt: null,
-          removedBy: null,
-        },
-      });
+          update: {
+            status: 'ACTIVE',
+            removedAt: null,
+            removedBy: null,
+          },
+        });
+      }
     }
 
     log.info('Teacher set for student', {

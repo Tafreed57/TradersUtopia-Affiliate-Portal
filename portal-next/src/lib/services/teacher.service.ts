@@ -325,23 +325,29 @@ export async function addStudentToTeacherWithContext(
       return { success: false, error: 'Teacher not found' };
     }
 
-    // Find or create student
+    // Find student - check DB first, then try internal email lookup
     let student = await prisma.user.findUnique({
       where: { aliasEmail: normalizedStudent },
     });
 
     if (!student) {
-      // Try to find affiliate
+      // Verify student exists in Rewardful before creating (matches GAS resolveStudentByEmail_)
       const affiliateResult = await rewardfulApi.getAffiliateByEmail(normalizedStudent);
+      if (!affiliateResult.success || !affiliateResult.affiliate) {
+        return {
+          success: false,
+          error: 'Student email not found in the affiliate system. Please ensure the account is approved.',
+        };
+      }
 
       student = await prisma.user.create({
         data: {
           aliasEmail: normalizedStudent,
           email: normalizedStudent,
           internalEmail: normalizedStudent,
-          firstName: affiliateResult.affiliate?.first_name || null,
-          lastName: affiliateResult.affiliate?.last_name || null,
-          rewardfulAffiliateId: affiliateResult.affiliate?.id || null,
+          firstName: affiliateResult.affiliate.first_name || null,
+          lastName: affiliateResult.affiliate.last_name || null,
+          rewardfulAffiliateId: affiliateResult.affiliate.id || null,
           accountStatus: 'ACTIVE',
         },
       });

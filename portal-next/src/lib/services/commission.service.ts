@@ -78,9 +78,10 @@ export async function lookupAffiliate(
     let percentage = 100;
     let percentageApplied = false;
 
-    const percentMatch = emailForApi.match(/(\d+)%/);
+    // Legacy pattern: digits immediately before %@ (e.g. user50%@gmail.com -> 50)
+    const percentMatch = emailForApi.match(/(\d{1,3})%@/);
     if (percentMatch) {
-      percentage = parseInt(percentMatch[1], 10);
+      percentage = Math.min(100, Math.max(1, parseInt(percentMatch[1], 10)));
       percentageApplied = true;
     }
 

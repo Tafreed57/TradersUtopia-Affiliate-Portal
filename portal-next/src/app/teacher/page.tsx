@@ -175,7 +175,8 @@ function TeacherContent() {
   const handleSetPercentage = async (studentEmail: string) => {
     const pct = percentageInputs[studentEmail];
     try {
-      await gsCall('setStudentPercentageOverride', targetEmail, studentEmail, pct ? Number(pct) : null);
+      // Default to 10 if empty (matches legacy behavior)
+      await gsCall('setStudentPercentageOverride', targetEmail, studentEmail, pct ? Number(pct) : 10);
       setMsg({ text: `Percentage updated for ${studentEmail}`, type: 'success' });
       loadTeacherData(targetEmail);
     } catch (err) {
