@@ -364,35 +364,34 @@ export async function adminRejectAccount(
  * Get all attendance users
  * Legacy: getAllAttendanceUsers()
  */
-export async function getAllAttendanceUsers(): Promise<ApiResponse & {
-  users?: Array<{
-    email: string;
-    aliasEmail: string;
-    internalEmail?: string;
-    teacherEmail?: string;
-    createdAt: string;
-    isLegacy: boolean;
-    isOrphaned: boolean;
-  }>;
-}> {
+export async function getAllAttendanceUsers(): Promise<ApiResponse & { users?: Array<object> }> {
   try {
-    const profiles = await prisma.attendanceProfile.findMany({
-      include: { user: true },
+    // Return all users, not just those with attendance profiles
+    const users = await prisma.user.findMany({
+      include: {
+        attendanceProfile: { select: { currentTeacherEmail: true } },
+      },
+      take: 100,
+      orderBy: { aliasEmail: 'asc' },
     });
 
-    const users = profiles.map((profile) => ({
-      email: profile.user.aliasEmail,
-      aliasEmail: profile.user.aliasEmail,
-      internalEmail: profile.user.internalEmail || undefined,
-      teacherEmail: profile.currentTeacherEmail || undefined,
-      createdAt: profile.createdAt.toISOString(),
-      isLegacy: !!profile.legacyPasswordHash,
-      isOrphaned: false, // Would need more logic to determine
+    const results = users.map((u) => ({
+      email: u.aliasEmail,
+      aliasEmail: u.aliasEmail,
+      internalEmail: u.internalEmail || undefined,
+      name: [u.firstName, u.lastName].filter(Boolean).join(' ') || undefined,
+      accountStatus: u.accountStatus,
+      isTeacher: u.isTeacher,
+      isAdmin: u.isAdmin,
+      teacherEmail: u.attendanceProfile?.currentTeacherEmail || undefined,
+      createdAt: u.createdAt.toISOString(),
+      hasPassword: !!u.passwordHash,
+      hasAttendanceProfile: !!u.attendanceProfile,
     }));
 
-    return { success: true, users };
+    return { success: true, users: results };
   } catch (error) {
-    log.error('Get all attendance users error', { error });
+    log.error('Get all users error', { error });
     return { success: false, error: 'Failed to fetch users' };
   }
 }
@@ -411,30 +410,42 @@ export async function searchAttendanceUsers(
   }
 
   try {
-    const profiles = await prisma.attendanceProfile.findMany({
+    // Search ALL users in the database (not just those with attendance profiles)
+    // This includes legacy users, pending users, everyone
+    const users = await prisma.user.findMany({
       where: {
         OR: [
-          { user: { aliasEmail: { contains: searchTerm, mode: 'insensitive' } } },
-          { user: { firstName: { contains: searchTerm, mode: 'insensitive' } } },
-          { user: { lastName: { contains: searchTerm, mode: 'insensitive' } } },
+          { aliasEmail: { contains: searchTerm, mode: 'insensitive' } },
+          { internalEmail: { contains: searchTerm, mode: 'insensitive' } },
+          { firstName: { contains: searchTerm, mode: 'insensitive' } },
+          { lastName: { contains: searchTerm, mode: 'insensitive' } },
+          { email: { contains: searchTerm, mode: 'insensitive' } },
         ],
       },
-      include: { user: true },
+      include: {
+        attendanceProfile: { select: { currentTeacherEmail: true } },
+      },
+      take: 50, // Limit results for performance
+      orderBy: { aliasEmail: 'asc' },
     });
 
-    const users = profiles.map((profile) => ({
-      email: profile.user.aliasEmail,
-      aliasEmail: profile.user.aliasEmail,
-      internalEmail: profile.user.internalEmail || undefined,
-      teacherEmail: profile.currentTeacherEmail || undefined,
-      createdAt: profile.createdAt.toISOString(),
-      isLegacy: !!profile.legacyPasswordHash,
-      isOrphaned: false,
+    const results = users.map((u) => ({
+      email: u.aliasEmail,
+      aliasEmail: u.aliasEmail,
+      internalEmail: u.internalEmail || undefined,
+      name: [u.firstName, u.lastName].filter(Boolean).join(' ') || undefined,
+      accountStatus: u.accountStatus,
+      isTeacher: u.isTeacher,
+      isAdmin: u.isAdmin,
+      teacherEmail: u.attendanceProfile?.currentTeacherEmail || undefined,
+      createdAt: u.createdAt.toISOString(),
+      hasPassword: !!u.passwordHash,
+      hasAttendanceProfile: !!u.attendanceProfile,
     }));
 
-    return { success: true, users };
+    return { success: true, users: results };
   } catch (error) {
-    log.error('Search attendance users error', { error });
+    log.error('Search users error', { error });
     return { success: false, error: 'Failed to search users' };
   }
 }
