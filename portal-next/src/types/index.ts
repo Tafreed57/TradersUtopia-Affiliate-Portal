@@ -371,6 +371,7 @@ export type PortalType =
   | 'attendance'
   | 'student'
   | 'teacher'
+  | 'clipper'
   | 'home';
 
 export interface PortalAccessResult {

@@ -229,20 +229,22 @@ export const gs = {
   },
 
   // Attendance
-  async getAttendanceData(email: string, token: string) {
+  async getAttendanceData(email: string, token: string, mode?: string) {
     return gsCall<{ success: boolean; data?: object; error?: string }>(
       'getAttendanceData',
       email,
-      token
+      token,
+      mode || 'live'
     );
   },
 
-  async confirmAttendance(email: string, dateStr: string, token: string) {
+  async confirmAttendance(email: string, dateStr: string, token: string, mode?: string) {
     return gsCall<{ success: boolean; error?: string }>(
       'confirmAttendance',
       email,
       dateStr,
-      token
+      token,
+      mode || 'live'
     );
   },
 

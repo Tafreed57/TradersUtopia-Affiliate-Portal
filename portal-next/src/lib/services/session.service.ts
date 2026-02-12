@@ -291,7 +291,7 @@ export async function checkPortalAccess(
   const user = result.user;
 
   // All logged-in users can access these portals
-  if (portal === 'commission' || portal === 'attendance' || portal === 'student') {
+  if (portal === 'commission' || portal === 'attendance' || portal === 'student' || portal === 'clipper') {
     return { hasAccess: true, user };
   }
 

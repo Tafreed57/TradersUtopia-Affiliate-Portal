@@ -134,9 +134,11 @@ export async function completeAttendanceLoginWithTeacher(
  */
 export async function getAttendanceData(
   email: string,
-  token: string
+  token: string,
+  mode: string = 'live'
 ): Promise<ApiResponse & { data?: AttendanceData }> {
   const normalizedEmail = normalizeEmail(email);
+  const attendanceMode = mode === 'clipper' ? 'clipper' : 'live';
 
   // Validate session
   const { user: sessionUser } = await getSessionUser(token);
@@ -152,6 +154,7 @@ export async function getAttendanceData(
         attendanceProfile: {
           include: {
             records: {
+              where: { mode: attendanceMode },
               orderBy: { date: 'desc' },
             },
           },
@@ -265,7 +268,8 @@ export async function getAttendanceData(
         streak,
         firstConfirmationDate: sortedConfirmed[sortedConfirmed.length - 1],
       },
-      needsTeacherAssignment: !profile.currentTeacherEmail,
+      // Clipper mode never needs teacher assignment
+      needsTeacherAssignment: attendanceMode === 'clipper' ? false : !profile.currentTeacherEmail,
     };
 
     return { success: true, data };
@@ -301,7 +305,8 @@ function getPreviousWeekday(dateStr: string): string {
 export async function confirmAttendance(
   email: string,
   dateStr: string,
-  token: string
+  token: string,
+  mode: string = 'live'
 ): Promise<ApiResponse> {
   const normalizedEmail = normalizeEmail(email);
 
@@ -335,46 +340,52 @@ export async function confirmAttendance(
       });
     }
 
-    // Validate teacher assignment (matches GAS: ensures student still has a valid teacher)
-    const teacherEmail = profile.currentTeacherEmail;
-    if (!teacherEmail) {
-      return { success: false, error: 'No teacher assigned. Please select a teacher first.' };
-    }
+    const attendanceMode = mode === 'clipper' ? 'clipper' : 'live';
 
-    // Teachers who selected "none" can skip teacher validation
-    if (teacherEmail !== 'none') {
-      // Verify teacher-student link still exists
-      const teacher = await prisma.user.findUnique({
-        where: { aliasEmail: teacherEmail },
-      });
-      if (teacher) {
-        const link = await prisma.teacherStudentLink.findFirst({
-          where: {
-            teacherId: teacher.id,
-            studentId: user.id,
-            status: 'ACTIVE',
-          },
+    // Clipper mode skips teacher validation entirely
+    if (attendanceMode === 'live') {
+      // Validate teacher assignment (matches GAS: ensures student still has a valid teacher)
+      const teacherEmail = profile.currentTeacherEmail;
+      if (!teacherEmail) {
+        return { success: false, error: 'No teacher assigned. Please select a teacher first.' };
+      }
+
+      // Teachers who selected "none" can skip teacher validation
+      if (teacherEmail !== 'none') {
+        // Verify teacher-student link still exists
+        const teacher = await prisma.user.findUnique({
+          where: { aliasEmail: teacherEmail },
         });
-        if (!link) {
-          // Student was removed by teacher — require re-selection
-          return {
-            success: false,
-            error: 'Your teacher has removed you from their list. Please select a new teacher.',
-            requiresTeacherSelection: true,
-          };
+        if (teacher) {
+          const link = await prisma.teacherStudentLink.findFirst({
+            where: {
+              teacherId: teacher.id,
+              studentId: user.id,
+              status: 'ACTIVE',
+            },
+          });
+          if (!link) {
+            // Student was removed by teacher — require re-selection
+            return {
+              success: false,
+              error: 'Your teacher has removed you from their list. Please select a new teacher.',
+              requiresTeacherSelection: true,
+            };
+          }
         }
       }
     }
 
     // GAS allows multiple confirmations per day, each as a SEPARATE record.
-    // The unique constraint is on [profileId, date], so we append a timestamp
+    // The unique constraint is on [profileId, date, mode], so we append a timestamp
     // suffix for additional confirmations to make each record unique in the DB.
     const now = new Date();
     const existing = await prisma.attendanceRecord.findUnique({
       where: {
-        profileId_date: {
+        profileId_date_mode: {
           profileId: profile.id,
           date: dateStr,
+          mode: attendanceMode,
         },
       },
     });
@@ -389,7 +400,8 @@ export async function confirmAttendance(
         profileId: profile.id,
         date: recordDate,
         confirmedAt: now,
-        teacherEmail: profile.currentTeacherEmail,
+        teacherEmail: attendanceMode === 'live' ? profile.currentTeacherEmail : null,
+        mode: attendanceMode,
       },
     });
 

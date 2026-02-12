@@ -231,12 +231,16 @@ model AttendanceRecord {
   confirmedAt DateTime
   teacherEmail String? // Teacher at time of confirmation
 
+  // Mode: "live" (default, current system) or "clipper" (clipping attendance)
+  mode String @default("live")
+
   // Multiple confirmations per day allowed
   confirmationCount Int @default(1)
 
-  @@unique([profileId, date])
+  @@unique([profileId, date, mode])
   @@index([profileId])
   @@index([date])
+  @@index([mode])
 }
 
 // ============================================================================
