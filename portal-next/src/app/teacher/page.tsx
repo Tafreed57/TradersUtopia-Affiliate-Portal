@@ -259,21 +259,28 @@ function TeacherContent() {
     }
   };
 
-  const handleAdminSearch = () => {
+  const handleAdminSearch = async () => {
     if (!managedEmail.trim() || !managedEmail.includes('@')) return;
+    const target = managedEmail.trim().toLowerCase();
+    // Audit log: admin started managing (matches GAS adminStartManageUser)
+    try { await gsCall('adminStartManageUser', user?.email || '', target); } catch { /* ok */ }
     setIsManaging(true);
-    setTargetEmail(managedEmail.trim().toLowerCase());
-    loadTeacherData(managedEmail.trim().toLowerCase());
-    loadCommissionData(managedEmail.trim().toLowerCase());
+    setTargetEmail(target);
+    loadTeacherData(target);
+    loadCommissionData(target);
+    loadEarningsHistory(target);
   };
 
-  const handleExitManage = () => {
+  const handleExitManage = async () => {
+    // Audit log: admin stopped managing (matches GAS adminStopManageUser)
+    try { await gsCall('adminStopManageUser', user?.email || '', targetEmail); } catch { /* ok */ }
     setIsManaging(false);
     setManagedEmail('');
     const email = user?.email || '';
     setTargetEmail(email);
     loadTeacherData(email);
     loadCommissionData(email);
+    loadEarningsHistory(email);
   };
 
   if (sessionLoading || loading) {
@@ -503,7 +510,12 @@ function TeacherContent() {
 
             {/* Refresh button */}
             <div className="footer-actions">
-              <button className="btn-refresh" onClick={() => { loadTeacherData(targetEmail); loadCommissionData(targetEmail); }}>
+              <button className="btn-refresh" onClick={async () => {
+                try { await gsCall('clearAllCaches'); } catch { /* ok */ }
+                loadTeacherData(targetEmail);
+                loadCommissionData(targetEmail);
+                loadEarningsHistory(targetEmail);
+              }}>
                 Refresh Data
               </button>
             </div>

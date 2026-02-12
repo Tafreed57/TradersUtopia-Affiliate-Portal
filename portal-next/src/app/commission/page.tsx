@@ -250,7 +250,7 @@ function CommissionContent() {
     if (!confirm(confirmMsg)) return;
     try {
       const token = getStoredToken();
-      await gsCall('recordTeacherPayout', teacherEmail, amountToPay, token);
+      await gsCall('recordTeacherPayment', teacherEmail, amountToPay, token);
       alert('Payment recorded successfully!');
       loadTeacherPayments();
     } catch (err) {
@@ -471,7 +471,10 @@ function CommissionContent() {
                 <button className="btn-blue" onClick={loadTeacherPayments} disabled={teacherPayLoading}>
                   {teacherPayLoading ? 'Loading...' : 'Load All Teachers'}
                 </button>
-                <button className="btn-green" onClick={() => { loadTeacherPayments(); }} disabled={teacherPayLoading}>
+                <button className="btn-green" onClick={async () => {
+                  try { await gsCall('clearAllCaches'); } catch { /* ok */ }
+                  loadTeacherPayments();
+                }} disabled={teacherPayLoading}>
                   Force Refresh
                 </button>
               </div>
