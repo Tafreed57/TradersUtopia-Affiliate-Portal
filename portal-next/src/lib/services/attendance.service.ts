@@ -527,7 +527,7 @@ export async function getAllValidTeachers(): Promise<ApiResponse & { teachers?: 
     const dbTeachers = await prisma.user.findMany({
       where: {
         isTeacher: true,
-        status: { in: ['ACTIVE', 'COMPLETED', 'APPROVED'] },
+        accountStatus: { in: ['ACTIVE', 'COMPLETED', 'APPROVED'] },
       },
       select: {
         aliasEmail: true,
