@@ -109,14 +109,49 @@ export async function createSession(aliasEmail: string): Promise<ApiResponse & {
       return { success: false, error: 'User not found' };
     }
 
+    // Live teacher check via Rewardful (matches legacy getUserInfoForSession_ behavior)
+    let isTeacher = user.isTeacher;
+    const isAdmin = user.isAdmin || isAdminEmail(email);
+
+    // Admins are always teachers (legacy behavior)
+    if (isAdmin) {
+      isTeacher = true;
+    }
+
+    // Check teacher override list
+    if (!isTeacher && isTeacherOverrideEmail(email)) {
+      isTeacher = true;
+    }
+
+    // Check Rewardful first_name for "teacher" (live, like legacy)
+    if (!isTeacher) {
+      try {
+        const { verifyTeacherAccess } = await import('@/lib/services/teacher.service');
+        const teacherCheck = await verifyTeacherAccess(email);
+        if (teacherCheck.hasAccess) {
+          isTeacher = true;
+        }
+      } catch {
+        // Silent - use DB value
+      }
+    }
+
+    // Update DB if teacher status changed
+    if (isTeacher !== user.isTeacher || isAdmin !== user.isAdmin) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isTeacher, isAdmin },
+      });
+    }
+
     // Build session payload
     const payload: Omit<SessionPayload, 'iat' | 'exp'> = {
       userId: user.id,
       email: user.aliasEmail,
       aliasEmail: user.aliasEmail,
       rewardfulEmail: user.internalEmail || undefined,
-      isTeacher: user.isTeacher,
-      isAdmin: user.isAdmin,
+      isTeacher,
+      isAdmin,
       userName: [user.firstName, user.lastName].filter(Boolean).join(' ') || undefined,
     };
 
@@ -144,8 +179,8 @@ export async function createSession(aliasEmail: string): Promise<ApiResponse & {
         displayEmail: user.aliasEmail,
         rewardfulEmail: user.internalEmail || undefined,
         name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.aliasEmail,
-        isTeacher: user.isTeacher,
-        isAdmin: user.isAdmin,
+        isTeacher,
+        isAdmin,
       },
     };
   } catch (error) {
@@ -255,10 +290,23 @@ export async function checkPortalAccess(
     return { hasAccess: true, user };
   }
 
-  // Teacher portal requires teacher role
+  // Teacher portal requires teacher role - do a LIVE check via Rewardful
+  // (matches legacy behavior which checked Rewardful on every access)
   if (portal === 'teacher') {
     if (user.isTeacher || user.isAdmin) {
       return { hasAccess: true, user };
+    }
+    // The session flag might be stale -- do a live check
+    try {
+      const { verifyTeacherAccess } = await import('@/lib/services/teacher.service');
+      const teacherCheck = await verifyTeacherAccess(user.email);
+      if (teacherCheck.hasAccess) {
+        // Update the session user to reflect the new status
+        user.isTeacher = true;
+        return { hasAccess: true, user };
+      }
+    } catch {
+      // Fall through to deny
     }
     return { hasAccess: false, reason: 'not_teacher', user };
   }
