@@ -27,20 +27,22 @@ const securityHeaders: Record<string, string> = {
  */
 const cspDirectives: Record<string, string[]> = {
   'default-src': ["'self'"],
-  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com'],
   'style-src': ["'self'", "'unsafe-inline'"],
   'img-src': ["'self'", 'data:', 'https:'],
-  'font-src': ["'self'"],
+  'font-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com'],
   'connect-src': [
     "'self'",
     'https://api.getrewardful.com',
     'https://*.clerk.accounts.dev',
     'https://*.clerk.com',
+    'https://accounts.google.com',
+    'https://oauth2.googleapis.com',
   ],
-  'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com'],
+  'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com', 'https://accounts.google.com'],
   'frame-ancestors': ["'none'"],
   'base-uri': ["'self'"],
-  'form-action': ["'self'"],
+  'form-action': ["'self'", 'https://*.clerk.accounts.dev', 'https://accounts.google.com'],
 };
 
 function buildCsp(): string {

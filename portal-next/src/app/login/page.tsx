@@ -17,7 +17,7 @@ import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 import { gs, setStoredToken, gsCall } from '@/lib/client/gs-compat';
-import { useUser, useClerk } from '@clerk/nextjs';
+import { useUser, useClerk, useSignIn } from '@clerk/nextjs';
 
 function LoginContent() {
   const router = useRouter();
@@ -34,6 +34,7 @@ function LoginContent() {
   // Clerk hooks for Google sign-in
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
   const clerk = useClerk();
+  const { signIn, isLoaded: signInLoaded } = useSignIn();
 
   // Pre-fill email from URL param
   useEffect(() => {
@@ -286,31 +287,22 @@ function LoginContent() {
             className="google-btn"
             disabled={googleLoading}
             onClick={async () => {
+              if (!signInLoaded || !signIn) {
+                showMessage('Google sign-in is loading. Please wait a moment and try again.', 'info');
+                return;
+              }
               try {
                 setGoogleLoading(true);
                 showMessage('Redirecting to Google...', 'info');
 
-                // Wait briefly for Clerk client to initialize if needed
-                let attempts = 0;
-                while (!clerk.client?.signIn && attempts < 20) {
-                  await new Promise((r) => setTimeout(r, 250));
-                  attempts++;
-                }
-
-                const signInResource = clerk.client?.signIn;
-                if (!signInResource) {
-                  showMessage('Google sign-in is not available. Please check back later or sign in with email.', 'error');
-                  setGoogleLoading(false);
-                  return;
-                }
-
-                await signInResource.authenticateWithRedirect({
+                await signIn.authenticateWithRedirect({
                   strategy: 'oauth_google',
                   redirectUrl: '/sso-callback',
                   redirectUrlComplete: '/login',
                 });
-              } catch {
-                showMessage('Failed to start Google sign-in.', 'error');
+              } catch (err) {
+                console.error('Google sign-in error:', err);
+                showMessage('Failed to start Google sign-in. Please try again.', 'error');
                 setGoogleLoading(false);
               }
             }}
