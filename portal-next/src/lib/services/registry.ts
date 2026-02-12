@@ -53,6 +53,7 @@ export const functionRegistry: Record<string, AnyFunction> = {
   checkAffiliateExists: authService.checkAffiliateExists,
   hasPasswordSet: authService.hasPasswordSet,
   checkLegacyEmailLogin: authService.checkLegacyEmailLogin,
+  handleGoogleSignIn: authService.handleGoogleSignIn,
 
   // ========================================================================
   // COMMISSION LOOKUP

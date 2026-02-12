@@ -16,7 +16,8 @@
 import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
-import { gs, setStoredToken } from '@/lib/client/gs-compat';
+import { gs, setStoredToken, gsCall } from '@/lib/client/gs-compat';
+import { useUser, useClerk } from '@clerk/nextjs';
 
 function LoginContent() {
   const router = useRouter();
@@ -28,50 +29,80 @@ function LoginContent() {
   const [message, setMessage] = useState<{ text: string; type: 'error' | 'success' | 'info' } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [highlightNewHere, setHighlightNewHere] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Pre-fill email from URL param + handle Google OAuth results
+  // Clerk hooks for Google sign-in
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const clerk = useClerk();
+
+  // Pre-fill email from URL param
   useEffect(() => {
     const emailParam = searchParams.get('email');
     if (emailParam) setEmail(emailParam);
+  }, [searchParams]);
 
-    // Handle Google OAuth token (auto-login)
-    const googleToken = searchParams.get('google_token');
-    if (googleToken) {
-      // Store token and redirect to dashboard
-      setStoredToken(googleToken);
-      setMessage({ text: 'Signed in with Google! Redirecting...', type: 'success' });
-      setTimeout(() => router.push('/dashboard'), 500);
-      return;
-    }
-
-    // Handle Google OAuth status messages
-    const googleStatus = searchParams.get('google_status');
-    if (googleStatus === 'pending') {
-      setMessage({ text: 'Your account request is pending admin approval. You will be notified when approved.', type: 'info' });
-    } else if (googleStatus === 'request_submitted') {
-      setMessage({ text: 'Account request submitted! An admin will review your request shortly.', type: 'success' });
-    } else if (googleStatus === 'rejected') {
-      setMessage({ text: 'Your account request has been rejected. Please contact an admin.', type: 'error' });
-    }
-
-    // Handle Google OAuth errors
-    const googleError = searchParams.get('error');
-    if (googleError === 'google_denied') {
-      setMessage({ text: 'Google sign-in was cancelled.', type: 'info' });
-    } else if (googleError === 'google_not_configured') {
-      setMessage({ text: 'Google sign-in is not configured yet.', type: 'error' });
-    } else if (googleError) {
-      setMessage({ text: 'Google sign-in failed. Please try again or use email/password.', type: 'error' });
-    }
-  }, [searchParams, router]);
-
-  // Redirect if already authenticated
+  // Redirect if already authenticated (our session system)
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       setMessage({ text: 'Welcome back! Redirecting...', type: 'success' });
       router.push('/dashboard');
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // Handle Clerk Google sign-in completion
+  // When Clerk authenticates a user, we check our DB and create/link the account
+  useEffect(() => {
+    if (!clerkLoaded || !clerkUser || googleLoading) return;
+    if (isAuthenticated) return; // Already logged in with our system
+
+    const handleClerkUser = async () => {
+      setGoogleLoading(true);
+      const clerkEmail = clerkUser.primaryEmailAddress?.emailAddress;
+      const firstName = clerkUser.firstName || '';
+      const lastName = clerkUser.lastName || '';
+      const googleId = clerkUser.id;
+
+      if (!clerkEmail) {
+        setMessage({ text: 'No email found in Google account.', type: 'error' });
+        setGoogleLoading(false);
+        return;
+      }
+
+      showMessage('Signing in with Google...', 'info');
+
+      try {
+        // Call our backend to handle the Google sign-in logic
+        const result = await gsCall<{
+          success: boolean;
+          token?: string;
+          status?: string;
+          error?: string;
+        }>('handleGoogleSignIn', clerkEmail, firstName, lastName, googleId);
+
+        if (result.success && result.token) {
+          setStoredToken(result.token);
+          showMessage('Signed in with Google! Redirecting...', 'success');
+          setTimeout(() => router.push('/dashboard'), 500);
+        } else if (result.status === 'pending') {
+          showMessage('Your account request is pending admin approval.', 'info');
+        } else if (result.status === 'request_submitted') {
+          showMessage('Account request submitted! An admin will review shortly.', 'success');
+        } else if (result.status === 'rejected') {
+          showMessage('Your account request has been rejected. Contact an admin.', 'error');
+        } else {
+          showMessage(result.error || 'Google sign-in failed.', 'error');
+        }
+      } catch (err) {
+        showMessage(err instanceof Error ? err.message : 'Google sign-in failed.', 'error');
+      } finally {
+        setGoogleLoading(false);
+        // Sign out of Clerk (we use our own session system)
+        try { await clerk.signOut(); } catch { /* ok */ }
+      }
+    };
+
+    handleClerkUser();
+  }, [clerkLoaded, clerkUser, clerkUser?.id, isAuthenticated, googleLoading, clerk, router]);
 
   const showMessage = (text: string, type: 'error' | 'success' | 'info') => {
     setMessage({ text, type });
@@ -250,15 +281,41 @@ function LoginContent() {
             <span className="google-divider-line" />
           </div>
 
-          <a href="/api/auth/google" className="google-btn">
-            <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            Sign in with Google
-          </a>
+          <button
+            type="button"
+            className="google-btn"
+            disabled={googleLoading}
+            onClick={() => {
+              clerk.openSignIn({
+                appearance: { elements: { rootBox: { display: 'none' } } },
+              });
+              // Use Clerk's OAuth redirect for Google
+              clerk.client?.signIn.authenticateWithRedirect({
+                strategy: 'oauth_google',
+                redirectUrl: '/login',
+                redirectUrlComplete: '/login',
+              }).catch(() => {
+                showMessage('Failed to start Google sign-in.', 'error');
+              });
+            }}
+          >
+            {googleLoading ? (
+              <>
+                <span className="spinner-inline" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Sign in with Google
+              </>
+            )}
+          </button>
 
           <div className="links-section">
             <a

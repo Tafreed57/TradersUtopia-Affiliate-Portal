@@ -757,3 +757,114 @@ export async function checkLegacyEmailLogin(email: string): Promise<{
 
   return { isLegacy: false };
 }
+
+// ============================================================================
+// GOOGLE SIGN-IN
+// ============================================================================
+
+/**
+ * Handle Google Sign-In
+ * Called after Clerk authenticates the user with Google.
+ * Creates a PENDING request for new users, or creates a session for existing active users.
+ */
+export async function handleGoogleSignIn(
+  googleEmail: string,
+  firstName: string,
+  lastName: string,
+  googleId: string
+): Promise<ApiResponse & { token?: string; status?: string }> {
+  const normalizedEmail = normalizeEmail(googleEmail);
+
+  if (!normalizedEmail) {
+    return { success: false, error: 'Invalid email from Google' };
+  }
+
+  const log = logger.child({ service: 'google-auth' });
+  log.info('Google sign-in attempt', { email: normalizedEmail });
+
+  try {
+    // Check if user exists in our database
+    let user = await prisma.user.findUnique({
+      where: { aliasEmail: normalizedEmail },
+    });
+
+    // Also check by googleId
+    if (!user && googleId) {
+      user = await prisma.user.findFirst({
+        where: { googleId },
+      });
+    }
+
+    if (user) {
+      // Link Google ID if not already linked
+      if (!user.googleId && googleId) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId },
+        });
+      }
+
+      const status = user.accountStatus;
+
+      if (status === 'ACTIVE' || status === 'COMPLETED') {
+        // Active user — create our session
+        const { createSession } = await import('./session.service');
+        const sessionResult = await createSession(user.aliasEmail);
+
+        if (sessionResult.success && sessionResult.token) {
+          return { success: true, token: sessionResult.token };
+        }
+
+        return { success: false, error: 'Failed to create session' };
+      }
+
+      if (status === 'APPROVED') {
+        // Approved but hasn't set password — activate via Google
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { accountStatus: 'ACTIVE', completedAt: new Date() },
+        });
+
+        const { createSession } = await import('./session.service');
+        const sessionResult = await createSession(user.aliasEmail);
+
+        if (sessionResult.success && sessionResult.token) {
+          return { success: true, token: sessionResult.token };
+        }
+
+        return { success: false, error: 'Failed to create session' };
+      }
+
+      if (status === 'PENDING') {
+        return { success: false, error: 'Account pending', status: 'pending' };
+      }
+
+      if (status === 'REJECTED') {
+        return { success: false, error: 'Account rejected', status: 'rejected' };
+      }
+
+      return { success: false, error: 'Unknown account status' };
+    }
+
+    // New user — create PENDING request
+    log.info('Google sign-in: creating pending request', { email: normalizedEmail });
+
+    await prisma.user.create({
+      data: {
+        aliasEmail: normalizedEmail,
+        email: normalizedEmail,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        googleId: googleId || null,
+        accountStatus: 'PENDING',
+        requestedAt: new Date(),
+        requestedPortalType: 'affiliate',
+      },
+    });
+
+    return { success: false, error: 'Request submitted', status: 'request_submitted' };
+  } catch (error) {
+    log.error('Google sign-in error', { error: error instanceof Error ? error.message : String(error) });
+    return { success: false, error: 'Google sign-in failed' };
+  }
+}
