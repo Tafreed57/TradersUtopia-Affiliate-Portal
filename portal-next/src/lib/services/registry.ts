@@ -75,6 +75,7 @@ export const functionRegistry: Record<string, AnyFunction> = {
   setStudentPercentageOverride: teacherService.setStudentPercentageOverride,
   updateTeacherEarnings: teacherService.updateTeacherEarnings,
   recordTeacherPayout: teacherService.recordTeacherPayout,
+  getAllTeachersPaymentData: teacherService.getAllTeachersPaymentData,
 
   // ========================================================================
   // ATTENDANCE PORTAL

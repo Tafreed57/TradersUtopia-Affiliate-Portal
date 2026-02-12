@@ -32,6 +32,20 @@ interface CommissionResult {
   [key: string]: unknown;
 }
 
+interface TeacherPaymentInfo {
+  email: string;
+  name: string;
+  studentCount: number;
+  totalUnpaid: number;
+  totalDueNow: number;
+  totalPaid: number;
+  lockedUnpaid: number;
+  lockedDueNow: number;
+  totalLockedEarnings: number;
+  accumulatedAmount: number;
+  lastPayment: { amount: number; date: string } | null;
+}
+
 function CommissionContent() {
   const router = useRouter();
   const { user, isLoading: sessionLoading } = useSession();
@@ -55,6 +69,11 @@ function CommissionContent() {
   // Pending accounts
   const [pendingAccounts, setPendingAccounts] = useState<Record<string, unknown>[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
+
+  // Teacher payment tracking
+  const [teacherPayments, setTeacherPayments] = useState<TeacherPaymentInfo[]>([]);
+  const [teacherPayLoading, setTeacherPayLoading] = useState(false);
+  const [teacherPayLoaded, setTeacherPayLoaded] = useState(false);
 
   // Inactivity timer
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -196,6 +215,44 @@ function CommissionContent() {
       setTimeout(() => fetchData(currentEmail, true), 500);
     } catch (err) {
       showMsg('Error: ' + (err instanceof Error ? err.message : ''), '#dc2626');
+    }
+  };
+
+  const loadTeacherPayments = async () => {
+    setTeacherPayLoading(true);
+    try {
+      const token = getStoredToken();
+      const result = await gsCall<{ success: boolean; teachers?: TeacherPaymentInfo[]; error?: string }>(
+        'getAllTeachersPaymentData', token
+      );
+      if (result.success && result.teachers) {
+        setTeacherPayments(result.teachers);
+        setTeacherPayLoaded(true);
+      } else {
+        showMsg((result as { error?: string }).error || 'Failed to load teachers', '#dc2626');
+      }
+    } catch (err) {
+      showMsg('Error: ' + (err instanceof Error ? err.message : ''), '#dc2626');
+    } finally {
+      setTeacherPayLoading(false);
+    }
+  };
+
+  const handlePayTeacher = async (teacherEmail: string, defaultAmount: number, customInput?: string) => {
+    const customAmount = customInput ? parseFloat(customInput) : 0;
+    const amountToPay = customAmount > 0 ? customAmount : defaultAmount;
+    if (amountToPay <= 0) { alert('Payment amount must be greater than $0.00'); return; }
+    let confirmMsg = `Mark payment as completed for ${teacherEmail}?\n\nAmount: ${formatMoney(amountToPay)}`;
+    if (customAmount > 0) confirmMsg += `\n\nUsing custom amount: ${formatMoney(customAmount)}`;
+    confirmMsg += '\n\nThis will reset their accumulated amount to $0.';
+    if (!confirm(confirmMsg)) return;
+    try {
+      const token = getStoredToken();
+      await gsCall('recordTeacherPayout', teacherEmail, amountToPay, token);
+      alert('Payment recorded successfully!');
+      loadTeacherPayments();
+    } catch (err) {
+      alert('Error: ' + (err instanceof Error ? err.message : ''));
     }
   };
 
@@ -388,6 +445,118 @@ function CommissionContent() {
                 </div>
               </>
             )}
+
+            {/* Exit Admin Mode */}
+            <button className="btn-gray" style={{ width: '100%', marginTop: 16 }} onClick={() => {
+              setIsAdminMode(false);
+              setData(null);
+              if (user) fetchData(user.email);
+            }}>Exit Admin Mode</button>
+
+            {/* Teacher Payment Tracking */}
+            <div className="teacher-payment-section">
+              <div className="teacher-payment-header">
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 24 }}>&#x1F468;&#x200D;&#x1F3EB;</span>
+                  Teacher Payment Tracking
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: 13, color: '#78350f' }}>
+                  Track and manage teacher payments based on their adjusted totals (teacher&apos;s percentage applied to all students&apos; due amounts)
+                </p>
+              </div>
+
+              <div style={{ marginBottom: 16, textAlign: 'center', display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className="btn-blue" onClick={loadTeacherPayments} disabled={teacherPayLoading}>
+                  {teacherPayLoading ? 'Loading...' : 'Load All Teachers'}
+                </button>
+                <button className="btn-green" onClick={() => { loadTeacherPayments(); }} disabled={teacherPayLoading}>
+                  Force Refresh
+                </button>
+              </div>
+
+              {teacherPayLoaded && teacherPayments.length === 0 && (
+                <div style={{ padding: 20, textAlign: 'center', background: '#f1f5f9', borderRadius: 12, color: '#64748b' }}>
+                  <strong>No teachers found</strong><br /><br />
+                  To add teachers, go to the Teacher Portal and have teachers add students to their accounts.
+                </div>
+              )}
+
+              {teacherPayments.map((t, i) => (
+                <div key={t.email} className="teacher-card">
+                  <div className="teacher-card-header">
+                    <div>
+                      <h4 style={{ margin: '0 0 4px', fontSize: 18 }}>&#x1F468;&#x200D;&#x1F3EB; {t.name}</h4>
+                      <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>{t.email}</p>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 8px', fontWeight: 600 }}>Current Student Totals (100% raw values)</p>
+                    <div className="stat-grid-3">
+                      <div className="stat-mini">
+                        <div className="stat-mini-val">{t.studentCount}</div>
+                        <div className="stat-mini-label">Total Students</div>
+                      </div>
+                      <div className="stat-mini">
+                        <div className="stat-mini-val">{formatMoney(t.totalUnpaid)}</div>
+                        <div className="stat-mini-label">Total Unpaid</div>
+                      </div>
+                      <div className="stat-mini">
+                        <div className="stat-mini-val">{formatMoney(t.totalDueNow)}</div>
+                        <div className="stat-mini-label">Total Due Now</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="locked-earnings-box">
+                    <p style={{ fontSize: 12, color: '#047857', margin: '0 0 10px', fontWeight: 600 }}>Locked Earnings (cumulative)</p>
+                    <div className="stat-grid-3">
+                      <div className="stat-mini-white">
+                        <div className="stat-mini-val" style={{ color: '#16a34a' }}>{formatMoney(t.lockedUnpaid)}</div>
+                        <div className="stat-mini-label">Locked Unpaid</div>
+                      </div>
+                      <div className="stat-mini-white">
+                        <div className="stat-mini-val" style={{ color: '#16a34a' }}>{formatMoney(t.lockedDueNow)}</div>
+                        <div className="stat-mini-label">Locked Due Now</div>
+                      </div>
+                      <div className="stat-mini-blue">
+                        <div className="stat-mini-val" style={{ color: '#2563eb' }}>{formatMoney(t.totalLockedEarnings)}</div>
+                        <div className="stat-mini-label">Total Locked</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {t.lastPayment && (
+                    <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8, marginBottom: 12, fontSize: 12, color: '#64748b' }}>
+                      <strong style={{ color: '#475569' }}>Last Payment:</strong> {formatMoney(t.lastPayment.amount)} on {new Date(t.lastPayment.date).toLocaleDateString()}
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: 12 }}>
+                    <input
+                      type="number"
+                      id={`customAmount_${i}`}
+                      placeholder="Enter custom amount (optional)"
+                      step="0.01"
+                      min="0"
+                      className="admin-input"
+                      style={{ marginBottom: 8 }}
+                    />
+                  </div>
+
+                  <button
+                    className="btn-green"
+                    style={{ width: '100%', fontSize: 16, fontWeight: 600 }}
+                    onClick={() => {
+                      const input = document.getElementById(`customAmount_${i}`) as HTMLInputElement;
+                      handlePayTeacher(t.email, t.accumulatedAmount, input?.value);
+                    }}
+                  >
+                    Pay Now - {formatMoney(t.accumulatedAmount)}
+                  </button>
+                </div>
+              ))}
+            </div>
           </>
         )}
       </div>
@@ -560,6 +729,63 @@ function CommissionContent() {
         .toggle input:checked ~ .toggle-thumb { transform: translateX(22px); }
 
         .override-actions { margin-top: 16px; display: grid; gap: 10px; }
+
+        .btn-gray {
+          padding: 16px 24px; border-radius: 12px; border: none;
+          background: linear-gradient(135deg, #64748b, #475569);
+          color: white; cursor: pointer; font-size: 16px; font-weight: 600;
+          transition: all 0.3s ease; font-family: inherit;
+        }
+        .btn-gray:hover { transform: translateY(-2px); }
+
+        .teacher-payment-section {
+          margin-top: 24px; padding-top: 24px;
+          border-top: 2px solid #e2e8f0;
+        }
+
+        .teacher-payment-header {
+          padding: 20px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border-radius: 16px; border: 2px solid #f59e0b; margin-bottom: 20px;
+          color: #92400e;
+        }
+
+        .teacher-card {
+          margin-bottom: 20px; padding: 20px; background: white;
+          border-radius: 16px; border: 2px solid #e2e8f0;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .teacher-card-header {
+          display: flex; justify-content: space-between; align-items: start;
+          margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+        }
+
+        .stat-grid-3 {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+        }
+
+        .stat-mini {
+          padding: 12px; background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+          border-radius: 10px; text-align: center; border: 1px solid #cbd5e1;
+        }
+        .stat-mini-val { font-size: 18px; font-weight: 700; color: #475569; }
+        .stat-mini-label { font-size: 10px; color: #64748b; margin-top: 2px; }
+
+        .stat-mini-white {
+          padding: 12px; background: white; border-radius: 10px;
+          text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-mini-blue {
+          padding: 12px; background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+          border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .locked-earnings-box {
+          margin-bottom: 16px; padding: 16px;
+          background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+          border-radius: 12px; border: 1px solid #a7f3d0;
+        }
 
         @media (max-width: 768px) {
           .container { padding: 20px; }

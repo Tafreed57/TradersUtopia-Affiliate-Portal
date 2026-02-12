@@ -590,3 +590,119 @@ export async function recordTeacherPayout(
     return { success: false, error: 'Failed to record payout' };
   }
 }
+
+// ============================================================================
+// ADMIN: ALL TEACHERS PAYMENT DATA
+// ============================================================================
+
+/**
+ * Get payment data for all teachers (admin only)
+ * Legacy: getAllTeachersPaymentData(adminEmail)
+ */
+export async function getAllTeachersPaymentData(
+  token: string
+): Promise<ApiResponse & { teachers?: TeacherPaymentInfo[] }> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) {
+    return { success: false, error: 'Unauthorized - admin only' };
+  }
+
+  try {
+    // Get all teachers from DB
+    const teachers = await prisma.user.findMany({
+      where: { isTeacher: true },
+      select: {
+        id: true,
+        aliasEmail: true,
+        internalEmail: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    log.info('Loading teacher payment data', { teacherCount: teachers.length });
+
+    const results: TeacherPaymentInfo[] = [];
+
+    for (const teacher of teachers) {
+      // Skip admins from teacher list (legacy behavior)
+      if (isAdminEmail(teacher.aliasEmail)) continue;
+
+      // Get students
+      const studentLinks = await prisma.teacherStudentLink.findMany({
+        where: { teacherId: teacher.id, status: 'ACTIVE' },
+        include: { student: { select: { aliasEmail: true, internalEmail: true } } },
+      });
+
+      // Get commission data for each student via Rewardful API
+      let totalUnpaid = 0;
+      let totalDueNow = 0;
+      let totalPaid = 0;
+
+      for (const link of studentLinks) {
+        const studentEmail = link.student.internalEmail || link.student.aliasEmail;
+        try {
+          const affResult = await rewardfulApi.getAffiliateByEmail(studentEmail);
+          if (affResult.success && affResult.affiliate) {
+            const commResult = await rewardfulApi.getCommissionTotals(affResult.affiliate.id);
+            totalUnpaid += commResult.unpaid;
+            totalDueNow += commResult.dueNow;
+            totalPaid += commResult.paid;
+          }
+        } catch {
+          // Skip students we can't get data for
+        }
+      }
+
+      // Get teacher's earnings record
+      const earnings = await prisma.teacherEarnings.findUnique({
+        where: { userId: teacher.id },
+      });
+
+      // Get last payment
+      const lastPayment = earnings
+        ? await prisma.teacherPayment.findFirst({
+            where: { earningsId: earnings.id },
+            orderBy: { paidAt: 'desc' },
+          })
+        : null;
+
+      const name = `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || teacher.aliasEmail;
+
+      results.push({
+        email: teacher.aliasEmail,
+        name,
+        studentCount: studentLinks.length,
+        totalUnpaid: Math.round(totalUnpaid * 100) / 100,
+        totalDueNow: Math.round(totalDueNow * 100) / 100,
+        totalPaid: Math.round(totalPaid * 100) / 100,
+        lockedUnpaid: earnings?.lockedEarnings || 0,
+        lockedDueNow: earnings?.lockedEarnings || 0,
+        totalLockedEarnings: earnings?.totalEarnedAllTime || 0,
+        accumulatedAmount: earnings?.lockedEarnings || 0,
+        lastPayment: lastPayment
+          ? { amount: lastPayment.amount, date: lastPayment.paidAt.toISOString() }
+          : null,
+      });
+    }
+
+    return { success: true, teachers: results };
+  } catch (error) {
+    log.error('Get all teachers payment data error', { error });
+    return { success: false, error: 'Failed to load teacher data' };
+  }
+}
+
+interface TeacherPaymentInfo {
+  email: string;
+  name: string;
+  studentCount: number;
+  totalUnpaid: number;
+  totalDueNow: number;
+  totalPaid: number;
+  lockedUnpaid: number;
+  lockedDueNow: number;
+  totalLockedEarnings: number;
+  accumulatedAmount: number;
+  lastPayment: { amount: number; date: string } | null;
+}
