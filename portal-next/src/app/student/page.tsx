@@ -29,11 +29,8 @@ interface AttendanceRecord {
 interface AttendancePageData {
   user: { email: string; name?: string; teacherEmail?: string; createdAt?: string };
   records: AttendanceRecord[];
-  stats: { totalConfirmed: number; totalMissed: number; streak: number; attendanceRate?: string };
-  todayConfirmed: boolean;
-  todayDate: string;
+  stats: { totalConfirmed: number; totalMissed: number; streak: number; firstConfirmationDate?: string };
   needsTeacherAssignment: boolean;
-  referrals?: { leadsCount: number; conversionsCount: number };
 }
 
 interface Teacher { email: string; name: string; }
@@ -79,6 +76,15 @@ function StudentContent() {
       if (result.success && result.data) {
         setData(result.data);
         if (result.data.needsTeacherAssignment) loadTeachers();
+      } else if (result.success && !result.data) {
+        // Some backends return flat structure - try treating result itself as data
+        const flat = result as unknown as AttendancePageData;
+        if (flat.records || flat.stats) {
+          setData(flat);
+          if (flat.needsTeacherAssignment) loadTeachers();
+        } else {
+          setMsg({ text: 'No attendance data found', type: 'error' });
+        }
       } else {
         setMsg({ text: result.error || 'Failed to load', type: 'error' });
       }
@@ -175,6 +181,14 @@ function StudentContent() {
   const now = new Date();
   const todayStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const todayDateStr = now.toISOString().split('T')[0];
+  
+  // Compute todayConfirmed from records
+  const todayConfirmed = data?.records?.some(r => r.date === todayDateStr && r.type === 'confirmed') || false;
+  
+  // Compute attendance rate
+  const totalDays = (data?.stats?.totalConfirmed || 0) + (data?.stats?.totalMissed || 0);
+  const attendanceRate = totalDays > 0 ? Math.round(((data?.stats?.totalConfirmed || 0) / totalDays) * 100) + '%' : '0%';
 
   if (sessionLoading || loading) {
     return <LoadingOverlay message="Loading Student Dashboard..." />;
@@ -217,21 +231,21 @@ function StudentContent() {
             <div className="today-card">
               <div className="today-header">
                 <h3>Today&apos;s Attendance</h3>
-                <span className="today-date">{data.todayDate || new Date().toISOString().split('T')[0]}</span>
+                <span className="today-date">{todayDateStr}</span>
               </div>
               <div className="today-status">
-                {data.todayConfirmed ? (
+                {todayConfirmed ? (
                   <span className="status-confirmed">Confirmed</span>
                 ) : (
                   <span className="status-pending">Pending</span>
                 )}
               </div>
               <button
-                className={`confirm-btn ${data.todayConfirmed ? 'confirmed' : ''}`}
+                className={`confirm-btn ${todayConfirmed ? 'confirmed' : ''}`}
                 onClick={handleConfirm}
-                disabled={confirming || data.todayConfirmed}
+                disabled={confirming || todayConfirmed}
               >
-                {data.todayConfirmed ? 'Attendance Confirmed' : confirming ? 'Confirming...' : 'Confirm Attendance'}
+                {todayConfirmed ? 'Attendance Confirmed' : confirming ? 'Confirming...' : 'Confirm Attendance'}
               </button>
             </div>
 
@@ -240,7 +254,7 @@ function StudentContent() {
               <div className="stat-card blue"><div className="stat-val">{data.stats.totalConfirmed}</div><div className="stat-lbl">Days Confirmed</div></div>
               <div className="stat-card green"><div className="stat-val">{data.stats.streak}</div><div className="stat-lbl">Current Streak</div></div>
               <div className="stat-card red"><div className="stat-val">{data.stats.totalMissed}</div><div className="stat-lbl">Days Missed</div></div>
-              <div className="stat-card yellow"><div className="stat-val">{data.stats.attendanceRate || '0%'}</div><div className="stat-lbl">Attendance Rate</div></div>
+              <div className="stat-card yellow"><div className="stat-val">{attendanceRate}</div><div className="stat-lbl">Attendance Rate</div></div>
             </div>
 
             {/* Attendance history */}

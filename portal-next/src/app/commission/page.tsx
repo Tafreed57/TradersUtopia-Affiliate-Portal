@@ -80,23 +80,27 @@ function CommissionContent() {
     showMsg('Fetching commission data...', '#64748b');
     try {
       const token = getStoredToken();
-      const result = await gsCall<CommissionResult>('lookupAffiliate', email, token);
-      if (fromAdmin) result._from_admin = true;
-      setData(result);
+      const raw = await gsCall<{ success: boolean; data?: CommissionResult; error?: string }>('lookupAffiliate', email, token);
+      
+      // The backend returns { success, data: CommissionData } - unwrap the data
+      const commData = raw.data || raw as unknown as CommissionResult;
+      if (fromAdmin) commData._from_admin = true;
+      setData(commData);
       setCurrentEmail(email);
-      if (result.status === 'Not found') {
-        showMsg('Affiliate not found for: ' + email, '#dc2626');
+      
+      if (!raw.success || raw.error) {
+        showMsg(raw.error || 'Affiliate not found for: ' + email, '#dc2626');
       } else {
         showMsg('Commission data loaded successfully!', '#059669');
       }
 
-      if (fromAdmin && result._admin_override) {
-        const ov = result._admin_override as Record<string, unknown>;
+      if (fromAdmin && commData._admin_override) {
+        const ov = commData._admin_override as Record<string, unknown>;
         setAdminUnpaid(ov.unpaidAmount != null ? String(ov.unpaidAmount) : '');
-        setAdminDueNow(ov.dueNow != null ? String(ov.dueNow) : '');
-        setAdminTotalPaid(ov.totalPaid != null ? String(ov.totalPaid) : '');
-        setAdminLastPayout((ov.lastPayout as string) || '');
-        setAdminStatus((ov.status as string) || '');
+        setAdminDueNow(ov.dueNowAmount != null ? String(ov.dueNowAmount) : '');
+        setAdminTotalPaid(ov.totalPaidAmount != null ? String(ov.totalPaidAmount) : '');
+        setAdminLastPayout((ov.note as string) || '');
+        setAdminStatus((ov.reason as string) || '');
         setAdminPercentage(ov.percentageMultiplier != null ? String(ov.percentageMultiplier) : '');
         setPercentageEnabled(!!(ov.percentageEnabled));
       }
@@ -254,12 +258,12 @@ function CommissionContent() {
             <h3>Commission Details</h3>
             <table className="data-table">
               <tbody>
-                <tr><td>Affiliate ID</td><td>{data.affiliateId || '-'}</td></tr>
+                <tr><td>Affiliate ID</td><td>{(data.affiliateId as string) || '-'}</td></tr>
                 <tr><td>Unpaid Amount</td><td>{formatMoney(data.unpaidAmount as number)}</td></tr>
-                <tr><td>Due Now</td><td>{formatMoney(data.dueNow as number)}</td></tr>
-                <tr><td>Total Paid</td><td>{formatMoney(data.totalPaid as number)}</td></tr>
-                <tr><td>Last Payout</td><td>{(data.lastPayout as string) || '-'}</td></tr>
-                <tr><td>Status</td><td>{data.status || '-'}</td></tr>
+                <tr><td>Due Now</td><td>{formatMoney(data.dueNowAmount as number)}</td></tr>
+                <tr><td>Total Paid</td><td>{formatMoney(data.totalPaidAmount as number)}</td></tr>
+                <tr><td>Last Payout</td><td>{(data.lastFetchedAt ? new Date(data.lastFetchedAt as number).toLocaleDateString() : '-')}</td></tr>
+                <tr><td>Status</td><td>{data.percentageApplied ? `${data.percentage}% applied` : 'Active'}</td></tr>
               </tbody>
             </table>
           </div>
@@ -318,12 +322,12 @@ function CommissionContent() {
                   <h4>Current Data</h4>
                   <table className="data-table">
                     <tbody>
-                      <tr><td>Affiliate ID</td><td>{data.affiliateId || '-'}</td></tr>
+                      <tr><td>Affiliate ID</td><td>{(data.affiliateId as string) || '-'}</td></tr>
                       <tr><td>Unpaid Amount</td><td>{formatMoney(data.unpaidAmount as number)}</td></tr>
-                      <tr><td>Due Now</td><td>{formatMoney(data.dueNow as number)}</td></tr>
-                      <tr><td>Total Paid</td><td>{formatMoney(data.totalPaid as number)}</td></tr>
-                      <tr><td>Last Payout</td><td>{(data.lastPayout as string) || '-'}</td></tr>
-                      <tr><td>Status</td><td>{data.status || '-'}</td></tr>
+                      <tr><td>Due Now</td><td>{formatMoney(data.dueNowAmount as number)}</td></tr>
+                      <tr><td>Total Paid</td><td>{formatMoney(data.totalPaidAmount as number)}</td></tr>
+                      <tr><td>Last Payout</td><td>{data.lastFetchedAt ? new Date(data.lastFetchedAt as number).toLocaleDateString() : '-'}</td></tr>
+                      <tr><td>Status</td><td>{data.percentageApplied ? `${data.percentage}% applied` : 'Active'}</td></tr>
                       {data._admin_override && (
                         <tr><td colSpan={2} style={{ color: '#dc2626', fontWeight: 'bold' }}>[!] Has Override</td></tr>
                       )}

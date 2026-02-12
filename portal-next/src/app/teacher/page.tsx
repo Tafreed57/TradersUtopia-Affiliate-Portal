@@ -24,21 +24,35 @@ import { gsCall, getStoredToken } from '@/lib/client/gs-compat';
 interface StudentItem {
   email: string;
   name?: string;
+  internalEmail?: string;
+  affiliateId?: string;
   percentageOverride?: number;
-  unpaid30Day?: number;
-  dueNow30Day?: number;
+  addedDate?: string;
 }
 
 interface TeacherPageData {
+  teacher: {
+    email: string;
+    name: string;
+    isAdmin: boolean;
+  };
   students: StudentItem[];
-  totalStudents: number;
-  totalUnpaid: number;
-  totalDueNow: number;
-  lockedUnpaid: number;
-  lockedDueNow: number;
-  totalLockedEarnings: number;
-  adjustmentPercentage?: number;
-  [key: string]: unknown;
+  earnings: {
+    lockedEarnings: number;
+    totalEarnedAllTime: number;
+    totalPaidAllTime: number;
+    lockedAt?: string;
+  };
+}
+
+interface StudentCommission {
+  email: string;
+  name?: string;
+  rawDueNow?: number;
+  adjustedDueNow?: number;
+  percentage?: number;
+  last30DaysRaw?: number;
+  last30DaysAdjusted?: number;
 }
 
 function TeacherContent() {
@@ -46,7 +60,7 @@ function TeacherContent() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<{ text: string; type: string } | null>(null);
   const [data, setData] = useState<TeacherPageData | null>(null);
-  const [commissionData, setCommissionData] = useState<Record<string, Record<string, unknown>>>({});
+  const [commissionData, setCommissionData] = useState<Record<string, StudentCommission>>({});
   const [targetEmail, setTargetEmail] = useState('');
   const [isManaging, setIsManaging] = useState(false);
   const [managedEmail, setManagedEmail] = useState('');
@@ -96,11 +110,14 @@ function TeacherContent() {
   const loadCommissionData = useCallback(async (email: string) => {
     try {
       const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; data?: Record<string, Record<string, unknown>>; students?: Record<string, unknown>[] }>(
+      const result = await gsCall<{ success: boolean; students?: StudentCommission[] }>(
         'getStudentsCommissionData', email, token
       );
-      if (result.success && result.data) {
-        setCommissionData(result.data);
+      if (result.success && result.students) {
+        // Convert array to map by email for easy lookup
+        const map: Record<string, StudentCommission> = {};
+        result.students.forEach(s => { map[s.email] = s; });
+        setCommissionData(map);
       }
     } catch {
       // Silent fail
@@ -246,15 +263,15 @@ function TeacherContent() {
             {/* Stats grid */}
             <div className="stats-grid">
               <div className="stat-card">
-                <div className="stat-value">{data.totalStudents || data.students?.length || 0}</div>
+                <div className="stat-value">{data.students?.length || 0}</div>
                 <div className="stat-label">Total Students</div>
               </div>
               <div className="stat-card">
-                <div className="stat-value">{formatMoney(data.totalUnpaid)}</div>
+                <div className="stat-value">{formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.rawDueNow || 0), 0))}</div>
                 <div className="stat-label">Total Unpaid</div>
               </div>
               <div className="stat-card">
-                <div className="stat-value">{formatMoney(data.totalDueNow)}</div>
+                <div className="stat-value">{formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.adjustedDueNow || 0), 0))}</div>
                 <div className="stat-label">Total Due Now</div>
               </div>
             </div>
@@ -264,16 +281,16 @@ function TeacherContent() {
               <h3>Your Locked Earnings</h3>
               <div className="locked-grid">
                 <div className="locked-card">
-                  <div className="locked-value">{formatMoney(data.lockedUnpaid)}</div>
-                  <div className="locked-label">Locked Unpaid</div>
+                  <div className="locked-value">{formatMoney(data.earnings?.lockedEarnings)}</div>
+                  <div className="locked-label">Locked Earnings</div>
                 </div>
                 <div className="locked-card">
-                  <div className="locked-value">{formatMoney(data.lockedDueNow)}</div>
-                  <div className="locked-label">Locked Due Now</div>
+                  <div className="locked-value">{formatMoney(data.earnings?.totalEarnedAllTime)}</div>
+                  <div className="locked-label">Total Earned All-Time</div>
                 </div>
                 <div className="locked-card highlight">
-                  <div className="locked-value">{formatMoney(data.totalLockedEarnings)}</div>
-                  <div className="locked-label">Total Locked Earnings</div>
+                  <div className="locked-value">{formatMoney(data.earnings?.totalPaidAllTime)}</div>
+                  <div className="locked-label">Total Paid All-Time</div>
                 </div>
               </div>
               <button className="btn-update-earnings" onClick={handleUpdateEarnings}>Update My Earnings</button>
@@ -303,19 +320,19 @@ function TeacherContent() {
                 <p className="empty-msg">No students added yet. Use the form above to add students.</p>
               ) : (
                 data.students.map((student) => {
-                  const cd = commissionData[student.email] || {};
+                  const cd = commissionData[student.email] || {} as StudentCommission;
                   return (
                     <div key={student.email} className="student-card">
                       <div className="student-header">
                         <div className="student-info">
-                          <span className="student-email">{student.email}</span>
+                          <span className="student-email">{student.name || student.email}</span>
                           {student.percentageOverride != null && (
                             <span className="pct-badge">{student.percentageOverride}%</span>
                           )}
                         </div>
                         <div className="student-amounts">
-                          <span className="amount-label">30d Unpaid: <strong>{formatMoney(cd.unpaid30Day as number || student.unpaid30Day)}</strong></span>
-                          <span className="amount-label">30d Due: <strong>{formatMoney(cd.dueNow30Day as number || student.dueNow30Day)}</strong></span>
+                          <span className="amount-label">30d Unpaid: <strong>{formatMoney(cd.rawDueNow)}</strong></span>
+                          <span className="amount-label">30d Due: <strong>{formatMoney(cd.adjustedDueNow)}</strong></span>
                         </div>
                       </div>
                       <div className="student-controls">
