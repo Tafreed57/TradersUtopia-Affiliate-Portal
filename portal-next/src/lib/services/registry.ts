@@ -88,6 +88,8 @@ export const functionRegistry: Record<string, AnyFunction> = {
   confirmAttendance: attendanceService.confirmAttendance,
   getAllValidTeachers: attendanceService.getAllValidTeachers,
   setTeacherForAttendanceUser: attendanceService.setTeacherForAttendanceUser,
+  getTeacherForAttendanceUser: attendanceService.getTeacherForAttendanceUser,
+  deleteAttendanceUser: attendanceService.deleteAttendanceUser,
 
   // ========================================================================
   // REFERRALS / LEADS

@@ -581,3 +581,104 @@ export async function setTeacherForAttendanceUser(
     return { success: false, error: 'Failed to set teacher' };
   }
 }
+
+// ============================================================================
+// GET TEACHER FOR ATTENDANCE USER
+// ============================================================================
+
+/**
+ * Get current teacher assignment for a student
+ * Legacy: getTeacherForAttendanceUser(studentEmail)
+ */
+export async function getTeacherForAttendanceUser(
+  studentEmail: string
+): Promise<ApiResponse & { teacherEmail?: string | null }> {
+  const normalizedEmail = normalizeEmail(studentEmail);
+
+  if (!normalizedEmail) {
+    return { success: false, error: 'Email required', teacherEmail: null };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { aliasEmail: normalizedEmail },
+      include: { attendanceProfile: true },
+    });
+
+    if (!user || !user.attendanceProfile) {
+      return { success: false, error: 'No data found', teacherEmail: null };
+    }
+
+    return {
+      success: true,
+      teacherEmail: user.attendanceProfile.currentTeacherEmail || null,
+    };
+  } catch (error) {
+    log.error('Get teacher for attendance user error', { error });
+    return { success: false, error: 'Failed to get teacher', teacherEmail: null };
+  }
+}
+
+// ============================================================================
+// DELETE ATTENDANCE USER
+// ============================================================================
+
+/**
+ * Delete an attendance user and all their records (admin only)
+ * Legacy: deleteAttendanceUser(email)
+ */
+export async function deleteAttendanceUser(
+  email: string,
+  token: string
+): Promise<ApiResponse> {
+  const { user: sessionUser } = await getSessionUser(token);
+  if (!sessionUser?.isAdmin) {
+    return { success: false, error: 'Unauthorized - admin only' };
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { aliasEmail: normalizedEmail },
+      include: { attendanceProfile: true },
+    });
+
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+
+    let deletedRecords = 0;
+
+    // Delete attendance records
+    if (user.attendanceProfile) {
+      const result = await prisma.attendanceRecord.deleteMany({
+        where: { profileId: user.attendanceProfile.id },
+      });
+      deletedRecords = result.count;
+
+      // Delete attendance profile
+      await prisma.attendanceProfile.delete({
+        where: { id: user.attendanceProfile.id },
+      });
+    }
+
+    // Remove teacher-student links
+    await prisma.teacherStudentLink.deleteMany({
+      where: { studentId: user.id },
+    });
+
+    log.info('Admin deleted attendance user', {
+      email: normalizedEmail,
+      deletedRecords,
+    });
+
+    return {
+      success: true,
+      message: `Deleted user and ${deletedRecords} attendance records`,
+    };
+  } catch (error) {
+    log.error('Delete attendance user error', { error });
+    return { success: false, error: 'Failed to delete user' };
+  }
+}
