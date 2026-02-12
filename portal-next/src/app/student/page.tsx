@@ -134,10 +134,27 @@ function StudentContent() {
     try {
       const today = new Date().toISOString().split('T')[0];
       const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; error?: string }>('confirmAttendance', user.email, today, token);
+      const result = await gsCall<{ success: boolean; error?: string; date?: string; confirmationNumber?: number }>(
+        'confirmAttendance', user.email, today, token
+      );
       if (result.success) {
         setMsg({ text: 'Attendance confirmed!', type: 'success' });
-        loadData();
+        // Optimistic update: add the new record to local state without full reload
+        if (data) {
+          const newRecord = {
+            date: result.date || today,
+            confirmedAt: new Date().toISOString(),
+            type: 'confirmed' as const,
+          };
+          setData({
+            ...data,
+            records: [newRecord, ...data.records],
+            stats: {
+              ...data.stats,
+              totalConfirmed: data.stats.totalConfirmed + 1,
+            },
+          });
+        }
       } else {
         setMsg({ text: result.error || 'Failed', type: 'error' });
       }
