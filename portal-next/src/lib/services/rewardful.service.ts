@@ -81,8 +81,10 @@ class RewardfulApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
+    // Rewardful API uses HTTP Basic Auth with API key as username, empty password
+    const basicAuth = Buffer.from(`${this.apiKey}:`).toString('base64');
     const headers = {
-      Authorization: `Bearer ${this.apiKey}`,
+      Authorization: `Basic ${basicAuth}`,
       'Content-Type': 'application/json',
       ...options.headers,
     };
@@ -211,10 +213,11 @@ class RewardfulApiClient {
       const paidCad = (cad.paid?.cents || 0) / 100;
       const paidUsd = ((usd.paid?.cents || 0) / 100) * conversionRate;
 
+      // Sum CAD + converted USD amounts (both may have values)
       return {
-        unpaid: unpaidCad || unpaidUsd,
-        dueNow: dueCad || dueUsd,
-        paid: paidCad || paidUsd,
+        unpaid: unpaidCad + unpaidUsd,
+        dueNow: dueCad + dueUsd,
+        paid: paidCad + paidUsd,
       };
     } catch (error) {
       log.error('Get commission totals error', { error, affiliateId });
@@ -234,7 +237,7 @@ class RewardfulApiClient {
       const response = await this.request<{
         data: RewardfulReferral[];
         pagination?: { has_more: boolean };
-      }>(`/affiliates/${affiliateId}/referrals?page=${page}&per_page=${perPage}`);
+      }>(`/referrals?affiliate_id=${affiliateId}&page=${page}&per_page=${perPage}`);
 
       const referrals = response.data || [];
       const hasMore = response.pagination?.has_more || referrals.length >= perPage;

@@ -260,7 +260,7 @@ function AdminContent() {
 
                   <h3>Internal Commission Email</h3>
                   <p className="help-text">
-                    Enter the email address used in the affiliate system (Rewardful)
+                    Enter the internal email address used in the affiliate commission system
                   </p>
 
                   <div className="email-check">
