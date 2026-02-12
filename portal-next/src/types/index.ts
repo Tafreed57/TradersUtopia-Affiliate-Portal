@@ -241,6 +241,7 @@ export interface StudentCommissionData {
 // ============================================================================
 
 export interface AttendanceRecord {
+  id?: string;
   date: string;
   confirmedAt: string;
   type: 'confirmed' | 'missed';

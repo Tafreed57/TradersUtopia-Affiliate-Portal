@@ -179,14 +179,18 @@ export async function getAttendanceData(
     const confirmedDates = new Set<string>();
 
     // Add confirmed records
+    // Records can have date as "2026-02-12" (first) or "2026-02-12T01:17:00.000Z" (subsequent)
     for (const record of profile.records) {
+      const baseDate = record.date.split('T')[0]; // Extract YYYY-MM-DD from any format
+      const isAdditional = record.date.includes('T');
       records.push({
         date: record.date,
         confirmedAt: record.confirmedAt.toISOString(),
         type: 'confirmed',
         teacherEmail: record.teacherEmail || undefined,
+        id: record.id, // Include ID so users can delete specific records
       });
-      confirmedDates.add(record.date);
+      confirmedDates.add(baseDate); // Track by base date for missed days calculation
     }
 
     // Calculate missed days
@@ -362,7 +366,10 @@ export async function confirmAttendance(
       }
     }
 
-    // Check for existing record
+    // GAS allows multiple confirmations per day, each as a SEPARATE record.
+    // The unique constraint is on [profileId, date], so we append a timestamp
+    // suffix for additional confirmations to make each record unique in the DB.
+    const now = new Date();
     const existing = await prisma.attendanceRecord.findUnique({
       where: {
         profileId_date: {
@@ -372,44 +379,90 @@ export async function confirmAttendance(
       },
     });
 
-    if (existing) {
-      // Update confirmation count
-      await prisma.attendanceRecord.update({
-        where: { id: existing.id },
-        data: {
-          confirmationCount: { increment: 1 },
-          confirmedAt: new Date(),
-        },
-      });
+    // For the first confirmation, use plain date. For subsequent, append timestamp.
+    const recordDate = existing
+      ? `${dateStr}T${now.toISOString().split('T')[1]}`
+      : dateStr;
 
-      return {
-        success: true,
-        alreadyConfirmed: true,
-        message: 'Attendance already confirmed for today',
-        date: dateStr,
-      };
-    }
-
-    // Create new record
     await prisma.attendanceRecord.create({
       data: {
         profileId: profile.id,
-        date: dateStr,
-        confirmedAt: new Date(),
+        date: recordDate,
+        confirmedAt: now,
         teacherEmail: profile.currentTeacherEmail,
       },
     });
 
-    log.info('Attendance confirmed', { email: normalizedEmail, date: dateStr });
+    // Also increment count on the original record for stats tracking
+    if (existing) {
+      await prisma.attendanceRecord.update({
+        where: { id: existing.id },
+        data: { confirmationCount: { increment: 1 } },
+      });
+    }
+
+    log.info('Attendance confirmed', { email: normalizedEmail, date: recordDate, isAdditional: !!existing });
 
     return {
       success: true,
-      message: 'Attendance confirmed',
-      date: dateStr,
+      message: existing ? 'Additional attendance confirmed!' : 'Attendance confirmed',
+      date: recordDate,
+      confirmationNumber: existing ? (existing.confirmationCount + 1) : 1,
     };
   } catch (error) {
     log.error('Confirm attendance error', { error, email: normalizedEmail });
     return { success: false, error: 'Failed to confirm attendance' };
+  }
+}
+
+/**
+ * Delete own attendance record (user-facing, not admin-only)
+ * Users can delete their own records if they accidentally confirmed.
+ */
+export async function deleteOwnAttendanceRecord(
+  email: string,
+  recordDate: string,
+  token: string
+): Promise<ApiResponse> {
+  const { user: sessionUser } = await getSessionUser(token);
+  if (!sessionUser) {
+    return { success: false, error: 'Invalid session' };
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+
+  // Users can only delete their own records
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin) {
+    return { success: false, error: 'You can only delete your own records' };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { aliasEmail: normalizedEmail },
+      include: { attendanceProfile: true },
+    });
+
+    if (!user?.attendanceProfile) {
+      return { success: false, error: 'No attendance profile found' };
+    }
+
+    // Delete the specific record (exact date match, including timestamp suffix)
+    const deleted = await prisma.attendanceRecord.deleteMany({
+      where: {
+        profileId: user.attendanceProfile.id,
+        date: recordDate,
+      },
+    });
+
+    if (deleted.count === 0) {
+      return { success: false, error: 'Record not found' };
+    }
+
+    log.info('Attendance record deleted by user', { email: normalizedEmail, date: recordDate });
+    return { success: true, message: 'Record deleted' };
+  } catch (error) {
+    log.error('Delete own attendance record error', { error });
+    return { success: false, error: 'Failed to delete record' };
   }
 }
 

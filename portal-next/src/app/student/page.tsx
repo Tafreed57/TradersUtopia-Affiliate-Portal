@@ -156,11 +156,13 @@ function StudentContent() {
     }
   };
 
-  const handleDeleteRecord = async (recordId: string) => {
+  const handleDeleteRecord = async (recordDate: string) => {
     if (!confirm('Delete this attendance record?')) return;
     try {
       const token = getStoredToken();
-      await gsCall('deleteAttendanceRecord', user?.email, recordId, token);
+      // Use user-facing delete (works for both users and admins)
+      await gsCall('deleteOwnAttendanceRecord', user?.email, recordDate, token);
+      setMsg({ text: 'Record deleted', type: 'success' });
       loadData();
     } catch (err) {
       setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
@@ -266,17 +268,29 @@ function StudentContent() {
                 {data.records.length === 0 ? (
                   <p className="empty-msg">No attendance records yet</p>
                 ) : (
-                  data.records.slice(0, 30).map((r, i) => (
-                    <div key={i} className="record-row">
-                      <span className="record-date">{r.date}</span>
-                      <span className={`record-status ${r.type === 'confirmed' ? 'confirmed' : 'missed'}`}>
-                        {r.type === 'confirmed' ? 'Confirmed' : 'Missed'}
-                      </span>
-                      {r.id && r.type === 'confirmed' && (
-                        <button className="btn-delete-record" onClick={() => handleDeleteRecord(r.id!)}>Delete</button>
-                      )}
-                    </div>
-                  ))
+                  data.records.slice(0, 50).map((r, i) => {
+                    const baseDate = r.date.split('T')[0];
+                    const hasTime = r.date.includes('T');
+                    const timeStr = hasTime && r.confirmedAt
+                      ? new Date(r.confirmedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                      : '';
+                    return (
+                      <div key={i} className="record-row">
+                        <span className="record-date">
+                          {baseDate}
+                          {timeStr && <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 6 }}>{timeStr}</span>}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span className={`record-status ${r.type === 'confirmed' ? 'confirmed' : 'missed'}`}>
+                            {r.type === 'confirmed' ? 'Confirmed' : 'Missed'}
+                          </span>
+                          {r.type === 'confirmed' && (
+                            <button className="btn-delete-record" onClick={() => handleDeleteRecord(r.date)}>Delete</button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>
