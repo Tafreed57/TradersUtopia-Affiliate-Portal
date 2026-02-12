@@ -14,6 +14,21 @@ import type { ApiResponse, TeacherData, StudentCommissionData } from '@/types';
 
 const log = logger.child({ service: 'teacher' });
 
+/**
+ * Extract percentage from email address pattern like "user50%@gmail.com" -> 50
+ * Legacy: extractEmailPercentage_(email)
+ */
+function extractEmailPercentage(email: string): number | null {
+  if (!email) return null;
+  const match = email.toLowerCase().match(/(\d{1,3})%@/);
+  if (!match?.[1]) return null;
+  let pct = parseInt(match[1], 10);
+  if (isNaN(pct)) return null;
+  if (pct > 100) pct = 100;
+  if (pct < 1) pct = 1;
+  return pct;
+}
+
 // ============================================================================
 // TEACHER ACCESS
 // ============================================================================
@@ -220,31 +235,54 @@ export async function getStudentsCommissionData(
     const students: StudentCommissionData[] = [];
 
     for (const link of links) {
-      const studentEmail = link.student.internalEmail || link.student.aliasEmail;
+      const studentInternalEmail = link.student.internalEmail || link.student.aliasEmail;
+      const studentAliasEmail = link.student.aliasEmail;
 
-      // Fetch commission data
-      const affiliateResult = await rewardfulApi.getAffiliateByEmail(studentEmail);
+      // Fetch affiliate from Rewardful using internal email
+      const affiliateResult = await rewardfulApi.getAffiliateByEmail(studentInternalEmail);
+
       if (!affiliateResult.success || !affiliateResult.affiliate) {
+        // Student not found — push a zeroed-out row (matches GAS behavior)
+        students.push({
+          email: studentAliasEmail,
+          name: [link.student.firstName, link.student.lastName].filter(Boolean).join(' ') || studentAliasEmail,
+          totalUnpaid: 0, totalDueNow: 0, totalPaid: 0,
+          unpaid30Days: 0, dueNow30Days: 0,
+          teacherPercentage: link.percentageOverride || null,
+          emailPercentage: extractEmailPercentage(studentInternalEmail),
+          rawDueNow: 0, adjustedDueNow: 0, percentage: link.percentageOverride || 100,
+          last30DaysRaw: 0, last30DaysAdjusted: 0,
+        });
         continue;
       }
 
-      const commissions = await rewardfulApi.getCommissionTotals(
-        affiliateResult.affiliate.id
-      );
+      const affId = affiliateResult.affiliate.id;
 
-      const percentage = link.percentageOverride || 100;
-      const multiplier = percentage / 100;
+      // All-time totals from commission_stats (uses ?expand=true)
+      const totals = await rewardfulApi.getCommissionTotals(affId);
+
+      // 30-day filtered amounts from /commissions endpoint
+      const thirtyDay = await rewardfulApi.getCommissions30Day(affId);
+
+      const teacherPct = link.percentageOverride || null;
+      const emailPct = extractEmailPercentage(studentInternalEmail);
 
       students.push({
-        email: link.student.aliasEmail,
-        name:
-          [link.student.firstName, link.student.lastName].filter(Boolean).join(' ') ||
-          link.student.aliasEmail,
-        rawDueNow: commissions.dueNow,
-        adjustedDueNow: commissions.dueNow * multiplier,
-        percentage,
-        last30DaysRaw: 0, // TODO: Calculate 30-day commissions
-        last30DaysAdjusted: 0,
+        email: studentAliasEmail,
+        name: [link.student.firstName, link.student.lastName].filter(Boolean).join(' ') || studentAliasEmail,
+        totalUnpaid: totals.unpaid,
+        totalDueNow: totals.dueNow,
+        totalPaid: totals.paid,
+        unpaid30Days: thirtyDay.unpaid,
+        dueNow30Days: thirtyDay.dueNow,
+        teacherPercentage: teacherPct,
+        emailPercentage: emailPct,
+        // Legacy compat fields
+        rawDueNow: totals.dueNow,
+        adjustedDueNow: totals.dueNow * ((teacherPct || 100) / 100),
+        percentage: teacherPct || 100,
+        last30DaysRaw: thirtyDay.unpaid,
+        last30DaysAdjusted: thirtyDay.unpaid * ((teacherPct || 100) / 100),
       });
     }
 

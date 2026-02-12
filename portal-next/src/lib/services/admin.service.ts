@@ -442,6 +442,8 @@ export async function searchAttendanceUsers(
 /**
  * Get student attendance stats for teacher
  * Legacy: getStudentAttendanceStats(teacherEmail, studentEmail, token)
+ *
+ * Returns full stats including attendance records, streak, rate, and referral counts.
  */
 export async function getStudentAttendanceStats(
   teacherEmail: string,
@@ -467,7 +469,9 @@ export async function getStudentAttendanceStats(
       include: {
         attendanceProfile: {
           include: {
-            records: true,
+            records: {
+              orderBy: { date: 'desc' },
+            },
           },
         },
       },
@@ -495,17 +499,92 @@ export async function getStudentAttendanceStats(
       [student.firstName, student.lastName].filter(Boolean).join(' ') ||
       student.aliasEmail;
 
+    // Calculate streak (consecutive days confirmed, counting backwards from today)
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sortedDates = records
+      .map(r => {
+        const d = new Date(r.date);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+      })
+      .sort((a, b) => b - a); // Most recent first
+
+    if (sortedDates.length > 0) {
+      let checkDate = today.getTime();
+      for (const d of sortedDates) {
+        if (d === checkDate || d === checkDate - 86400000) {
+          streak++;
+          checkDate = d - 86400000;
+        } else if (d < checkDate - 86400000) {
+          break;
+        }
+      }
+    }
+
+    // Calculate days since first confirmation for attendance rate
+    const firstRecord = records.length > 0
+      ? new Date(records[records.length - 1].date)
+      : null;
+    const totalDaysSinceStart = firstRecord
+      ? Math.max(1, Math.ceil((today.getTime() - firstRecord.getTime()) / 86400000))
+      : 0;
+    const missedDays = Math.max(0, totalDaysSinceStart - confirmed);
+    const attendanceRate = totalDaysSinceStart > 0
+      ? Math.round((confirmed / totalDaysSinceStart) * 100)
+      : 0;
+
+    // Recent records for display (last 10)
+    const recentRecords = records.slice(0, 10).map(r => ({
+      date: String(r.date).split('T')[0],
+      confirmed: true,
+    }));
+
+    // Get referral counts
+    let leadsCount = 0;
+    let conversionsCount = 0;
+    try {
+      const { rewardfulApi } = await import('./rewardful.service');
+      const emailForApi = student.internalEmail || student.aliasEmail;
+      const affResult = await rewardfulApi.getAffiliateByEmail(emailForApi);
+      if (affResult.success && affResult.affiliate) {
+        const referrals = await rewardfulApi.getAllReferrals(affResult.affiliate.id);
+        for (const ref of referrals) {
+          const state = (ref.conversion_state || '').toLowerCase();
+          if (state === 'conversion' || ref.became_conversion_at || ref.sale_occurred_at) {
+            conversionsCount++;
+          } else if (state !== 'visitor' && (state === 'lead' || ref.became_lead_at)) {
+            leadsCount++;
+          }
+        }
+      }
+    } catch {
+      // Referral data is optional - don't fail the whole request
+    }
+
     return {
       success: true,
       student: {
         email: student.aliasEmail,
         name,
         teacherEmail: student.attendanceProfile?.currentTeacherEmail,
+        createdAt: student.createdAt?.toISOString(),
       },
       stats: {
         totalConfirmed: confirmed,
-        totalMissed: 0, // Would need calculation
-        streak: 0, // Would need calculation
+        totalMissed: missedDays,
+        streak,
+        attendanceRate: `${attendanceRate}%`,
+        totalDays: totalDaysSinceStart,
+        confirmedDays: confirmed,
+        missedDays,
+      },
+      recentRecords,
+      referrals: {
+        leadsCount,
+        conversionsCount,
+        totalCount: leadsCount + conversionsCount,
       },
     } as ApiResponse;
   } catch (error) {

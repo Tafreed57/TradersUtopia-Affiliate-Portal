@@ -236,6 +236,92 @@ class RewardfulApiClient {
   }
 
   /**
+   * Get 30-day commission totals for an affiliate
+   * Legacy: calculate30DaysRawByAffiliateId_(affiliateId, apiKey)
+   *
+   * Fetches individual commissions from /commissions endpoint,
+   * filters to last 30 days, sums approved/confirmed amounts.
+   */
+  async getCommissions30Day(
+    affiliateId: string
+  ): Promise<{ unpaid: number; dueNow: number }> {
+    const conversionRate = config.currency.usdToCadRate;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    try {
+      const allCommissions: Record<string, unknown>[] = [];
+      let page = 1;
+      const maxPages = 20;
+
+      while (page <= maxPages) {
+        const response = await this.request<unknown>(
+          `/commissions?affiliate_id=${encodeURIComponent(affiliateId)}&page=${page}&limit=200`
+        );
+
+        // Handle both array and { data: [...] } response formats
+        let pageItems: Record<string, unknown>[] = [];
+        if (Array.isArray(response)) {
+          pageItems = response;
+        } else if (response && typeof response === 'object') {
+          const obj = response as Record<string, unknown>;
+          if (Array.isArray(obj.data)) {
+            pageItems = obj.data;
+          }
+        }
+
+        if (pageItems.length === 0) break;
+
+        allCommissions.push(...pageItems);
+
+        // If fewer than 200, we reached the end
+        if (pageItems.length < 200) break;
+        page++;
+      }
+
+      // Filter to last 30 days and sum approved/confirmed
+      let unpaid30 = 0;
+      let dueNow30 = 0;
+
+      for (const c of allCommissions) {
+        const createdAt = (c.created_at || c.date) as string | undefined;
+        if (!createdAt) continue;
+
+        const commDate = new Date(createdAt);
+        if (commDate < thirtyDaysAgo) continue;
+
+        // Only count approved/confirmed commissions (not pending)
+        const status = ((c.state || c.status || '') as string).toLowerCase();
+        if (status !== 'approved' && status !== 'confirmed') continue;
+
+        let amount = Number(c.amount || c.commission_amount || 0);
+
+        // Convert from cents if needed (large integers)
+        if (Number.isInteger(amount) && Math.abs(amount) >= 100) {
+          amount = amount / 100;
+        }
+
+        // Convert USD to CAD if needed
+        const currIso = ((c.currency || c.currency_iso || 'USD') as string).toUpperCase();
+        if (currIso === 'USD') {
+          amount = amount * conversionRate;
+        }
+
+        unpaid30 += amount;
+        dueNow30 += amount; // Approved/confirmed are both unpaid AND due now
+      }
+
+      return {
+        unpaid: Math.round(unpaid30 * 100) / 100,
+        dueNow: Math.round(dueNow30 * 100) / 100,
+      };
+    } catch (error) {
+      log.error('Get 30-day commissions error', { error, affiliateId });
+      return { unpaid: 0, dueNow: 0 };
+    }
+  }
+
+  /**
    * Get all referrals for an affiliate
    */
   async getReferrals(

@@ -217,6 +217,18 @@ export interface TeacherData {
 export interface StudentCommissionData {
   email: string;
   name: string;
+  // All-time totals (RAW 100% from commission_stats)
+  totalUnpaid: number;
+  totalDueNow: number;
+  totalPaid: number;
+  // 30-day filtered amounts (RAW 100%)
+  unpaid30Days: number;
+  dueNow30Days: number;
+  // Teacher's percentage override for this student
+  teacherPercentage: number | null;
+  // Email-encoded percentage (e.g. 50 from "user50%@gmail.com")
+  emailPercentage: number | null;
+  // Legacy compat fields
   rawDueNow: number;
   adjustedDueNow: number;
   percentage: number;

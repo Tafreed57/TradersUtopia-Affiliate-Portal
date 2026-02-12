@@ -48,6 +48,13 @@ interface TeacherPageData {
 interface StudentCommission {
   email: string;
   name?: string;
+  totalUnpaid?: number;
+  totalDueNow?: number;
+  totalPaid?: number;
+  unpaid30Days?: number;
+  dueNow30Days?: number;
+  teacherPercentage?: number | null;
+  emailPercentage?: number | null;
   rawDueNow?: number;
   adjustedDueNow?: number;
   percentage?: number;
@@ -267,11 +274,11 @@ function TeacherContent() {
                 <div className="stat-label">Total Students</div>
               </div>
               <div className="stat-card">
-                <div className="stat-value">{formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.rawDueNow || 0), 0))}</div>
+                <div className="stat-value">{formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.totalUnpaid || 0), 0))}</div>
                 <div className="stat-label">Total Unpaid</div>
               </div>
               <div className="stat-card">
-                <div className="stat-value">{formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.adjustedDueNow || 0), 0))}</div>
+                <div className="stat-value">{formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.totalDueNow || 0), 0))}</div>
                 <div className="stat-label">Total Due Now</div>
               </div>
             </div>
@@ -331,8 +338,8 @@ function TeacherContent() {
                           )}
                         </div>
                         <div className="student-amounts">
-                          <span className="amount-label">30d Unpaid: <strong>{formatMoney(cd.rawDueNow)}</strong></span>
-                          <span className="amount-label">30d Due: <strong>{formatMoney(cd.adjustedDueNow)}</strong></span>
+                          <span className="amount-label">30d Unpaid: <strong>{formatMoney(cd.unpaid30Days)}</strong></span>
+                          <span className="amount-label">30d Due: <strong>{formatMoney(cd.dueNow30Days)}</strong></span>
                         </div>
                       </div>
                       <div className="student-controls">
@@ -360,16 +367,56 @@ function TeacherContent() {
                         <div className="stats-expansion">
                           {statsLoading ? (
                             <p className="loading-text">Loading stats...</p>
-                          ) : statsData ? (
-                            <div className="stats-detail">
-                              <div className="mini-stats-grid">
-                                <div className="mini-stat"><strong>{(statsData as Record<string, unknown>).totalDays as number || 0}</strong><span>Total Days</span></div>
-                                <div className="mini-stat"><strong>{(statsData as Record<string, unknown>).confirmedDays as number || 0}</strong><span>Confirmed</span></div>
-                                <div className="mini-stat"><strong>{(statsData as Record<string, unknown>).missedDays as number || 0}</strong><span>Missed</span></div>
-                                <div className="mini-stat"><strong>{(statsData as Record<string, unknown>).attendanceRate as string || '0%'}</strong><span>Rate</span></div>
+                          ) : statsData ? (() => {
+                            const stats = (statsData as Record<string, unknown>).stats as Record<string, unknown> || {};
+                            const refs = (statsData as Record<string, unknown>).referrals as Record<string, unknown> || {};
+                            const studentInfo = (statsData as Record<string, unknown>).student as Record<string, unknown> || {};
+                            const recentRecs = ((statsData as Record<string, unknown>).recentRecords || []) as Record<string, unknown>[];
+                            return (
+                              <div className="stats-detail">
+                                {/* Student info */}
+                                <p style={{ fontSize: 13, color: '#64748b', marginBottom: 12 }}>
+                                  {(studentInfo.name as string) || student.email}
+                                  {!!studentInfo.teacherEmail && <span> &middot; Teacher: {String(studentInfo.teacherEmail)}</span>}
+                                </p>
+
+                                {/* Attendance stats */}
+                                <div className="mini-stats-grid">
+                                  <div className="mini-stat"><strong>{(stats.totalDays as number) || 0}</strong><span>Total Days</span></div>
+                                  <div className="mini-stat"><strong>{(stats.confirmedDays as number) || 0}</strong><span>Confirmed</span></div>
+                                  <div className="mini-stat"><strong>{(stats.missedDays as number) || 0}</strong><span>Missed</span></div>
+                                  <div className="mini-stat"><strong>{(stats.attendanceRate as string) || '0%'}</strong><span>Rate</span></div>
+                                  <div className="mini-stat"><strong>{(stats.streak as number) || 0}</strong><span>Streak</span></div>
+                                </div>
+
+                                {/* Referrals */}
+                                {refs && (
+                                  <div style={{ marginTop: 12, padding: 12, background: '#f0fdf4', borderRadius: 8 }}>
+                                    <p style={{ fontSize: 12, fontWeight: 600, color: '#047857', marginBottom: 8 }}>Referrals</p>
+                                    <div className="mini-stats-grid">
+                                      <div className="mini-stat"><strong>{(refs.leadsCount as number) || 0}</strong><span>Leads</span></div>
+                                      <div className="mini-stat"><strong>{(refs.conversionsCount as number) || 0}</strong><span>Conversions</span></div>
+                                      <div className="mini-stat"><strong>{(refs.totalCount as number) || 0}</strong><span>Total</span></div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Recent attendance records */}
+                                {recentRecs.length > 0 && (
+                                  <div style={{ marginTop: 12 }}>
+                                    <p style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Recent Attendance</p>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                      {recentRecs.map((r, ri) => (
+                                        <span key={ri} style={{ padding: '3px 8px', background: '#dcfce7', borderRadius: 6, fontSize: 11, color: '#166534' }}>
+                                          {r.date as string}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          ) : (
+                            );
+                          })() : (
                             <p className="loading-text">No stats available</p>
                           )}
                         </div>
