@@ -164,20 +164,38 @@ export async function createSession(aliasEmail: string): Promise<ApiResponse & {
     const token = await createSessionToken(payload);
     const expiresAt = getSessionExpiry();
 
-    // Store session in database
-    await prisma.session.create({
-      data: {
-        token,
-        userId: user.id,
-        expiresAt,
-      },
-    });
+    // Store session in database (retry with fresh token on unique constraint violation)
+    let sessionToken = token;
+    try {
+      await prisma.session.create({
+        data: {
+          token: sessionToken,
+          userId: user.id,
+          expiresAt,
+        },
+      });
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === 'P2002') {
+        // Token collision — generate a new one and retry once
+        log.warn('Session token collision, retrying with fresh token', { email });
+        sessionToken = await createSessionToken(payload);
+        await prisma.session.create({
+          data: {
+            token: sessionToken,
+            userId: user.id,
+            expiresAt: getSessionExpiry(),
+          },
+        });
+      } else {
+        throw err;
+      }
+    }
 
     log.info('Session created', { email });
 
     return {
       success: true,
-      token,
+      token: sessionToken,
       expiresAt: expiresAt.getTime(),
       user: {
         email: user.aliasEmail,

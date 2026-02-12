@@ -13,7 +13,7 @@
  * - Links to request access and check status
  */
 
-import { useState, useEffect, FormEvent, Suspense } from 'react';
+import { useState, useEffect, useRef, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 import { gs, setStoredToken, gsCall } from '@/lib/client/gs-compat';
@@ -49,11 +49,17 @@ function LoginContent() {
     }
   }, [isLoading, isAuthenticated, router]);
 
+  // Guard ref to prevent double-firing of Google sign-in handler
+  const googleHandledRef = useRef(false);
+
   // Handle Clerk Google sign-in completion
   // When Clerk authenticates a user, we check our DB and create/link the account
   useEffect(() => {
-    if (!clerkLoaded || !clerkUser || googleLoading) return;
+    if (!clerkLoaded || !clerkUser) return;
     if (isAuthenticated) return; // Already logged in with our system
+    if (googleHandledRef.current) return; // Already handling this user
+
+    googleHandledRef.current = true;
 
     const handleClerkUser = async () => {
       setGoogleLoading(true);
@@ -65,6 +71,7 @@ function LoginContent() {
       if (!clerkEmail) {
         setMessage({ text: 'No email found in Google account.', type: 'error' });
         setGoogleLoading(false);
+        googleHandledRef.current = false;
         return;
       }
 
@@ -102,7 +109,7 @@ function LoginContent() {
     };
 
     handleClerkUser();
-  }, [clerkLoaded, clerkUser, clerkUser?.id, isAuthenticated, googleLoading, clerk, router]);
+  }, [clerkLoaded, clerkUser, isAuthenticated, clerk, router]);
 
   const showMessage = (text: string, type: 'error' | 'success' | 'info') => {
     setMessage({ text, type });
