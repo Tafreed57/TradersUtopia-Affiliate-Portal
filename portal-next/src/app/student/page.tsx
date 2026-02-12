@@ -12,7 +12,7 @@
  * - Admin section: dark theme, search users, view/edit student dashboards
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
@@ -169,6 +169,24 @@ function StudentContent() {
     }
   };
 
+  // Debounced live search
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleAdminSearchInput = (value: string) => {
+    setAdminSearch(value);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (!value.trim()) { setAdminUsers([]); return; }
+    searchTimeoutRef.current = setTimeout(async () => {
+      setAdminSearching(true);
+      try {
+        const result = await gsCall<{ success: boolean; users?: Record<string, unknown>[] }>(
+          'searchAttendanceUsers', value.trim()
+        );
+        if (result.success) setAdminUsers(result.users || []);
+      } catch { /* silent */ }
+      finally { setAdminSearching(false); }
+    }, 300);
+  };
+
   const handleAdminSearch = async () => {
     if (!adminSearch.trim()) return;
     setAdminSearching(true);
@@ -180,6 +198,8 @@ function StudentContent() {
     } catch { /* silent */ }
     finally { setAdminSearching(false); }
   };
+
+  const [dashLoading, setDashLoading] = useState(false);
 
   const now = new Date();
   const todayStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -339,38 +359,81 @@ function StudentContent() {
         {/* Admin section */}
         {user?.isAdmin && (
           <div className="admin-section">
-            <h3>Admin: User Database</h3>
-            <div className="admin-search-row">
+            <div className="admin-header">
+              <div className="admin-header-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+              </div>
+              <div>
+                <h3>Admin Console</h3>
+                <p className="admin-subtitle">Search and manage all users in the system</p>
+              </div>
+            </div>
+
+            <div className="admin-search-container">
+              <div className="admin-search-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+              </div>
               <input
                 type="text"
                 value={adminSearch}
-                onChange={(e) => setAdminSearch(e.target.value)}
-                placeholder="Search by name or email..."
+                onChange={(e) => handleAdminSearchInput(e.target.value)}
+                placeholder="Start typing to search users..."
                 onKeyDown={(e) => e.key === 'Enter' && handleAdminSearch()}
+                className="admin-search-input"
               />
-              <button onClick={handleAdminSearch} disabled={adminSearching}>
-                {adminSearching ? 'Searching...' : 'Search'}
-              </button>
+              {adminSearching && <div className="admin-search-spinner" />}
+              {adminSearch && !adminSearching && (
+                <button className="admin-search-clear" onClick={() => { setAdminSearch(''); setAdminUsers([]); setAdminSelectedUser(null); }}>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+              )}
             </div>
+
+            {adminSearch && !adminSearching && adminUsers.length === 0 && (
+              <div className="admin-empty">No users found for &quot;{adminSearch}&quot;</div>
+            )}
+
+            {!adminSearch && !adminSelectedUser && (
+              <div className="admin-hint">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" opacity="0.3"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <p>Search by name or email to view user details</p>
+              </div>
+            )}
+
             <div className="admin-results">
               {adminUsers.map((u, i) => (
-                <div key={i} className="admin-user-card" onClick={async () => {
-                  // Load full dashboard for selected user
+                <div key={i} className={`admin-user-card ${adminSelectedUser && ((adminSelectedUser.student || adminSelectedUser) as Record<string, unknown>).email === u.email ? 'selected' : ''}`} onClick={async () => {
+                  setDashLoading(true);
                   try {
                     const token = getStoredToken();
                     const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', (u.email as string), token);
                     setAdminSelectedUser(dash);
                   } catch {
                     setAdminSelectedUser(u);
-                  }
+                  } finally { setDashLoading(false); }
                 }}>
-                  <div className="admin-user-name">{(u.name as string) || (u.email as string)}</div>
-                  <div className="admin-user-email">{u.email as string}</div>
-                  {!!(u.isTeacher) && <span className="admin-badge teacher">Teacher</span>}
-                  {!!(u.isAdmin) && <span className="admin-badge admin">Admin</span>}
+                  <div className="admin-card-left">
+                    <div className="admin-avatar">{((u.name as string) || (u.email as string)).charAt(0).toUpperCase()}</div>
+                    <div>
+                      <div className="admin-user-name">{(u.name as string) || (u.email as string)}</div>
+                      <div className="admin-user-email">{u.email as string}</div>
+                    </div>
+                  </div>
+                  <div className="admin-card-badges">
+                    {!!(u.isTeacher) && <span className="admin-badge teacher">Teacher</span>}
+                    {!!(u.isAdmin) && <span className="admin-badge admin">Admin</span>}
+                    {!(u.isTeacher) && !(u.isAdmin) && <span className="admin-badge student">Student</span>}
+                  </div>
                 </div>
               ))}
             </div>
+
+            {dashLoading && (
+              <div className="admin-dash-loading">
+                <div className="admin-search-spinner large" />
+                <p>Loading dashboard...</p>
+              </div>
+            )}
             {adminSelectedUser && (() => {
               const stu = (adminSelectedUser.student || adminSelectedUser) as Record<string, unknown>;
               const att = (adminSelectedUser.attendance || {}) as Record<string, unknown>;
@@ -552,36 +615,110 @@ function StudentContent() {
 
         /* Admin section */
         .admin-section {
-          margin-top: 24px; padding: 24px;
-          background: linear-gradient(135deg, #0f172a, #1e293b);
-          border-radius: 20px; color: white;
+          margin-top: 24px; padding: 28px;
+          background: linear-gradient(145deg, #0c0f1a 0%, #151b2e 50%, #1a1040 100%);
+          border-radius: 24px; color: white;
+          border: 1px solid rgba(139,92,246,0.15);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
         }
-        .admin-section h3 { color: #a78bfa; font-size: 20px; margin: 0 0 16px; }
-        .admin-search-row { display: flex; gap: 8px; margin-bottom: 16px; }
-        .admin-search-row input {
-          flex: 1; padding: 14px 16px; border: 2px solid rgba(139,92,246,0.3); border-radius: 12px;
-          background: rgba(255,255,255,0.05); color: white; font-size: 15px; font-family: inherit;
-          transition: all 0.3s;
-        }
-        .admin-search-row input:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 20px rgba(139,92,246,0.3); }
-        .admin-search-row input::placeholder { color: rgba(255,255,255,0.4); }
-        .admin-search-row button {
-          padding: 14px 24px; background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-          color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-family: inherit;
-        }
-        .admin-search-row button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .admin-results { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
-        .admin-user-card {
-          padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(139,92,246,0.2);
-          border-radius: 10px; cursor: pointer; transition: all 0.2s;
+        .admin-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+        .admin-header-icon {
+          width: 44px; height: 44px; border-radius: 14px;
+          background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+          display: flex; align-items: center; justify-content: center; color: white;
+          box-shadow: 0 4px 16px rgba(139,92,246,0.4);
         }
-        .admin-user-card:hover { background: rgba(139,92,246,0.1); border-color: #8b5cf6; }
-        .admin-user-name { color: white; font-weight: 600; font-size: 14px; }
-        .admin-user-email { color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 2px; }
-        .admin-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 8px; text-transform: uppercase; }
-        .admin-badge.teacher { background: #f59e0b; color: white; }
-        .admin-badge.admin { background: #ef4444; color: white; }
+        .admin-section h3 { color: #e0d4fc; font-size: 20px; margin: 0; font-weight: 700; }
+        .admin-subtitle { color: rgba(255,255,255,0.4); font-size: 13px; margin: 2px 0 0; }
+
+        .admin-search-container {
+          position: relative; margin-bottom: 16px;
+        }
+        .admin-search-icon {
+          position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+          color: rgba(139,92,246,0.5); pointer-events: none;
+        }
+        .admin-search-input {
+          width: 100%; padding: 16px 44px 16px 48px;
+          border: 2px solid rgba(139,92,246,0.2); border-radius: 16px;
+          background: rgba(255,255,255,0.04); color: white; font-size: 15px;
+          font-family: inherit; transition: all 0.3s; box-sizing: border-box;
+        }
+        .admin-search-input:focus {
+          outline: none; border-color: #8b5cf6;
+          box-shadow: 0 0 30px rgba(139,92,246,0.2), 0 0 60px rgba(139,92,246,0.05);
+          background: rgba(255,255,255,0.06);
+        }
+        .admin-search-input::placeholder { color: rgba(255,255,255,0.3); }
+
+        .admin-search-spinner {
+          position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+          width: 18px; height: 18px; border: 2px solid rgba(139,92,246,0.3);
+          border-top-color: #8b5cf6; border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+        }
+        .admin-search-spinner.large { position: static; transform: none; width: 28px; height: 28px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .admin-search-clear {
+          position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+          background: rgba(255,255,255,0.1); border: none; border-radius: 50%;
+          width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; color: rgba(255,255,255,0.5); transition: all 0.2s;
+        }
+        .admin-search-clear:hover { background: rgba(255,255,255,0.2); color: white; }
+
+        .admin-empty {
+          text-align: center; padding: 20px; color: rgba(255,255,255,0.4);
+          font-size: 14px; font-style: italic;
+        }
+        .admin-hint {
+          text-align: center; padding: 40px 20px; color: rgba(255,255,255,0.25);
+        }
+        .admin-hint p { margin: 12px 0 0; font-size: 14px; }
+
+        .admin-results {
+          display: flex; flex-direction: column; gap: 6px;
+          max-height: 320px; overflow-y: auto; margin-bottom: 16px;
+          scrollbar-width: thin; scrollbar-color: rgba(139,92,246,0.3) transparent;
+        }
+        .admin-user-card {
+          padding: 14px 16px;
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(139,92,246,0.12);
+          border-radius: 14px; cursor: pointer; transition: all 0.25s;
+          display: flex; align-items: center; justify-content: space-between;
+        }
+        .admin-user-card:hover {
+          background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.3);
+          transform: translateY(-1px); box-shadow: 0 4px 16px rgba(139,92,246,0.15);
+        }
+        .admin-user-card.selected {
+          background: rgba(139,92,246,0.12); border-color: #8b5cf6;
+          box-shadow: 0 0 20px rgba(139,92,246,0.2);
+        }
+        .admin-card-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .admin-avatar {
+          width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
+          background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(109,40,217,0.3));
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 700; font-size: 16px; color: #c4b5fd;
+        }
+        .admin-user-name { color: white; font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-user-email { color: rgba(255,255,255,0.45); font-size: 12px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-card-badges { display: flex; gap: 4px; flex-shrink: 0; }
+        .admin-badge {
+          display: inline-block; padding: 3px 10px; border-radius: 20px;
+          font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .admin-badge.teacher { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+        .admin-badge.admin { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .admin-badge.student { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
+
+        .admin-dash-loading {
+          display: flex; flex-direction: column; align-items: center; gap: 12px;
+          padding: 32px; color: rgba(255,255,255,0.4);
+        }
 
         .admin-user-detail {
           margin-top: 16px; padding: 20px; background: rgba(255,255,255,0.05);
@@ -613,7 +750,8 @@ function StudentContent() {
         @media (max-width: 768px) {
           .page-container { padding: 20px; }
           .stats-grid { grid-template-columns: repeat(2, 1fr); }
-          .admin-search-row { flex-direction: column; }
+          .admin-card-left { overflow: hidden; }
+          .admin-card-badges { flex-wrap: wrap; }
         }
       `}</style>
     </div>
