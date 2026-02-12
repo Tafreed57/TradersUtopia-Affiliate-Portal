@@ -476,43 +476,84 @@ export async function deleteOwnAttendanceRecord(
  */
 export async function getAllValidTeachers(): Promise<ApiResponse & { teachers?: TeacherOption[] }> {
   try {
-    // Get teachers from Rewardful (those with "teacher" in first name)
+    const teacherEmails: Record<string, boolean> = {};
+    const teachers: TeacherOption[] = [];
+
+    // 1. Get teachers from Rewardful API (those with "teacher" in first_name)
+    //    Matches GAS: paginates all affiliates, includes active/pending/inactive states
     const affiliates = await rewardfulApi.getAllAffiliates((aff) => {
       const firstName = aff.first_name || '';
       return firstName.toLowerCase().includes('teacher');
     });
 
-    // Also get from override list
-    const overrideEmails = config.admin.teacherOverrideEmails;
+    for (const aff of affiliates) {
+      const email = (aff.email || '').toLowerCase().trim();
+      if (!email || isAdminEmail(email) || teacherEmails[email]) continue;
 
-    // Filter out admins (legacy: teachers who are admins are excluded from selection)
-    const teachers: TeacherOption[] = affiliates
-      .filter((aff) => aff.email && !isAdminEmail(aff.email))
-      .map((aff) => ({
-        email: aff.email,
+      teachers.push({
+        email,
         name: `${aff.first_name || ''} ${aff.last_name || ''}`.trim(),
         firstName: aff.first_name || '',
         lastName: aff.last_name || '',
-      }));
-
-    // Add override emails that aren't already in the list
-    for (const email of overrideEmails) {
-      if (!teachers.find((t) => t.email.toLowerCase() === email.toLowerCase())) {
-        const user = await prisma.user.findUnique({
-          where: { aliasEmail: email },
-        });
-
-        teachers.push({
-          email,
-          name: user
-            ? [user.firstName, user.lastName].filter(Boolean).join(' ') || email
-            : email,
-          firstName: user?.firstName || '',
-          lastName: user?.lastName || '',
-        });
-      }
+      });
+      teacherEmails[email] = true;
     }
 
+    log.debug('Teachers from Rewardful API', { count: teachers.length });
+
+    // 2. Add teacher override emails that aren't already in the list
+    const overrideEmails = config.admin.teacherOverrideEmails;
+    for (const email of overrideEmails) {
+      const emailLower = email.toLowerCase().trim();
+      if (!emailLower || teacherEmails[emailLower]) continue;
+
+      const user = await prisma.user.findUnique({
+        where: { aliasEmail: emailLower },
+      });
+
+      teachers.push({
+        email: emailLower,
+        name: user
+          ? [user.firstName, user.lastName].filter(Boolean).join(' ') || emailLower
+          : emailLower,
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+      });
+      teacherEmails[emailLower] = true;
+    }
+
+    // 3. Fallback: Also include any users flagged as isTeacher in our DB
+    //    This catches teachers who might not appear in the API due to pagination/timing
+    const dbTeachers = await prisma.user.findMany({
+      where: {
+        isTeacher: true,
+        status: { in: ['ACTIVE', 'COMPLETED', 'APPROVED'] },
+      },
+      select: {
+        aliasEmail: true,
+        internalEmail: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    for (const u of dbTeachers) {
+      const email = (u.aliasEmail || u.internalEmail || '').toLowerCase().trim();
+      if (!email || isAdminEmail(email) || teacherEmails[email]) continue;
+
+      teachers.push({
+        email,
+        name: [u.firstName, u.lastName].filter(Boolean).join(' ') || email,
+        firstName: u.firstName || '',
+        lastName: u.lastName || '',
+      });
+      teacherEmails[email] = true;
+    }
+
+    // Sort alphabetically by name (matching GAS)
+    teachers.sort((a, b) => a.name.localeCompare(b.name));
+
+    log.debug('Total valid teachers', { count: teachers.length });
     return { success: true, teachers };
   } catch (error) {
     log.error('Get valid teachers error', { error });

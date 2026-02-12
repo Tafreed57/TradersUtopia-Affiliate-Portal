@@ -421,19 +421,20 @@ class RewardfulApiClient {
         const response = await this.request<{
           data?: RewardfulAffiliate[];
           pagination?: { has_more: boolean };
-        }>(`/affiliates?page=${page}&per_page=100`);
+        }>(`/affiliates?page=${page}&limit=200&state[]=active&state[]=pending&state[]=inactive`);
 
-        const affiliates = response.data || [];
+        // Handle both { data: [...] } and direct array response formats
+        const affiliates = Array.isArray(response)
+          ? (response as unknown as RewardfulAffiliate[])
+          : response.data || [];
         const filtered = filter ? affiliates.filter(filter) : affiliates;
         allAffiliates.push(...filtered);
 
-        hasMore =
-          (response.pagination?.has_more || affiliates.length >= 100) &&
-          affiliates.length > 0;
+        hasMore = affiliates.length > 0;
         page++;
 
-        // Safety limit
-        if (page > 100) break;
+        // Safety limit (20 pages * 200 = 4000 affiliates max, matching GAS)
+        if (page > 20) break;
       } catch (error) {
         log.error('Get all affiliates error', { error, page });
         break;
