@@ -425,6 +425,8 @@ function TeacherContent() {
                             const stats = (statsData as Record<string, unknown>).stats as Record<string, unknown> || {};
                             const studentInfo = (statsData as Record<string, unknown>).student as Record<string, unknown> || {};
                             const recentRecs = ((statsData as Record<string, unknown>).recentRecords || []) as Record<string, unknown>[];
+                            const clipperStats = (statsData as Record<string, unknown>).clipperStats as Record<string, unknown> || {};
+                            const clipperRecentRecs = ((statsData as Record<string, unknown>).clipperRecentRecords || []) as Record<string, unknown>[];
                             return (
                               <div className="stats-detail">
                                 {/* Student info */}
@@ -433,7 +435,8 @@ function TeacherContent() {
                                   {!!studentInfo.teacherEmail && <span> &middot; Teacher: {String(studentInfo.teacherEmail)}</span>}
                                 </p>
 
-                                {/* Attendance stats */}
+                                {/* Live Attendance stats */}
+                                <p style={{ fontSize: 12, fontWeight: 700, color: '#e94560', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Live Attendance</p>
                                 <div className="mini-stats-grid">
                                   <div className="mini-stat"><strong>{(stats.totalDays as number) || 0}</strong><span>Total Days</span></div>
                                   <div className="mini-stat"><strong>{(stats.confirmedDays as number) || 0}</strong><span>Confirmed</span></div>
@@ -442,10 +445,10 @@ function TeacherContent() {
                                   <div className="mini-stat"><strong>{(stats.streak as number) || 0}</strong><span>Streak</span></div>
                                 </div>
 
-                                {/* Recent attendance records */}
+                                {/* Recent live attendance records */}
                                 {recentRecs.length > 0 && (
                                   <div style={{ marginTop: 12 }}>
-                                    <p style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Recent Attendance</p>
+                                    <p style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Recent Live Attendance</p>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                                       {recentRecs.map((r, ri) => (
                                         <span key={ri} style={{ padding: '3px 8px', background: '#dcfce7', borderRadius: 6, fontSize: 11, color: '#166534' }}>
@@ -455,6 +458,36 @@ function TeacherContent() {
                                     </div>
                                   </div>
                                 )}
+
+                                {/* Clipper Attendance stats */}
+                                <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+                                  <p style={{ fontSize: 12, fontWeight: 700, color: '#6366f1', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Clipper Attendance</p>
+                                  {(clipperStats.confirmedDays as number) > 0 ? (
+                                    <>
+                                      <div className="mini-stats-grid">
+                                        <div className="mini-stat"><strong>{(clipperStats.totalDays as number) || 0}</strong><span>Total Days</span></div>
+                                        <div className="mini-stat"><strong>{(clipperStats.confirmedDays as number) || 0}</strong><span>Confirmed</span></div>
+                                        <div className="mini-stat"><strong>{(clipperStats.missedDays as number) || 0}</strong><span>Missed</span></div>
+                                        <div className="mini-stat"><strong>{(clipperStats.attendanceRate as string) || '0%'}</strong><span>Rate</span></div>
+                                        <div className="mini-stat"><strong>{(clipperStats.streak as number) || 0}</strong><span>Streak</span></div>
+                                      </div>
+                                      {clipperRecentRecs.length > 0 && (
+                                        <div style={{ marginTop: 12 }}>
+                                          <p style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 6 }}>Recent Clipper Attendance</p>
+                                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                            {clipperRecentRecs.map((r, ri) => (
+                                              <span key={ri} style={{ padding: '3px 8px', background: '#e0e7ff', borderRadius: 6, fontSize: 11, color: '#3730a3' }}>
+                                                {r.date as string}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <p style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>No clipper attendance records</p>
+                                  )}
+                                </div>
 
                                 {/* Referrals table with Leads/Conversions toggle */}
                                 <div style={{ marginTop: 16 }}>
