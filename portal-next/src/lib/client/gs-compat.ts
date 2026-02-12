@@ -105,7 +105,48 @@ export const gs = {
     );
   },
 
-  // Password
+  // Password / Account
+  async getRequestStatus(email: string) {
+    return gsCall<{
+      found: boolean;
+      status?: string;
+      message?: string;
+      firstName?: string;
+      lastName?: string;
+      requestedAt?: string;
+      canSetPassword?: boolean;
+    }>('getRequestStatus', email);
+  },
+
+  async hasPasswordSet(email: string) {
+    return gsCall<{ hasPassword: boolean }>('hasPasswordSet', email);
+  },
+
+  async validatePasswordSetupToken(token: string) {
+    return gsCall<{ valid: boolean; email?: string; error?: string }>(
+      'validatePasswordSetupToken',
+      token
+    );
+  },
+
+  async setPasswordWithToken(token: string, password: string, confirmPassword: string) {
+    return gsCall<{ success: boolean; error?: string }>(
+      'setPasswordWithToken',
+      token,
+      password,
+      confirmPassword
+    );
+  },
+
+  async setAffiliatePassword(email: string, password: string, confirmPassword: string) {
+    return gsCall<{ success: boolean; error?: string }>(
+      'setAffiliatePassword',
+      email,
+      password,
+      confirmPassword
+    );
+  },
+
   async setApprovedAccountPassword(
     email: string,
     password: string,
@@ -121,11 +162,61 @@ export const gs = {
 
   // Commission
   async lookupAffiliate(email: string, token?: string) {
-    return gsCall<{ success: boolean; data?: object; error?: string }>(
+    return gsCall<Record<string, unknown>>(
       'lookupAffiliate',
       email,
       token
     );
+  },
+
+  async saveAdminOverride(email: string, overrideData: object) {
+    return gsCall<{ success: boolean; error?: string }>(
+      'saveAdminOverride',
+      email,
+      overrideData
+    );
+  },
+
+  async removeAdminOverride(email: string) {
+    return gsCall<{ success: boolean; error?: string }>(
+      'removeAdminOverride',
+      email
+    );
+  },
+
+  async getExistingOverride(email: string) {
+    return gsCall<{ success: boolean; override?: object }>(
+      'getExistingOverride',
+      email
+    );
+  },
+
+  async getRawApiData(email: string) {
+    return gsCall<Record<string, unknown>>(
+      'getRawApiData',
+      email
+    );
+  },
+
+  async adminPreCheckInternalEmail(email: string, token?: string) {
+    return gsCall<{ success: boolean; exists?: boolean; affiliate?: Record<string, unknown>; description?: string; error?: string }>(
+      'adminPreCheckInternalEmail',
+      email,
+      token
+    );
+  },
+
+  async adminRejectAccount(email: string, reason: string, token: string) {
+    return gsCall<{ success: boolean; error?: string }>(
+      'adminRejectAccount',
+      email,
+      reason,
+      token
+    );
+  },
+
+  async clearAllCaches() {
+    return gsCall<{ success: boolean }>('clearAllCaches');
   },
 
   // Teacher
@@ -175,6 +266,15 @@ export const gs = {
       leadsCount?: number;
       conversionsCount?: number;
     }>('getReferralsWithMode', params);
+  },
+
+  // Portal access
+  async checkPortalAccess(token: string, portal: string) {
+    return gsCall<{ hasAccess: boolean; reason?: string }>(
+      'checkPortalAccess',
+      token,
+      portal
+    );
   },
 
   // Admin

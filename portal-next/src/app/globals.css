@@ -1,8 +1,9 @@
 /*
  * TradersUtopia Portal - Global Styles
  *
- * Preserves the visual style from the legacy HTML files while using
- * modern CSS with Tailwind-compatible utility classes.
+ * Carbon copy of the legacy Google Apps Script portal styling.
+ * Each page has its own theme applied via styled-jsx,
+ * but these are the shared foundation styles.
  */
 
 /* ============================================================================
@@ -15,6 +16,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 html {
@@ -25,55 +27,36 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
   line-height: 1.6;
-  color: #1f2937;
-  background-color: #f9fafb;
-}
-
-/* ============================================================================
-   UTILITY CLASSES (Tailwind-compatible)
-   ============================================================================ */
-
-.min-h-screen {
   min-height: 100vh;
-}
-
-.bg-gray-50 {
-  background-color: #f9fafb;
-}
-
-.antialiased {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 /* ============================================================================
-   LEGACY STYLES (Preserved from HTML files)
+   ANIMATIONS (Shared across all pages)
    ============================================================================ */
 
-/* Loading overlay */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #1e3a5f 0%, #0f1f35 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes spin {
@@ -81,45 +64,105 @@ body {
   100% { transform: rotate(360deg); }
 }
 
-/* Container */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
-/* Header */
-.header {
-  background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
-  color: white;
-  padding: 20px;
-  border-radius: 16px 16px 0 0;
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
+}
+
+/* ============================================================================
+   LOADING OVERLAY (Legacy-matching)
+   ============================================================================ */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
 }
 
-.header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
+.loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* Cards */
-.card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
+.loading-content {
+  text-align: center;
+  color: white;
 }
 
-.card-body {
-  padding: 24px;
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 20px;
 }
 
-/* Buttons */
+.loading-content p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+}
+
+/* ============================================================================
+   MESSAGE BOXES (Legacy .msg pattern)
+   ============================================================================ */
+
+.msg {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.msg.error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.msg.success {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+}
+
+.msg.info {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+
+.msg.warning {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+}
+
+/* ============================================================================
+   BUTTONS (Legacy gradient pattern)
+   ============================================================================ */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -127,125 +170,110 @@ body {
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
+  font-family: inherit;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.45);
 }
 
 .btn-success {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
 }
 
 .btn-success:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.45);
 }
 
 .btn-danger {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 12px 32px rgba(239, 68, 68, 0.45);
 }
 
-.btn-outline {
-  background: transparent;
-  border: 2px solid currentColor;
+.btn-secondary {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Form elements */
+.btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================================================
+   FORM ELEMENTS (Legacy glassmorphism inputs)
+   ============================================================================ */
+
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .form-label {
   display: block;
-  font-size: 14px;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .form-input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 16px 18px;
   font-size: 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  -webkit-appearance: none;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-input::placeholder {
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.4);
 }
 
-/* Alerts/Messages */
-.alert {
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-size: 14px;
-}
+/* ============================================================================
+   TABLES
+   ============================================================================ */
 
-.alert-success {
-  background: #d1fae5;
-  color: #065f46;
-  border: 1px solid #10b981;
-}
-
-.alert-error {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #ef4444;
-}
-
-.alert-warning {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #f59e0b;
-}
-
-.alert-info {
-  background: #dbeafe;
-  color: #1e40af;
-  border: 1px solid #3b82f6;
-}
-
-/* Tables */
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -255,20 +283,20 @@ body {
 .table td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .table th {
   font-weight: 600;
-  color: #374151;
-  background: #f9fafb;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.table tr:hover {
-  background: #f9fafb;
-}
+/* ============================================================================
+   BADGES
+   ============================================================================ */
 
-/* Badges */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -279,26 +307,29 @@ body {
 }
 
 .badge-success {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
 }
 
 .badge-warning {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
 }
 
 .badge-danger {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
 }
 
 .badge-info {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
 }
 
-/* Grid */
+/* ============================================================================
+   GRID
+   ============================================================================ */
+
 .grid {
   display: grid;
   gap: 16px;
@@ -319,10 +350,12 @@ body {
   }
 }
 
-/* Stat boxes */
+/* ============================================================================
+   STAT BOXES (Legacy pattern)
+   ============================================================================ */
+
 .stat-box {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 20px;
   text-align: center;
 }
@@ -330,47 +363,49 @@ body {
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: #1e3a5f;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #64748b;
   margin-top: 4px;
+  opacity: 0.8;
 }
 
-/* Amount displays */
-.amount-positive {
-  color: #059669;
+/* ============================================================================
+   INLINE SPINNER (inside buttons)
+   ============================================================================ */
+
+.spinner-inline {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
-.amount-negative {
-  color: #dc2626;
-}
+/* ============================================================================
+   RESPONSIVE UTILITIES
+   ============================================================================ */
 
-.amount-large {
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-/* Responsive utilities */
 @media (max-width: 640px) {
-  .container {
-    padding: 12px;
-  }
-
-  .card-body {
-    padding: 16px;
-  }
-
-  .header {
-    padding: 16px;
-    flex-direction: column;
-    text-align: center;
-  }
-
   .btn {
     padding: 10px 16px;
     font-size: 13px;
+  }
+}
+
+/* iOS input zoom prevention */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }

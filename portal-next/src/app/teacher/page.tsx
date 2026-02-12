@@ -3,560 +3,538 @@
 /**
  * Teacher Portal
  *
- * Allows teachers to manage students and view earnings.
+ * Carbon copy of legacy teacherPortal.html:
+ * - Purple gradient background + white frosted container
+ * - Session check with loading/access denied overlays
+ * - Stats grid: Total Students, Total Unpaid, Total Due Now
+ * - Locked earnings section
+ * - Add student by email
+ * - Students list with percentage controls, view stats, remove
+ * - Student statistics view with attendance + referrals
+ * - Admin manage-user search bar
  */
 
-import { useState, useEffect } from 'react';
-import { Navigation } from '@/components/Navigation';
+import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Navigation } from '@/components/Navigation';
+import { LoadingOverlay } from '@/components/LoadingSkeleton';
 import { useSession } from '@/hooks/useSession';
 import { gsCall, getStoredToken } from '@/lib/client/gs-compat';
 
-interface Student {
+interface StudentItem {
   email: string;
-  name: string;
-  internalEmail?: string;
-  affiliateId?: string;
+  name?: string;
   percentageOverride?: number;
-  addedDate: string;
+  unpaid30Day?: number;
+  dueNow30Day?: number;
 }
 
-interface TeacherData {
-  teacher: {
-    email: string;
-    name: string;
-    isAdmin: boolean;
-  };
-  students: Student[];
-  earnings: {
-    lockedEarnings: number;
-    totalEarnedAllTime: number;
-    totalPaidAllTime: number;
-    lockedAt?: string;
-  };
+interface TeacherPageData {
+  students: StudentItem[];
+  totalStudents: number;
+  totalUnpaid: number;
+  totalDueNow: number;
+  lockedUnpaid: number;
+  lockedDueNow: number;
+  totalLockedEarnings: number;
+  adjustmentPercentage?: number;
+  [key: string]: unknown;
 }
-
-type Tab = 'students' | 'earnings' | 'referrals';
 
 function TeacherContent() {
-  const { user } = useSession();
+  const { user, isLoading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [data, setData] = useState<TeacherData | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('students');
+  const [msg, setMsg] = useState<{ text: string; type: string } | null>(null);
+  const [data, setData] = useState<TeacherPageData | null>(null);
+  const [commissionData, setCommissionData] = useState<Record<string, Record<string, unknown>>>({});
+  const [targetEmail, setTargetEmail] = useState('');
+  const [isManaging, setIsManaging] = useState(false);
+  const [managedEmail, setManagedEmail] = useState('');
 
-  // Add student form
+  // Add student
   const [newStudentEmail, setNewStudentEmail] = useState('');
   const [addingStudent, setAddingStudent] = useState(false);
-  const [addMessage, setAddMessage] = useState('');
 
-  useEffect(() => {
-    if (user?.email) {
-      loadTeacherData();
-    }
-  }, [user]);
+  // Student stats
+  const [viewingStats, setViewingStats] = useState<string | null>(null);
+  const [statsData, setStatsData] = useState<Record<string, unknown> | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
-  const loadTeacherData = async () => {
+  // Per-student percentage
+  const [percentageInputs, setPercentageInputs] = useState<Record<string, string>>({});
+
+  const formatMoney = (amount: number | undefined | null) => {
+    if (amount == null) return '$0.00 CAD';
+    return '$' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' CAD';
+  };
+
+  const loadTeacherData = useCallback(async (email: string) => {
     setLoading(true);
-    setError('');
-
     try {
       const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; data?: TeacherData; error?: string }>(
-        'getTeacherDataWithContext',
-        user?.email,
-        token
+      const callerEmail = user?.email || '';
+      const managedTarget = email !== callerEmail ? email : '';
+      const result = await gsCall<{ success: boolean; data?: TeacherPageData; error?: string }>(
+        'getTeacherDataWithContext', callerEmail, managedTarget || token
       );
-
       if (result.success && result.data) {
         setData(result.data);
+        // Initialize percentage inputs
+        const pctMap: Record<string, string> = {};
+        (result.data.students || []).forEach(s => {
+          pctMap[s.email] = s.percentageOverride != null ? String(s.percentageOverride) : '';
+        });
+        setPercentageInputs(pctMap);
       } else {
-        setError(result.error || 'Failed to load teacher data');
+        setMsg({ text: result.error || 'Failed to load data', type: 'error' });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const handleAddStudent = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const loadCommissionData = useCallback(async (email: string) => {
+    try {
+      const result = await gsCall<{ success: boolean; data?: Record<string, Record<string, unknown>> }>(
+        'getStudentsCommissionData', email
+      );
+      if (result.success && result.data) {
+        setCommissionData(result.data);
+      }
+    } catch {
+      // Silent fail
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sessionLoading || !user) return;
+    const email = user.email;
+    setTargetEmail(email);
+    loadTeacherData(email);
+    loadCommissionData(email);
+  }, [sessionLoading, user, loadTeacherData, loadCommissionData]);
+
+  const handleAddStudent = async () => {
     if (!newStudentEmail.trim()) return;
-
     setAddingStudent(true);
-    setAddMessage('');
-
     try {
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; error?: string }>(
-        'addStudentToTeacherWithContext',
-        user?.email,
-        newStudentEmail.trim(),
-        token
+        'addStudentToTeacherWithContext', user?.email, isManaging ? managedEmail : '', newStudentEmail.trim(), token
       );
-
       if (result.success) {
-        setAddMessage('Student added successfully!');
+        setMsg({ text: 'Student added!', type: 'success' });
         setNewStudentEmail('');
-        loadTeacherData();
+        loadTeacherData(targetEmail);
+        loadCommissionData(targetEmail);
       } else {
-        setAddMessage(result.error || 'Failed to add student');
+        setMsg({ text: result.error || 'Failed', type: 'error' });
       }
     } catch (err) {
-      setAddMessage(err instanceof Error ? err.message : 'Failed to add student');
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
     } finally {
       setAddingStudent(false);
     }
   };
 
   const handleRemoveStudent = async (studentEmail: string) => {
-    if (!confirm(`Remove ${studentEmail} from your students?`)) return;
-
+    if (!confirm(`Remove ${studentEmail}?`)) return;
     try {
-      const result = await gsCall<{ success: boolean; error?: string }>(
-        'removeStudentFromTeacher',
-        user?.email,
-        studentEmail
-      );
-
-      if (result.success) {
-        loadTeacherData();
-      } else {
-        alert(result.error || 'Failed to remove student');
-      }
+      await gsCall('removeStudentFromTeacher', targetEmail, studentEmail);
+      loadTeacherData(targetEmail);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to remove student');
+      alert(err instanceof Error ? err.message : 'Error');
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-CA', {
-      style: 'currency',
-      currency: 'CAD',
-    }).format(amount);
+  const handleSetPercentage = async (studentEmail: string) => {
+    const pct = percentageInputs[studentEmail];
+    try {
+      await gsCall('setStudentPercentageOverride', targetEmail, studentEmail, pct ? Number(pct) : null);
+      setMsg({ text: `Percentage updated for ${studentEmail}`, type: 'success' });
+      loadTeacherData(targetEmail);
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+    }
   };
 
+  const handleUpdateEarnings = async () => {
+    try {
+      await gsCall('updateTeacherEarnings', targetEmail);
+      setMsg({ text: 'Earnings updated!', type: 'success' });
+      loadTeacherData(targetEmail);
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+    }
+  };
+
+  const handleViewStats = async (studentEmail: string) => {
+    if (viewingStats === studentEmail) { setViewingStats(null); return; }
+    setViewingStats(studentEmail);
+    setStatsLoading(true);
+    setStatsData(null);
+    try {
+      const result = await gsCall<Record<string, unknown>>(
+        'getStudentAttendanceStats', studentEmail
+      );
+      setStatsData(result);
+    } catch {
+      setStatsData(null);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const handleAdminSearch = () => {
+    if (!managedEmail.trim() || !managedEmail.includes('@')) return;
+    setIsManaging(true);
+    setTargetEmail(managedEmail.trim().toLowerCase());
+    loadTeacherData(managedEmail.trim().toLowerCase());
+    loadCommissionData(managedEmail.trim().toLowerCase());
+  };
+
+  const handleExitManage = () => {
+    setIsManaging(false);
+    setManagedEmail('');
+    const email = user?.email || '';
+    setTargetEmail(email);
+    loadTeacherData(email);
+    loadCommissionData(email);
+  };
+
+  if (sessionLoading || loading) {
+    return <LoadingOverlay message="Loading Teacher Portal..." />;
+  }
+
   return (
-    <div className="page-wrapper">
-      <Navigation />
+    <div className="page-bg">
+      <div className="page-container">
+        <Navigation title="Teacher Portal" variant="light-bg" />
 
-      <main className="main-content">
-        <div className="page-header">
-          <h1>Teacher Portal</h1>
-          <p>Manage your students and track your earnings</p>
-        </div>
-
-        {loading && (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Loading...</p>
+        {/* Admin manage-user banner */}
+        {isManaging && (
+          <div className="manage-banner">
+            <span>Managing: <strong>{targetEmail}</strong></span>
+            <button onClick={handleExitManage}>Exit Manage Mode</button>
           </div>
         )}
 
-        {error && !loading && (
-          <div className="error-state">
-            <p>{error}</p>
+        {/* Admin search */}
+        {user?.isAdmin && !isManaging && (
+          <div className="admin-search">
+            <input
+              type="email"
+              value={managedEmail}
+              onChange={(e) => setManagedEmail(e.target.value)}
+              placeholder="Enter teacher email to manage..."
+              onKeyDown={(e) => e.key === 'Enter' && handleAdminSearch()}
+            />
+            <button onClick={handleAdminSearch}>Manage User</button>
           </div>
         )}
 
-        {data && !loading && (
+        {/* Message */}
+        {msg && (
+          <div className={`message ${msg.type}`}>{msg.text}</div>
+        )}
+
+        {data && (
           <>
-            {/* Tabs */}
-            <div className="tabs">
-              <button
-                className={`tab ${activeTab === 'students' ? 'active' : ''}`}
-                onClick={() => setActiveTab('students')}
-              >
-                Students ({data.students.length})
-              </button>
-              <button
-                className={`tab ${activeTab === 'earnings' ? 'active' : ''}`}
-                onClick={() => setActiveTab('earnings')}
-              >
-                Earnings
-              </button>
-              <button
-                className={`tab ${activeTab === 'referrals' ? 'active' : ''}`}
-                onClick={() => setActiveTab('referrals')}
-              >
-                Student Referrals
-              </button>
+            {/* Stats grid */}
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-value">{data.totalStudents || data.students?.length || 0}</div>
+                <div className="stat-label">Total Students</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{formatMoney(data.totalUnpaid)}</div>
+                <div className="stat-label">Total Unpaid</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{formatMoney(data.totalDueNow)}</div>
+                <div className="stat-label">Total Due Now</div>
+              </div>
             </div>
 
-            {/* Students Tab */}
-            {activeTab === 'students' && (
-              <div className="tab-content">
-                {/* Add student form */}
-                <div className="add-form">
-                  <h3>Add Student</h3>
-                  <form onSubmit={handleAddStudent}>
-                    <input
-                      type="email"
-                      value={newStudentEmail}
-                      onChange={(e) => setNewStudentEmail(e.target.value)}
-                      placeholder="Student email address"
-                      required
-                    />
-                    <button type="submit" disabled={addingStudent}>
-                      {addingStudent ? 'Adding...' : 'Add Student'}
-                    </button>
-                  </form>
-                  {addMessage && (
-                    <p className={`message ${addMessage.includes('success') ? 'success' : 'error'}`}>
-                      {addMessage}
-                    </p>
-                  )}
+            {/* Locked earnings */}
+            <div className="locked-section">
+              <h3>Your Locked Earnings</h3>
+              <div className="locked-grid">
+                <div className="locked-card">
+                  <div className="locked-value">{formatMoney(data.lockedUnpaid)}</div>
+                  <div className="locked-label">Locked Unpaid</div>
                 </div>
+                <div className="locked-card">
+                  <div className="locked-value">{formatMoney(data.lockedDueNow)}</div>
+                  <div className="locked-label">Locked Due Now</div>
+                </div>
+                <div className="locked-card highlight">
+                  <div className="locked-value">{formatMoney(data.totalLockedEarnings)}</div>
+                  <div className="locked-label">Total Locked Earnings</div>
+                </div>
+              </div>
+              <button className="btn-update-earnings" onClick={handleUpdateEarnings}>Update My Earnings</button>
+            </div>
 
-                {/* Students list */}
-                <div className="students-list">
-                  {data.students.length === 0 ? (
-                    <p className="empty">No students added yet</p>
-                  ) : (
-                    data.students.map((student) => (
-                      <div key={student.email} className="student-card">
+            {/* Add student */}
+            <div className="add-section">
+              <h3>Add Student</h3>
+              <div className="add-row">
+                <input
+                  type="email"
+                  value={newStudentEmail}
+                  onChange={(e) => setNewStudentEmail(e.target.value)}
+                  placeholder="Enter student email..."
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
+                />
+                <button onClick={handleAddStudent} disabled={addingStudent}>
+                  {addingStudent ? 'Adding...' : 'Add'}
+                </button>
+              </div>
+            </div>
+
+            {/* Students list */}
+            <div className="students-section">
+              <h3>Students ({data.students?.length || 0})</h3>
+              {(!data.students || data.students.length === 0) ? (
+                <p className="empty-msg">No students added yet. Use the form above to add students.</p>
+              ) : (
+                data.students.map((student) => {
+                  const cd = commissionData[student.email] || {};
+                  return (
+                    <div key={student.email} className="student-card">
+                      <div className="student-header">
                         <div className="student-info">
-                          <h4>{student.name || student.email}</h4>
-                          <p>{student.email}</p>
-                          {student.percentageOverride && (
-                            <span className="badge">
-                              {student.percentageOverride}% commission
-                            </span>
+                          <span className="student-email">{student.email}</span>
+                          {student.percentageOverride != null && (
+                            <span className="pct-badge">{student.percentageOverride}%</span>
                           )}
                         </div>
-                        <div className="student-actions">
-                          <button
-                            onClick={() => handleRemoveStudent(student.email)}
-                            className="btn-remove"
-                          >
-                            Remove
-                          </button>
+                        <div className="student-amounts">
+                          <span className="amount-label">30d Unpaid: <strong>{formatMoney(cd.unpaid30Day as number || student.unpaid30Day)}</strong></span>
+                          <span className="amount-label">30d Due: <strong>{formatMoney(cd.dueNow30Day as number || student.dueNow30Day)}</strong></span>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Earnings Tab */}
-            {activeTab === 'earnings' && (
-              <div className="tab-content">
-                <div className="earnings-grid">
-                  <div className="earnings-card">
-                    <h3>Locked Earnings</h3>
-                    <div className="amount">{formatCurrency(data.earnings.lockedEarnings)}</div>
-                    <p>Available for payout</p>
-                    {data.earnings.lockedAt && (
-                      <span className="meta">
-                        Locked at: {new Date(data.earnings.lockedAt).toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="earnings-card">
-                    <h3>Total Earned</h3>
-                    <div className="amount">{formatCurrency(data.earnings.totalEarnedAllTime)}</div>
-                    <p>All-time earnings</p>
-                  </div>
-
-                  <div className="earnings-card">
-                    <h3>Total Paid</h3>
-                    <div className="amount">{formatCurrency(data.earnings.totalPaidAllTime)}</div>
-                    <p>All-time payouts</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Referrals Tab */}
-            {activeTab === 'referrals' && (
-              <div className="tab-content">
-                <p className="info-text">
-                  View leads and conversions for each of your students.
-                  Select a student to view their referral data.
-                </p>
-                <div className="students-list compact">
-                  {data.students.map((student) => (
-                    <div key={student.email} className="student-card compact">
-                      <div className="student-info">
-                        <h4>{student.name || student.email}</h4>
-                        <p>{student.email}</p>
+                      <div className="student-controls">
+                        <div className="pct-control">
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={percentageInputs[student.email] || ''}
+                            onChange={(e) => setPercentageInputs(prev => ({ ...prev, [student.email]: e.target.value }))}
+                            placeholder="%"
+                          />
+                          <button className="btn-save-pct" onClick={() => handleSetPercentage(student.email)}>Save %</button>
+                        </div>
+                        <div className="student-actions">
+                          <button className="btn-stats" onClick={() => handleViewStats(student.email)}>
+                            {viewingStats === student.email ? 'Hide Stats' : 'View Stats'}
+                          </button>
+                          <button className="btn-remove" onClick={() => handleRemoveStudent(student.email)}>Remove</button>
+                        </div>
                       </div>
-                      <button className="btn-view">View Referrals →</button>
+
+                      {/* Student stats expansion */}
+                      {viewingStats === student.email && (
+                        <div className="stats-expansion">
+                          {statsLoading ? (
+                            <p className="loading-text">Loading stats...</p>
+                          ) : statsData ? (
+                            <div className="stats-detail">
+                              <div className="mini-stats-grid">
+                                <div className="mini-stat"><strong>{(statsData as Record<string, unknown>).totalDays as number || 0}</strong><span>Total Days</span></div>
+                                <div className="mini-stat"><strong>{(statsData as Record<string, unknown>).confirmedDays as number || 0}</strong><span>Confirmed</span></div>
+                                <div className="mini-stat"><strong>{(statsData as Record<string, unknown>).missedDays as number || 0}</strong><span>Missed</span></div>
+                                <div className="mini-stat"><strong>{(statsData as Record<string, unknown>).attendanceRate as string || '0%'}</strong><span>Rate</span></div>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="loading-text">No stats available</p>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  );
+                })
+              )}
+            </div>
+
+            {/* Refresh button */}
+            <div className="footer-actions">
+              <button className="btn-refresh" onClick={() => { loadTeacherData(targetEmail); loadCommissionData(targetEmail); }}>
+                Refresh Data
+              </button>
+            </div>
           </>
         )}
-      </main>
+      </div>
 
       <style jsx>{`
-        .page-wrapper {
+        .page-bg {
           min-height: 100vh;
-          background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 20px 10px;
+        }
+        .page-container {
+          max-width: 900px; margin: 0 auto;
+          background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+          border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+          padding: 30px; animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+        .manage-banner {
+          background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 12px 20px;
+          border-radius: 12px; border: 2px solid #f59e0b; margin-bottom: 20px;
+          display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+          color: #92400e; font-size: 14px; font-weight: 500;
+        }
+        .manage-banner button {
+          padding: 6px 16px; background: #dc2626; color: white; border: none;
+          border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit;
         }
 
-        .main-content {
-          max-width: 1000px;
-          margin: 0 auto;
-          padding: 2rem;
+        .admin-search {
+          display: flex; gap: 8px; margin-bottom: 20px;
+        }
+        .admin-search input {
+          flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+          font-size: 15px; font-family: inherit;
+        }
+        .admin-search input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.1); }
+        .admin-search button {
+          padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit;
         }
 
-        .page-header {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
+        .message { padding: 14px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; font-weight: 500; }
+        .message.success { background: #f0fdf4; color: #16a34a; border-left: 4px solid #16a34a; }
+        .message.error { background: #fef2f2; color: #dc2626; border-left: 4px solid #dc2626; }
 
-        .page-header h1 {
-          color: #e0e0e0;
-          font-size: 1.75rem;
-          margin: 0 0 0.5rem;
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card {
+          padding: 20px; background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+          border-radius: 16px; text-align: center; border: 1px solid #cbd5e1;
         }
+        .stat-value { font-size: 24px; font-weight: 700; color: #475569; }
+        .stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
 
-        .page-header p {
-          color: #888;
-          margin: 0;
+        .locked-section {
+          margin-bottom: 24px; padding: 20px;
+          background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+          border-radius: 16px; border: 1px solid #a7f3d0;
         }
+        .locked-section h3 { color: #047857; font-size: 16px; margin: 0 0 16px; }
+        .locked-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+        .locked-card {
+          padding: 16px; background: white; border-radius: 12px; text-align: center;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .locked-card.highlight { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+        .locked-value { font-size: 20px; font-weight: 700; color: #16a34a; }
+        .locked-card.highlight .locked-value { color: #2563eb; }
+        .locked-label { font-size: 11px; color: #047857; margin-top: 4px; }
 
-        .loading-state,
-        .error-state {
-          text-align: center;
-          padding: 3rem;
-          color: #888;
+        .btn-update-earnings {
+          width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981, #059669);
+          color: white; border: none; border-radius: 12px; cursor: pointer;
+          font-size: 15px; font-weight: 600; font-family: inherit;
+          box-shadow: 0 4px 12px rgba(16,185,129,0.3);
         }
+        .btn-update-earnings:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
 
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid rgba(0, 212, 255, 0.2);
-          border-top-color: #00d4ff;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 1rem;
+        .add-section {
+          margin-bottom: 24px; padding: 20px;
+          background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+          border-radius: 16px;
         }
+        .add-section h3 { color: #1e40af; font-size: 16px; margin: 0 0 12px; }
+        .add-row { display: flex; gap: 8px; }
+        .add-row input {
+          flex: 1; padding: 14px 16px; border: 2px solid #93c5fd; border-radius: 12px;
+          font-size: 15px; background: white; font-family: inherit;
+        }
+        .add-row input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.15); }
+        .add-row button {
+          padding: 14px 28px; background: linear-gradient(135deg, #3b82f6, #2563eb);
+          color: white; border: none; border-radius: 12px; cursor: pointer;
+          font-weight: 600; font-size: 15px; font-family: inherit;
+        }
+        .add-row button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .error-state {
-          color: #ff6b6b;
-        }
-
-        .tabs {
-          display: flex;
-          gap: 0.5rem;
-          margin-bottom: 1.5rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .tab {
-          padding: 1rem 1.5rem;
-          background: transparent;
-          border: none;
-          color: #888;
-          cursor: pointer;
-          font-size: 1rem;
-          transition: all 0.2s;
-        }
-
-        .tab:hover {
-          color: #e0e0e0;
-        }
-
-        .tab.active {
-          color: #00d4ff;
-          border-bottom: 2px solid #00d4ff;
-          margin-bottom: -1px;
-        }
-
-        .tab-content {
-          background: rgba(26, 26, 46, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          border-radius: 12px;
-          padding: 1.5rem;
-        }
-
-        .add-form {
-          margin-bottom: 1.5rem;
-          padding-bottom: 1.5rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .add-form h3 {
-          color: #e0e0e0;
-          font-size: 1rem;
-          margin: 0 0 1rem;
-        }
-
-        .add-form form {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .add-form input {
-          flex: 1;
-          padding: 0.75rem 1rem;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 6px;
-          background: rgba(255, 255, 255, 0.05);
-          color: #e0e0e0;
-          font-size: 1rem;
-        }
-
-        .add-form input:focus {
-          outline: none;
-          border-color: #00d4ff;
-        }
-
-        .add-form button {
-          padding: 0.75rem 1.5rem;
-          background: #00d4ff;
-          color: #0f0f1a;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .add-form button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .message {
-          margin-top: 0.5rem;
-          font-size: 0.9rem;
-        }
-
-        .message.success {
-          color: #6fcf6f;
-        }
-
-        .message.error {
-          color: #ff6b6b;
-        }
-
-        .students-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .empty {
-          color: #888;
-          text-align: center;
-          padding: 2rem;
-        }
+        .students-section { margin-bottom: 24px; }
+        .students-section h3 { color: #1e293b; font-size: 18px; margin: 0 0 16px; }
+        .empty-msg { color: #64748b; text-align: center; padding: 24px; font-size: 14px; }
 
         .student-card {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          border-radius: 8px;
-          padding: 1rem;
+          background: white; border: 2px solid #e2e8f0; border-radius: 16px;
+          padding: 16px; margin-bottom: 12px; transition: border-color 0.2s;
         }
+        .student-card:hover { border-color: #667eea; }
 
-        .student-info h4 {
-          color: #e0e0e0;
-          margin: 0 0 0.25rem;
+        .student-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .student-info { display: flex; align-items: center; gap: 8px; }
+        .student-email { font-weight: 600; color: #1e293b; font-size: 14px; }
+        .pct-badge {
+          background: linear-gradient(135deg, #f59e0b, #d97706); color: white;
+          padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;
         }
+        .student-amounts { display: flex; gap: 16px; font-size: 13px; color: #475569; }
+        .amount-label strong { color: #1e293b; }
 
-        .student-info p {
-          color: #888;
-          font-size: 0.85rem;
-          margin: 0;
+        .student-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .pct-control { display: flex; gap: 6px; align-items: center; }
+        .pct-control input {
+          width: 70px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px;
+          font-size: 14px; text-align: center; font-family: inherit;
         }
-
-        .badge {
-          display: inline-block;
-          margin-top: 0.5rem;
-          padding: 0.25rem 0.5rem;
-          background: rgba(255, 170, 68, 0.2);
-          color: #ffaa44;
-          border-radius: 4px;
-          font-size: 0.75rem;
+        .btn-save-pct {
+          padding: 8px 12px; background: #667eea; color: white; border: none;
+          border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit;
         }
-
+        .student-actions { display: flex; gap: 6px; }
+        .btn-stats {
+          padding: 8px 14px; background: linear-gradient(135deg, #3b82f6, #2563eb);
+          color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit;
+        }
         .btn-remove {
-          padding: 0.5rem 1rem;
-          background: transparent;
-          border: 1px solid rgba(255, 107, 107, 0.3);
-          color: #ff6b6b;
-          border-radius: 6px;
-          cursor: pointer;
+          padding: 8px 14px; background: linear-gradient(135deg, #ef4444, #dc2626);
+          color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit;
         }
 
-        .btn-remove:hover {
-          background: rgba(255, 107, 107, 0.1);
+        .stats-expansion {
+          margin-top: 12px; padding: 16px; background: #f8fafc; border-radius: 12px;
+          border: 1px solid #e2e8f0;
         }
-
-        .btn-view {
-          padding: 0.5rem 1rem;
-          background: transparent;
-          border: 1px solid rgba(0, 212, 255, 0.3);
-          color: #00d4ff;
-          border-radius: 6px;
-          cursor: pointer;
+        .loading-text { color: #64748b; font-size: 13px; text-align: center; margin: 0; }
+        .mini-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .mini-stat {
+          text-align: center; padding: 12px; background: white; border-radius: 10px;
+          border: 1px solid #e2e8f0;
         }
+        .mini-stat strong { display: block; font-size: 20px; color: #1e293b; }
+        .mini-stat span { font-size: 11px; color: #64748b; }
 
-        .btn-view:hover {
-          background: rgba(0, 212, 255, 0.1);
+        .footer-actions { text-align: center; }
+        .btn-refresh {
+          padding: 14px 32px; background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white; border: none; border-radius: 12px; cursor: pointer;
+          font-size: 15px; font-weight: 600; font-family: inherit;
+          box-shadow: 0 4px 12px rgba(102,126,234,0.3);
         }
+        .btn-refresh:hover { transform: translateY(-2px); }
 
-        .earnings-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 1rem;
-        }
-
-        .earnings-card {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          border-radius: 8px;
-          padding: 1.5rem;
-          text-align: center;
-        }
-
-        .earnings-card h3 {
-          color: #888;
-          font-size: 0.9rem;
-          font-weight: normal;
-          margin: 0 0 0.5rem;
-        }
-
-        .earnings-card .amount {
-          font-size: 1.75rem;
-          font-weight: bold;
-          color: #00d4ff;
-          margin-bottom: 0.25rem;
-        }
-
-        .earnings-card p {
-          color: #666;
-          font-size: 0.8rem;
-          margin: 0;
-        }
-
-        .earnings-card .meta {
-          display: block;
-          margin-top: 0.5rem;
-          font-size: 0.75rem;
-          color: #666;
-        }
-
-        .info-text {
-          color: #888;
-          margin: 0 0 1.5rem;
-        }
-
-        .students-list.compact .student-card {
-          padding: 0.75rem 1rem;
+        @media (max-width: 768px) {
+          .page-container { padding: 20px; }
+          .stats-grid { grid-template-columns: 1fr; }
+          .locked-grid { grid-template-columns: 1fr; }
+          .student-header { flex-direction: column; align-items: flex-start; }
+          .student-controls { flex-direction: column; align-items: flex-start; }
+          .mini-stats-grid { grid-template-columns: repeat(2, 1fr); }
+          .add-row { flex-direction: column; }
         }
       `}</style>
     </div>

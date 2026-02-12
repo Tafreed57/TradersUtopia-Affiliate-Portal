@@ -3,423 +3,564 @@
 /**
  * Commission Lookup Page
  *
- * Allows users to view their affiliate commission data.
+ * Carbon copy of legacy CommissionLookup.Html:
+ * - Purple gradient background + white frosted container
+ * - Field explanations box
+ * - Commission details table
+ * - Admin panel: lookup, override, percentage multiplier, pending accounts
+ * - Privacy protections: inactivity timeout, tab switch refresh
  */
 
-import { useState, useEffect } from 'react';
-import { Navigation } from '@/components/Navigation';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Navigation } from '@/components/Navigation';
+import { LoadingOverlay } from '@/components/LoadingSkeleton';
 import { useSession } from '@/hooks/useSession';
 import { gsCall, getStoredToken } from '@/lib/client/gs-compat';
 
-interface CommissionData {
-  email: string;
-  displayEmail: string;
-  name: string;
-  unpaidAmount: number;
-  dueNowAmount: number;
-  totalPaidAmount: number;
-  percentage: number;
-  percentageApplied: boolean;
-  hasOverride: boolean;
-  overrideNote?: string;
-  currency: string;
-  lastFetchedAt: number;
+interface CommissionResult {
+  affiliateId?: string;
+  unpaidAmount?: number;
+  dueNow?: number;
+  totalPaid?: number;
+  lastPayout?: string;
+  status?: string;
+  _from_admin?: boolean;
+  _admin_override?: Record<string, unknown>;
+  _percentage_applied?: string;
+  [key: string]: unknown;
 }
 
 function CommissionContent() {
-  const { user } = useSession();
+  const router = useRouter();
+  const { user, isLoading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [data, setData] = useState<CommissionData | null>(null);
-  const [searchEmail, setSearchEmail] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [message, setMessage] = useState<{ text: string; color: string } | null>(null);
+  const [data, setData] = useState<CommissionResult | null>(null);
+  const [currentEmail, setCurrentEmail] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [adminLookupEmail, setAdminLookupEmail] = useState('');
 
-  // Load commission data on mount
-  useEffect(() => {
-    if (user?.email) {
-      loadCommissionData(user.email);
-    }
-  }, [user]);
+  // Admin override state
+  const [adminUnpaid, setAdminUnpaid] = useState('');
+  const [adminDueNow, setAdminDueNow] = useState('');
+  const [adminTotalPaid, setAdminTotalPaid] = useState('');
+  const [adminLastPayout, setAdminLastPayout] = useState('');
+  const [adminStatus, setAdminStatus] = useState('');
+  const [adminPercentage, setAdminPercentage] = useState('');
+  const [percentageEnabled, setPercentageEnabled] = useState(false);
 
-  const loadCommissionData = async (email: string) => {
-    setLoading(true);
-    setError('');
+  // Pending accounts
+  const [pendingAccounts, setPendingAccounts] = useState<Record<string, unknown>[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
 
+  // Inactivity timer
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const INACTIVITY_TIMEOUT = useRef(300000); // 5 min, 15 min for admin
+
+  const formatMoney = (amount: number | undefined | null) => {
+    if (amount == null) return '-';
+    return '$' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' CAD';
+  };
+
+  const showMsg = (text: string, color: string) => setMessage({ text, color });
+
+  const startInactivityTimer = useCallback(() => {
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    inactivityTimerRef.current = setTimeout(() => {
+      showMsg('Session cleared for privacy', '#94a3b8');
+      setData(null);
+    }, INACTIVITY_TIMEOUT.current);
+  }, []);
+
+  // Fetch commission data
+  const fetchData = useCallback(async (email: string, fromAdmin = false) => {
+    showMsg('Fetching commission data...', '#64748b');
     try {
       const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; data?: CommissionData; error?: string }>(
-        'lookupAffiliate',
-        email,
-        token
-      );
-
-      if (result.success && result.data) {
-        setData(result.data);
+      const result = await gsCall<CommissionResult>('lookupAffiliate', email, token);
+      if (fromAdmin) result._from_admin = true;
+      setData(result);
+      setCurrentEmail(email);
+      if (result.status === 'Not found') {
+        showMsg('Affiliate not found for: ' + email, '#dc2626');
       } else {
-        setError(result.error || 'Failed to load commission data');
+        showMsg('Commission data loaded successfully!', '#059669');
+      }
+
+      if (fromAdmin && result._admin_override) {
+        const ov = result._admin_override as Record<string, unknown>;
+        setAdminUnpaid(ov.unpaidAmount != null ? String(ov.unpaidAmount) : '');
+        setAdminDueNow(ov.dueNow != null ? String(ov.dueNow) : '');
+        setAdminTotalPaid(ov.totalPaid != null ? String(ov.totalPaid) : '');
+        setAdminLastPayout((ov.lastPayout as string) || '');
+        setAdminStatus((ov.status as string) || '');
+        setAdminPercentage(ov.percentageMultiplier != null ? String(ov.percentageMultiplier) : '');
+        setPercentageEnabled(!!(ov.percentageEnabled));
+      }
+
+      startInactivityTimer();
+    } catch (err) {
+      showMsg('Error: ' + (err instanceof Error ? err.message : String(err)), '#dc2626');
+    }
+  }, [startInactivityTimer]);
+
+  // Load pending accounts
+  const loadPendingAccounts = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) return;
+    try {
+      const result = await gsCall<{ success: boolean; pending?: Record<string, unknown>[]; count?: number }>(
+        'adminGetPendingAccounts', token
+      );
+      if (result.success) {
+        setPendingAccounts(result.pending || []);
+        setPendingCount(result.count || 0);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load commission data');
-    } finally {
-      setLoading(false);
+      console.error('Error loading pending:', err);
+    }
+  }, []);
+
+  // Initialize
+  useEffect(() => {
+    if (sessionLoading || !user) return;
+    setIsAdmin(user.isAdmin);
+    setCurrentEmail(user.email);
+    setLoading(false);
+
+    if (user.isAdmin) {
+      setIsAdminMode(true);
+      INACTIVITY_TIMEOUT.current = 900000;
+      loadPendingAccounts();
+    } else {
+      fetchData(user.email);
+    }
+  }, [sessionLoading, user, fetchData, loadPendingAccounts]);
+
+  // Privacy: restart timer on user activity
+  useEffect(() => {
+    const handler = () => startInactivityTimer();
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(e =>
+      document.addEventListener(e, handler, true)
+    );
+    return () => {
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(e =>
+        document.removeEventListener(e, handler, true)
+      );
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    };
+  }, [startInactivityTimer]);
+
+  const handleAdminLookup = () => {
+    if (!adminLookupEmail.trim() || !adminLookupEmail.includes('@')) {
+      showMsg('Please enter a valid affiliate email', '#dc2626');
+      return;
+    }
+    fetchData(adminLookupEmail.trim().toLowerCase(), true);
+  };
+
+  const handleSaveOverride = async () => {
+    if (!currentEmail) { showMsg('Lookup an affiliate first', '#dc2626'); return; }
+    try {
+      await gsCall('saveAdminOverride', currentEmail, {
+        unpaidAmount: adminUnpaid ? Number(adminUnpaid) : null,
+        dueNow: adminDueNow ? Number(adminDueNow) : null,
+        totalPaid: adminTotalPaid ? Number(adminTotalPaid) : null,
+        lastPayout: adminLastPayout || null,
+        status: adminStatus || null,
+        percentageMultiplier: adminPercentage ? Number(adminPercentage) : null,
+        percentageEnabled,
+      });
+      showMsg('Override saved successfully!', '#059669');
+      setTimeout(() => fetchData(currentEmail, true), 500);
+    } catch (err) {
+      showMsg('Error saving: ' + (err instanceof Error ? err.message : ''), '#dc2626');
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchEmail.trim()) return;
-
-    setIsSearching(true);
-    await loadCommissionData(searchEmail.trim());
-    setIsSearching(false);
+  const handleRemoveOverride = async () => {
+    if (!currentEmail) return;
+    try {
+      await gsCall('removeAdminOverride', currentEmail);
+      showMsg('Override removed!', '#059669');
+      setAdminUnpaid(''); setAdminDueNow(''); setAdminTotalPaid('');
+      setAdminLastPayout(''); setAdminStatus(''); setAdminPercentage('');
+      setPercentageEnabled(false);
+      setTimeout(() => fetchData(currentEmail, true), 500);
+    } catch (err) {
+      showMsg('Error: ' + (err instanceof Error ? err.message : ''), '#dc2626');
+    }
   };
 
-  const formatCurrency = (amount: number, currency = 'CAD') => {
-    return new Intl.NumberFormat('en-CA', {
-      style: 'currency',
-      currency,
-    }).format(amount);
+  const handleRejectAccount = async (email: string) => {
+    const reason = prompt('Reason for rejection (optional):');
+    if (reason === null) return;
+    const token = getStoredToken();
+    if (!token) return;
+    try {
+      await gsCall('adminRejectAccount', email, reason, token);
+      showMsg('Account rejected: ' + email, '#dc2626');
+      loadPendingAccounts();
+    } catch (err) {
+      showMsg('Error rejecting: ' + (err instanceof Error ? err.message : ''), '#dc2626');
+    }
   };
+
+  if (sessionLoading || loading) {
+    return <LoadingOverlay message="Loading Commission Portal..." />;
+  }
 
   return (
-    <div className="page-wrapper">
-      <Navigation />
+    <div className="page-bg">
+      <div className="header">
+        <Navigation title="Commission Lookup" variant="dark-bg" />
+      </div>
 
-      <main className="main-content">
-        <div className="page-header">
-          <h1>Commission Lookup</h1>
-          <p>View your affiliate commission earnings and payouts</p>
+      <div className="container">
+        <h2>Affiliate Commission Lookup</h2>
+
+        {/* Field explanations */}
+        <div className="info-box">
+          <strong>Field Explanations:</strong>
+          <div style={{ marginLeft: 8 }}>
+            <strong>Unpaid Amount:</strong> Total commissions not yet paid (includes pending + approved)<br />
+            <strong>Due Now:</strong> Approved commissions ready for immediate payout (subset of unpaid)<br />
+            <strong>Total Paid:</strong> Total amount already paid out historically
+          </div>
         </div>
 
-        {/* Admin search */}
-        {user?.isAdmin && (
-          <form onSubmit={handleSearch} className="search-form">
-            <input
-              type="email"
-              value={searchEmail}
-              onChange={(e) => setSearchEmail(e.target.value)}
-              placeholder="Search by email (admin only)"
-            />
-            <button type="submit" disabled={isSearching}>
-              {isSearching ? 'Searching...' : 'Search'}
-            </button>
-          </form>
-        )}
-
-        {/* Loading state */}
-        {loading && (
-          <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Loading commission data...</p>
+        {/* Logged in identity */}
+        {!isAdminMode && (
+          <div className="identity-box">
+            <div className="identity-inner">
+              <div>
+                <div className="identity-label">Viewing Commission Data For:</div>
+                <div className="identity-email">{currentEmail}</div>
+              </div>
+              <button className="btn-refresh" onClick={() => fetchData(currentEmail)}>Refresh Data</button>
+            </div>
           </div>
         )}
 
-        {/* Error state */}
-        {error && !loading && (
-          <div className="error-state">
-            <p>{error}</p>
-            <button onClick={() => user?.email && loadCommissionData(user.email)}>
-              Try Again
-            </button>
+        {/* Message */}
+        {message && <div className="msg" style={{ color: message.color }}>{message.text}</div>}
+
+        {/* Regular affiliate results */}
+        {data && data.status !== 'Not found' && !isAdminMode && (
+          <div className="results-section">
+            <h3>Commission Details</h3>
+            <table className="data-table">
+              <tbody>
+                <tr><td>Affiliate ID</td><td>{data.affiliateId || '-'}</td></tr>
+                <tr><td>Unpaid Amount</td><td>{formatMoney(data.unpaidAmount as number)}</td></tr>
+                <tr><td>Due Now</td><td>{formatMoney(data.dueNow as number)}</td></tr>
+                <tr><td>Total Paid</td><td>{formatMoney(data.totalPaid as number)}</td></tr>
+                <tr><td>Last Payout</td><td>{(data.lastPayout as string) || '-'}</td></tr>
+                <tr><td>Status</td><td>{data.status || '-'}</td></tr>
+              </tbody>
+            </table>
           </div>
         )}
 
-        {/* Commission data */}
-        {data && !loading && (
-          <div className="commission-grid">
-            {/* Summary card */}
-            <div className="summary-card">
-              <h2>Commission Summary</h2>
-              <div className="summary-info">
-                <div className="info-row">
-                  <span className="label">Affiliate</span>
-                  <span className="value">{data.name}</span>
-                </div>
-                <div className="info-row">
-                  <span className="label">Email</span>
-                  <span className="value">{data.displayEmail}</span>
-                </div>
-                {data.percentageApplied && (
-                  <div className="info-row highlight">
-                    <span className="label">Commission Rate</span>
-                    <span className="value">{data.percentage}%</span>
-                  </div>
+        {/* Admin Interface */}
+        {isAdmin && isAdminMode && (
+          <>
+            <hr className="divider" />
+            {/* Pending accounts */}
+            <div className="admin-panel">
+              <h4>Pending Account Requests <span className="pending-badge">{pendingCount}</span></h4>
+              <button className="btn-sm" onClick={loadPendingAccounts}>Refresh</button>
+              <div className="pending-list">
+                {pendingCount === 0 ? (
+                  <p className="success-text">No pending requests</p>
+                ) : (
+                  pendingAccounts.map((acc, i) => {
+                    const email = (acc.aliasEmail || acc.email) as string;
+                    const name = (((acc.firstName || '') + ' ' + (acc.lastName || '')).trim() || '(not provided)') as string;
+                    const date = acc.requestedAt ? new Date(acc.requestedAt as string).toLocaleDateString() : 'Unknown';
+                    return (
+                      <div key={i} className="pending-card">
+                        <div className="pending-info">
+                          <div className="pending-email">{email} <span className="new-tag">New</span></div>
+                          <div className="pending-meta">{name} - Requested: {date}</div>
+                        </div>
+                        <div className="pending-actions">
+                          <button className="btn-approve" onClick={() => router.push('/admin')}>Review</button>
+                          <button className="btn-reject" onClick={() => handleRejectAccount(email)}>Reject</button>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>
 
-            {/* Amount cards */}
-            <div className="amount-card unpaid">
-              <div className="amount-icon">💰</div>
-              <div className="amount-content">
-                <h3>Unpaid Commission</h3>
-                <div className="amount">{formatCurrency(data.unpaidAmount)}</div>
-                <p>Total pending payout</p>
-              </div>
+            {/* Admin lookup */}
+            <div className="admin-panel">
+              <h4>Lookup Any Affiliate Email</h4>
+              <input
+                type="email"
+                className="admin-input"
+                value={adminLookupEmail}
+                onChange={(e) => setAdminLookupEmail(e.target.value)}
+                placeholder="Enter any affiliate email to manage"
+              />
+              <button className="btn-green" onClick={handleAdminLookup}>Lookup &amp; Manage</button>
             </div>
 
-            <div className="amount-card due">
-              <div className="amount-icon">📋</div>
-              <div className="amount-content">
-                <h3>Due Now</h3>
-                <div className="amount">{formatCurrency(data.dueNowAmount)}</div>
-                <p>Ready for withdrawal</p>
-              </div>
-            </div>
+            {/* Admin results */}
+            {data && data._from_admin && (
+              <>
+                <div className="admin-data-section">
+                  <h4>Current Data</h4>
+                  <table className="data-table">
+                    <tbody>
+                      <tr><td>Affiliate ID</td><td>{data.affiliateId || '-'}</td></tr>
+                      <tr><td>Unpaid Amount</td><td>{formatMoney(data.unpaidAmount as number)}</td></tr>
+                      <tr><td>Due Now</td><td>{formatMoney(data.dueNow as number)}</td></tr>
+                      <tr><td>Total Paid</td><td>{formatMoney(data.totalPaid as number)}</td></tr>
+                      <tr><td>Last Payout</td><td>{(data.lastPayout as string) || '-'}</td></tr>
+                      <tr><td>Status</td><td>{data.status || '-'}</td></tr>
+                      {data._admin_override && (
+                        <tr><td colSpan={2} style={{ color: '#dc2626', fontWeight: 'bold' }}>[!] Has Override</td></tr>
+                      )}
+                      {data._percentage_applied && (
+                        <tr><td colSpan={2} className="pct-note">Percentage Multiplier Applied: {data._percentage_applied}</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
-            <div className="amount-card paid">
-              <div className="amount-icon">✅</div>
-              <div className="amount-content">
-                <h3>Total Paid</h3>
-                <div className="amount">{formatCurrency(data.totalPaidAmount)}</div>
-                <p>All-time earnings</p>
-              </div>
-            </div>
+                {/* Override form */}
+                <div className="override-section">
+                  <h4>Override Values</h4>
+                  {[
+                    { label: 'Unpaid Amount (CAD)', val: adminUnpaid, set: setAdminUnpaid, type: 'number' },
+                    { label: 'Due Now (CAD)', val: adminDueNow, set: setAdminDueNow, type: 'number' },
+                    { label: 'Total Paid (CAD)', val: adminTotalPaid, set: setAdminTotalPaid, type: 'number' },
+                    { label: 'Last Payout', val: adminLastPayout, set: setAdminLastPayout, type: 'text' },
+                  ].map(({ label, val, set, type }) => (
+                    <div key={label} className="override-field">
+                      <label>{label}</label>
+                      <input type={type} value={val} onChange={(e) => set(e.target.value)} placeholder="Leave empty for API value" />
+                    </div>
+                  ))}
+                  <div className="override-field">
+                    <label>Status</label>
+                    <select value={adminStatus} onChange={(e) => setAdminStatus(e.target.value)}>
+                      <option value="">Use API value</option>
+                      <option value="active">Active</option>
+                      <option value="pending">Pending</option>
+                      <option value="suspended">Suspended</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
 
-            {/* Override notice */}
-            {data.hasOverride && (
-              <div className="override-notice">
-                <strong>Note:</strong> Admin override is applied to your commission amounts.
-                {data.overrideNote && <p>{data.overrideNote}</p>}
-              </div>
+                  {/* Percentage multiplier */}
+                  <div className="pct-panel">
+                    <div className="pct-header">
+                      <label>Percentage Multiplier</label>
+                      <label className="toggle">
+                        <input type="checkbox" checked={percentageEnabled} onChange={(e) => setPercentageEnabled(e.target.checked)} />
+                        <span className="toggle-track" />
+                        <span className="toggle-thumb" />
+                      </label>
+                    </div>
+                    <p className="pct-hint">When enabled, reduce displayed Unpaid and Due Now by percentage. E.g., 50 = show 50% of real values.</p>
+                    <div className="pct-input-row">
+                      <input type="number" min={0} max={100} value={adminPercentage} onChange={(e) => setAdminPercentage(e.target.value)} placeholder="100" />
+                      <span>%</span>
+                    </div>
+                  </div>
+
+                  <div className="override-actions">
+                    <button className="btn-green" onClick={handleSaveOverride}>Save Override</button>
+                    <button className="btn-red" onClick={handleRemoveOverride}>Remove Override</button>
+                    <button className="btn-blue" onClick={() => fetchData(currentEmail, true)}>Refresh Data</button>
+                  </div>
+                </div>
+              </>
             )}
-
-            {/* Last updated */}
-            <div className="last-updated">
-              Last updated: {new Date(data.lastFetchedAt).toLocaleString()}
-              <button onClick={() => loadCommissionData(data.email)} className="refresh-btn">
-                Refresh
-              </button>
-            </div>
-          </div>
+          </>
         )}
-      </main>
+      </div>
 
       <style jsx>{`
-        .page-wrapper {
+        .page-bg {
           min-height: 100vh;
-          background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 20px 10px;
         }
 
-        .main-content {
-          max-width: 1000px;
-          margin: 0 auto;
-          padding: 2rem;
+        .header { max-width: 800px; margin: 0 auto 20px; }
+
+        .container {
+          background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+          border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+          padding: 30px; max-width: 800px; margin: 0 auto;
+          animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+        h2 { color: #1e293b; font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+        h3 { color: #1e293b; font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+        h4 { color: #1e293b; font-size: 18px; font-weight: 700; margin: 0 0 12px; }
+
+        .info-box {
+          font-size: 13px; margin-bottom: 20px; padding: 16px;
+          background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+          border-radius: 12px; color: #1e40af; border-left: 4px solid #3b82f6; line-height: 1.6;
+        }
+        .info-box strong { color: #1e3a8a; display: block; margin-bottom: 8px; font-size: 14px; }
+
+        .identity-box { margin-bottom: 20px; }
+        .identity-inner {
+          background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 16px 20px;
+          border-radius: 12px; border: 2px solid #22c55e;
+          display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+        }
+        .identity-label { font-size: 13px; color: #16a34a; font-weight: 600; margin-bottom: 4px; }
+        .identity-email { font-size: 16px; color: #166534; font-weight: 700; }
+
+        .btn-refresh {
+          padding: 10px 20px; background: linear-gradient(135deg, #22c55e, #16a34a);
+          color: white; border: none; border-radius: 10px; cursor: pointer;
+          font-weight: 600; font-size: 14px; font-family: inherit;
+        }
+        .btn-refresh:hover { transform: translateY(-2px); }
+
+        .msg {
+          margin: 16px 0; padding: 16px; border-radius: 12px;
+          background: #f1f5f9; border-left: 4px solid #667eea; font-size: 15px; font-weight: 500;
         }
 
-        .page-header {
-          text-align: center;
-          margin-bottom: 2rem;
+        .results-section { margin-top: 24px; }
+
+        .data-table {
+          width: 100%; border-collapse: collapse; font-size: 15px;
+          background: white; border-radius: 12px; overflow: hidden;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .data-table td {
+          padding: 16px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top;
+        }
+        .data-table td:first-child { font-weight: 600; color: #475569; width: 45%; }
+        .data-table td:last-child { color: #1e293b; font-weight: 500; }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover { background: #f8fafc; }
+
+        .pct-note { background: #fef3c7; border-left: 4px solid #fbbf24; padding: 12px !important; font-size: 12px; }
+
+        .divider { margin: 24px 0; border: none; height: 1px; background: linear-gradient(90deg, transparent, #e2e8f0, transparent); }
+
+        .admin-panel {
+          margin: 20px 0; padding: 20px; border: 2px solid #fbbf24;
+          border-radius: 16px; background: linear-gradient(135deg, #fef3c7, #fde68a);
+        }
+        .admin-panel h4 { color: #92400e; display: flex; align-items: center; gap: 8px; }
+        .pending-badge {
+          background: #f59e0b; color: white; padding: 2px 8px;
+          border-radius: 12px; font-size: 12px; font-weight: bold;
         }
 
-        .page-header h1 {
-          color: #e0e0e0;
-          font-size: 1.75rem;
-          margin: 0 0 0.5rem;
+        .btn-sm {
+          padding: 4px 12px; background: #d97706; color: white; border: none;
+          border-radius: 6px; cursor: pointer; font-size: 12px; margin-bottom: 12px; font-family: inherit;
         }
 
-        .page-header p {
-          color: #888;
-          margin: 0;
+        .pending-list { max-height: 300px; overflow-y: auto; }
+        .pending-card {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 10px 14px; background: white; border-radius: 8px;
+          border: 1px solid #e2e8f0; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;
+        }
+        .pending-email { font-weight: 600; color: #1e293b; font-size: 13px; }
+        .new-tag {
+          background: #f59e0b; color: white; padding: 1px 6px; border-radius: 4px;
+          font-size: 10px; margin-left: 6px;
+        }
+        .pending-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+        .pending-actions { display: flex; gap: 6px; }
+        .btn-approve {
+          padding: 6px 12px; background: linear-gradient(135deg, #16a34a, #059669);
+          color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; font-family: inherit;
+        }
+        .btn-reject {
+          padding: 6px 12px; background: #dc2626; color: white; border: none;
+          border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; font-family: inherit;
+        }
+        .success-text { color: #16a34a; font-size: 13px; margin: 0; }
+
+        .admin-input {
+          width: 100%; padding: 16px; margin: 10px 0 16px; border: 2px solid #e2e8f0;
+          border-radius: 12px; font-size: 16px; background: white; font-family: inherit;
+        }
+        .admin-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.1); }
+
+        .btn-green, .btn-red, .btn-blue {
+          width: 100%; padding: 16px 24px; border-radius: 12px; border: none;
+          color: white; cursor: pointer; font-size: 16px; font-weight: 600;
+          transition: all 0.3s ease; margin: 4px 0; font-family: inherit;
+        }
+        .btn-green { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .btn-green:hover, .btn-red:hover, .btn-blue:hover { transform: translateY(-2px); }
+
+        .admin-data-section {
+          margin: 20px 0; padding: 20px; border: 2px solid #e2e8f0;
+          border-radius: 16px; background: white;
         }
 
-        .search-form {
-          display: flex;
-          gap: 0.5rem;
-          margin-bottom: 2rem;
-          padding: 1rem;
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 8px;
+        .override-section {
+          margin: 20px 0; padding: 20px; border: 2px solid #60a5fa;
+          border-radius: 16px; background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        }
+        .override-section h4 { color: #1e40af; }
+
+        .override-field { margin: 12px 0; }
+        .override-field label { font-weight: 600; color: #475569; margin-bottom: 8px; display: block; font-size: 15px; }
+        .override-field input, .override-field select {
+          width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+          font-size: 16px; background: white; font-family: inherit;
+        }
+        .override-field input:focus, .override-field select:focus {
+          outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
         }
 
-        .search-form input {
-          flex: 1;
-          padding: 0.75rem 1rem;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 6px;
-          background: rgba(255, 255, 255, 0.05);
-          color: #e0e0e0;
-          font-size: 1rem;
+        .pct-panel {
+          margin: 16px 0; padding: 16px; background: #fef3c7;
+          border-radius: 12px; border-left: 4px solid #fbbf24;
         }
+        .pct-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .pct-header label:first-child { font-weight: bold; color: #92400e; margin: 0; }
+        .pct-hint { font-size: 12px; color: #78350f; line-height: 1.5; margin-bottom: 10px; }
+        .pct-input-row { display: flex; align-items: center; gap: 8px; }
+        .pct-input-row input { width: 120px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; font-family: inherit; }
+        .pct-input-row span { font-weight: bold; color: #92400e; }
 
-        .search-form input:focus {
-          outline: none;
-          border-color: #00d4ff;
+        .toggle { position: relative; display: inline-block; width: 48px; height: 26px; margin: 0; cursor: pointer; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-track {
+          position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+          background-color: #cbd5e1; transition: 0.4s; border-radius: 26px;
         }
-
-        .search-form button {
-          padding: 0.75rem 1.5rem;
-          background: #00d4ff;
-          color: #0f0f1a;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 500;
+        .toggle input:checked + .toggle-track { background-color: #10b981; }
+        .toggle-thumb {
+          position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px;
+          background-color: white; transition: 0.4s; border-radius: 50%;
         }
+        .toggle input:checked ~ .toggle-thumb { transform: translateX(22px); }
 
-        .search-form button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+        .override-actions { margin-top: 16px; display: grid; gap: 10px; }
 
-        .loading-state,
-        .error-state {
-          text-align: center;
-          padding: 3rem;
-          color: #888;
-        }
-
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid rgba(0, 212, 255, 0.2);
-          border-top-color: #00d4ff;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .error-state {
-          color: #ff6b6b;
-        }
-
-        .error-state button {
-          margin-top: 1rem;
-          padding: 0.5rem 1rem;
-          background: rgba(255, 107, 107, 0.2);
-          border: 1px solid rgba(255, 107, 107, 0.3);
-          color: #ff6b6b;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .commission-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
-        }
-
-        .summary-card {
-          grid-column: 1 / -1;
-          background: rgba(26, 26, 46, 0.8);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 1.5rem;
-        }
-
-        .summary-card h2 {
-          color: #00d4ff;
-          font-size: 1.1rem;
-          margin: 0 0 1rem;
-        }
-
-        .info-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 0.5rem 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .info-row:last-child {
-          border-bottom: none;
-        }
-
-        .info-row.highlight {
-          background: rgba(0, 212, 255, 0.1);
-          margin: 0.5rem -1rem;
-          padding: 0.75rem 1rem;
-          border-radius: 6px;
-        }
-
-        .info-row .label {
-          color: #888;
-        }
-
-        .info-row .value {
-          color: #e0e0e0;
-        }
-
-        .amount-card {
-          display: flex;
-          gap: 1rem;
-          background: rgba(26, 26, 46, 0.8);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 1.5rem;
-        }
-
-        .amount-icon {
-          font-size: 2rem;
-        }
-
-        .amount-content h3 {
-          color: #888;
-          font-size: 0.9rem;
-          margin: 0 0 0.5rem;
-          font-weight: normal;
-        }
-
-        .amount-content .amount {
-          font-size: 1.75rem;
-          font-weight: bold;
-          margin-bottom: 0.25rem;
-        }
-
-        .amount-card.unpaid .amount {
-          color: #00d4ff;
-        }
-
-        .amount-card.due .amount {
-          color: #ffaa44;
-        }
-
-        .amount-card.paid .amount {
-          color: #44aa44;
-        }
-
-        .amount-content p {
-          color: #666;
-          font-size: 0.8rem;
-          margin: 0;
-        }
-
-        .override-notice {
-          grid-column: 1 / -1;
-          background: rgba(255, 170, 68, 0.1);
-          border: 1px solid rgba(255, 170, 68, 0.3);
-          color: #ffaa44;
-          padding: 1rem;
-          border-radius: 8px;
-        }
-
-        .last-updated {
-          grid-column: 1 / -1;
-          text-align: center;
-          color: #666;
-          font-size: 0.85rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 1rem;
-        }
-
-        .refresh-btn {
-          padding: 0.25rem 0.75rem;
-          background: transparent;
-          border: 1px solid rgba(0, 212, 255, 0.3);
-          color: #00d4ff;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 0.8rem;
-        }
-
-        .refresh-btn:hover {
-          background: rgba(0, 212, 255, 0.1);
+        @media (max-width: 768px) {
+          .container { padding: 20px; }
+          h2 { font-size: 24px; }
+          .data-table { font-size: 14px; }
         }
       `}</style>
     </div>

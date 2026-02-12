@@ -4,7 +4,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'TradersUtopia Portal',
   description: 'Affiliate commission tracking and management portal',
-  robots: 'noindex, nofollow', // Private portal, no indexing
+  robots: 'noindex, nofollow',
 };
 
 export default function RootLayout({
@@ -16,7 +16,12 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body>

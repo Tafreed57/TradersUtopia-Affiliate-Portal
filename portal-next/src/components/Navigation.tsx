@@ -1,181 +1,188 @@
 'use client';
 
 /**
- * Navigation Component
+ * Page Header Component
  *
- * Main navigation bar for the portal.
+ * Legacy-matching per-page header with "Back to Dashboard" + "Sign Out" buttons.
+ * Each page uses this instead of a persistent navbar.
  */
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 
-interface NavItem {
-  href: string;
-  label: string;
-  requiresAuth?: boolean;
-  requiresTeacher?: boolean;
-  requiresAdmin?: boolean;
+interface NavigationProps {
+  title?: string;
+  /** Use light text on dark backgrounds (login, home) or dark text on light/white backgrounds */
+  variant?: 'dark-bg' | 'light-bg';
+  /** Hide the back button (used on dashboard itself) */
+  hideBack?: boolean;
 }
 
-const navItems: NavItem[] = [
-  { href: '/dashboard', label: 'Home', requiresAuth: true },
-  { href: '/commission', label: 'Commission Lookup', requiresAuth: true },
-  { href: '/teacher', label: 'Teacher Portal', requiresAuth: true, requiresTeacher: true },
-  { href: '/student', label: 'Student Dashboard', requiresAuth: true },
-];
+export function Navigation({ title, variant = 'dark-bg', hideBack = false }: NavigationProps) {
+  const router = useRouter();
+  const { user, logout, isLoading } = useSession();
 
-export function Navigation() {
-  const pathname = usePathname();
-  const { user, isAuthenticated, logout, isLoading } = useSession();
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
 
-  // Filter nav items based on user roles
-  const visibleItems = navItems.filter((item) => {
-    if (item.requiresAuth && !isAuthenticated) return false;
-    if (item.requiresTeacher && !user?.isTeacher && !user?.isAdmin) return false;
-    if (item.requiresAdmin && !user?.isAdmin) return false;
-    return true;
-  });
+  const handleBack = () => {
+    router.push('/dashboard');
+  };
+
+  if (isLoading) return null;
+
+  const isDark = variant === 'dark-bg';
 
   return (
-    <nav className="nav-container">
-      <div className="nav-brand">
-        <Link href={isAuthenticated ? '/dashboard' : '/login'}>
-          TradersUtopia Portal
-        </Link>
+    <div className="page-header">
+      <div className="header-left">
+        {!hideBack && (
+          <button onClick={handleBack} className="header-btn back-btn">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+            </svg>
+            Back to Dashboard
+          </button>
+        )}
+        {title && <h1 className="header-title">{title}</h1>}
       </div>
 
-      {!isLoading && (
-        <div className="nav-links">
-          {visibleItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-link ${pathname === item.href ? 'active' : ''}`}
-            >
-              {item.label}
-            </Link>
-          ))}
-
-          {isAuthenticated ? (
-            <div className="nav-user">
-              <span className="nav-user-name">{user?.name || user?.email}</span>
-              {user?.isAdmin && <span className="badge badge-admin">Admin</span>}
-              {user?.isTeacher && !user?.isAdmin && (
-                <span className="badge badge-teacher">Teacher</span>
-              )}
-              <button onClick={logout} className="btn btn-logout">
-                Logout
-              </button>
-            </div>
-          ) : (
-            <Link href="/login" className="btn btn-primary">
-              Login
-            </Link>
-          )}
-        </div>
-      )}
+      <div className="header-right">
+        {user && (
+          <span className="user-info">
+            {user.name || user.email}
+            {user.isAdmin && <span className="role-badge admin">Admin</span>}
+            {user.isTeacher && !user.isAdmin && <span className="role-badge teacher">Teacher</span>}
+          </span>
+        )}
+        <button onClick={handleLogout} className="header-btn logout-btn">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
 
       <style jsx>{`
-        .nav-container {
+        .page-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 1rem 2rem;
-          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+          padding: 16px 24px;
+          flex-wrap: wrap;
+          gap: 12px;
         }
 
-        .nav-brand a {
-          color: #00d4ff;
-          font-size: 1.5rem;
-          font-weight: bold;
-          text-decoration: none;
-        }
-
-        .nav-links {
+        .header-left {
           display: flex;
           align-items: center;
-          gap: 1.5rem;
+          gap: 16px;
         }
 
-        .nav-link {
-          color: #e0e0e0;
-          text-decoration: none;
-          padding: 0.5rem 1rem;
-          border-radius: 4px;
-          transition: all 0.2s;
-        }
-
-        .nav-link:hover {
-          color: #00d4ff;
-          background: rgba(0, 212, 255, 0.1);
-        }
-
-        .nav-link.active {
-          color: #00d4ff;
-          background: rgba(0, 212, 255, 0.15);
-        }
-
-        .nav-user {
+        .header-right {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding-left: 1rem;
-          border-left: 1px solid rgba(255, 255, 255, 0.1);
+          gap: 12px;
         }
 
-        .nav-user-name {
-          color: #e0e0e0;
-          font-size: 0.9rem;
+        .header-title {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: ${isDark ? '#ffffff' : '#1e293b'};
+          margin: 0;
         }
 
-        .badge {
-          font-size: 0.7rem;
-          padding: 0.2rem 0.5rem;
-          border-radius: 3px;
-          text-transform: uppercase;
-        }
-
-        .badge-admin {
-          background: #ff4444;
-          color: white;
-        }
-
-        .badge-teacher {
-          background: #44aa44;
-          color: white;
-        }
-
-        .btn {
-          padding: 0.5rem 1rem;
-          border-radius: 4px;
+        .header-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 20px;
           border: none;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
           cursor: pointer;
-          font-size: 0.9rem;
-          transition: all 0.2s;
+          transition: all 0.3s ease;
+          font-family: inherit;
         }
 
-        .btn-primary {
-          background: #00d4ff;
-          color: #1a1a2e;
+        .back-btn {
+          background: ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
+          color: ${isDark ? 'rgba(255, 255, 255, 0.8)' : '#475569'};
         }
 
-        .btn-primary:hover {
-          background: #00b8e0;
+        .back-btn:hover {
+          background: ${isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)'};
+          transform: translateY(-1px);
         }
 
-        .btn-logout {
-          background: transparent;
-          color: #ff6b6b;
-          border: 1px solid #ff6b6b;
+        .back-btn svg {
+          fill: ${isDark ? 'rgba(255, 255, 255, 0.8)' : '#475569'};
         }
 
-        .btn-logout:hover {
-          background: rgba(255, 107, 107, 0.1);
+        .logout-btn {
+          background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+          color: white;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .logout-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+          background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        }
+
+        .logout-btn svg {
+          fill: white;
+        }
+
+        .user-info {
+          font-size: 14px;
+          color: ${isDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b'};
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .role-badge {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 20px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .role-badge.admin {
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          color: white;
+        }
+
+        .role-badge.teacher {
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          color: white;
+        }
+
+        @media (max-width: 768px) {
+          .page-header {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+          }
+
+          .header-left,
+          .header-right {
+            justify-content: center;
+          }
+
+          .user-info {
+            display: none;
+          }
         }
       `}</style>
-    </nav>
+    </div>
   );
 }
 

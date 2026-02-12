@@ -1,13 +1,126 @@
 'use client';
 
 /**
- * Loading Skeleton Components
+ * Loading Components
  *
- * Provides loading placeholder UI for various content types.
+ * Legacy-matching loading overlays and skeleton placeholders.
  */
 
 import React from 'react';
 
+/**
+ * Full-screen loading overlay matching the legacy GAS portal style.
+ * Used during session checks and page transitions.
+ */
+export function LoadingOverlay({ message = 'Loading...' }: { message?: string }) {
+  return (
+    <div className="loading-overlay">
+      <div className="loading-content">
+        <div className="loading-spinner" />
+        <p>{message}</p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Access Denied overlay for restricted pages (e.g., teacher portal for non-teachers).
+ */
+export function AccessDeniedOverlay({ message = 'Access Denied' }: { message?: string }) {
+  return (
+    <div className="access-denied-overlay">
+      <div className="access-denied-content">
+        <div className="access-denied-icon">
+          <svg viewBox="0 0 24 24" width="64" height="64">
+            <path
+              d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"
+              fill="rgba(255,255,255,0.5)"
+            />
+          </svg>
+        </div>
+        <h2>{message}</h2>
+        <p>You do not have permission to view this page.</p>
+      </div>
+      <style jsx>{`
+        .access-denied-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+        }
+
+        .access-denied-content {
+          text-align: center;
+          color: white;
+        }
+
+        .access-denied-icon {
+          margin-bottom: 24px;
+        }
+
+        h2 {
+          font-size: 28px;
+          font-weight: 700;
+          margin-bottom: 12px;
+          color: #ef4444;
+        }
+
+        p {
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 16px;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/**
+ * Inline loading spinner (matches legacy button spinner).
+ */
+export function LoadingSpinner({ size = 40, color = '#e94560' }: { size?: number; color?: string }) {
+  return (
+    <div className="spinner-container">
+      <div
+        className="spinner"
+        style={{
+          width: size,
+          height: size,
+          borderTopColor: color,
+        }}
+      />
+      <style jsx>{`
+        .spinner-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+        }
+
+        .spinner {
+          border: 4px solid rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/**
+ * Skeleton shimmer placeholder
+ */
 interface SkeletonProps {
   width?: string | number;
   height?: string | number;
@@ -18,7 +131,7 @@ interface SkeletonProps {
 export function Skeleton({
   width = '100%',
   height = '1rem',
-  borderRadius = '4px',
+  borderRadius = '8px',
   className = '',
 }: SkeletonProps) {
   return (
@@ -43,12 +156,8 @@ export function Skeleton({
         }
 
         @keyframes shimmer {
-          0% {
-            background-position: 200% 0;
-          }
-          100% {
-            background-position: -200% 0;
-          }
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
         }
       `}</style>
     </div>
@@ -68,9 +177,9 @@ export function CardSkeleton() {
       </div>
       <style jsx>{`
         .card-skeleton {
-          background: rgba(26, 26, 46, 0.6);
+          background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.05);
-          border-radius: 12px;
+          border-radius: 16px;
           overflow: hidden;
         }
       `}</style>
@@ -101,13 +210,13 @@ export function FormSkeleton() {
     <div className="form-skeleton">
       <Skeleton width="30%" height={14} />
       <div style={{ height: '0.5rem' }} />
-      <Skeleton height={40} borderRadius={6} />
+      <Skeleton height={40} borderRadius={10} />
       <div style={{ height: '1rem' }} />
       <Skeleton width="30%" height={14} />
       <div style={{ height: '0.5rem' }} />
-      <Skeleton height={40} borderRadius={6} />
+      <Skeleton height={40} borderRadius={10} />
       <div style={{ height: '1.5rem' }} />
-      <Skeleton height={44} borderRadius={6} />
+      <Skeleton height={48} borderRadius={14} />
       <style jsx>{`
         .form-skeleton {
           padding: 1.5rem;
@@ -119,81 +228,17 @@ export function FormSkeleton() {
 
 export function PageSkeleton() {
   return (
-    <div className="page-skeleton">
-      <div className="header">
-        <Skeleton width={200} height={32} />
-        <div style={{ height: '0.5rem' }} />
-        <Skeleton width={300} height={16} />
-      </div>
-      <div className="content">
-        <CardSkeleton />
-        <CardSkeleton />
-        <CardSkeleton />
-      </div>
-      <style jsx>{`
-        .page-skeleton {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
-          padding: 2rem;
-        }
-
-        .header {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-
-        .content {
-          max-width: 1000px;
-          margin: 0 auto;
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
-        }
-      `}</style>
-    </div>
-  );
-}
-
-export function LoadingSpinner({ size = 40 }: { size?: number }) {
-  return (
-    <div className="spinner-container">
-      <div
-        className="spinner"
-        style={{
-          width: size,
-          height: size,
-        }}
-      />
-      <style jsx>{`
-        .spinner-container {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2rem;
-        }
-
-        .spinner {
-          border: 3px solid rgba(0, 212, 255, 0.2);
-          border-top-color: #00d4ff;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
-    </div>
+    <LoadingOverlay message="Loading your dashboard..." />
   );
 }
 
 export default {
+  LoadingOverlay,
+  AccessDeniedOverlay,
+  LoadingSpinner,
   Skeleton,
   CardSkeleton,
   TableRowSkeleton,
   FormSkeleton,
   PageSkeleton,
-  LoadingSpinner,
 };
