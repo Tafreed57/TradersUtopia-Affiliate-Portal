@@ -1,16 +1,18 @@
 /**
  * Next.js Middleware
  *
- * Runs before each request to add security headers and handle routing.
+ * Uses Clerk's clerkMiddleware() for auth state and applies security headers.
+ * File must be named middleware.ts (Next.js ≤15). See Clerk App Router quickstart.
  */
 
+import { clerkMiddleware } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
  * Security headers applied to all responses
  */
-const securityHeaders = {
+const securityHeaders: Record<string, string> = {
   'X-DNS-Prefetch-Control': 'on',
   'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
   'X-XSS-Protection': '1; mode=block',
@@ -21,15 +23,21 @@ const securityHeaders = {
 };
 
 /**
- * Content Security Policy (CSP)
+ * Content Security Policy (CSP) – includes Clerk domains for OAuth and API
  */
-const cspDirectives = {
+const cspDirectives: Record<string, string[]> = {
   'default-src': ["'self'"],
-  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Required for Next.js
-  'style-src': ["'self'", "'unsafe-inline'"], // Required for styled-jsx
+  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+  'style-src': ["'self'", "'unsafe-inline'"],
   'img-src': ["'self'", 'data:', 'https:'],
   'font-src': ["'self'"],
-  'connect-src': ["'self'", 'https://api.getrewardful.com'],
+  'connect-src': [
+    "'self'",
+    'https://api.getrewardful.com',
+    'https://*.clerk.accounts.dev',
+    'https://*.clerk.com',
+  ],
+  'frame-src': ["'self'", 'https://*.clerk.accounts.dev', 'https://*.clerk.com'],
   'frame-ancestors': ["'none'"],
   'base-uri': ["'self'"],
   'form-action': ["'self'"],
@@ -41,15 +49,13 @@ function buildCsp(): string {
     .join('; ');
 }
 
-export function middleware(request: NextRequest) {
+export default clerkMiddleware((_auth, request: NextRequest) => {
   const response = NextResponse.next();
 
-  // Add security headers
   for (const [key, value] of Object.entries(securityHeaders)) {
     response.headers.set(key, value);
   }
 
-  // Add CSP header (report-only in development)
   const csp = buildCsp();
   if (process.env.NODE_ENV === 'production') {
     response.headers.set('Content-Security-Policy', csp);
@@ -57,25 +63,15 @@ export function middleware(request: NextRequest) {
     response.headers.set('Content-Security-Policy-Report-Only', csp);
   }
 
-  // Add request ID for tracing
-  const requestId = crypto.randomUUID();
-  response.headers.set('X-Request-ID', requestId);
+  response.headers.set('X-Request-ID', crypto.randomUUID());
 
   return response;
-}
+});
 
-/**
- * Configure which paths the middleware runs on
- */
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, etc.)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Skip Next.js internals and static files (Clerk quickstart pattern)
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
   ],
 };
