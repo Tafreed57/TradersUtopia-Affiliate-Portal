@@ -202,32 +202,41 @@ class RewardfulApiClient {
   ): Promise<{ unpaid: number; dueNow: number; paid: number }> {
     try {
       // CRITICAL: Must use ?expand=true to get commission_stats in the response
-      // (legacy code: var affByIdUrl = BASE_URL + '/affiliates/' + aff.id + '?expand=true')
       const affiliate = await this.request<RewardfulAffiliate>(
         `/affiliates/${affiliateId}?expand=true`
       );
 
       const stats = affiliate.commission_stats?.currencies;
-      const cad = stats?.CAD || {};
-      const usd = stats?.USD || {};
+      if (!stats) {
+        return { unpaid: 0, dueNow: 0, paid: 0 };
+      }
 
-      // Prefer CAD, fall back to USD with conversion
       const conversionRate = config.currency.usdToCadRate;
 
-      const unpaidCad = (cad.unpaid?.cents || 0) / 100;
-      const unpaidUsd = ((usd.unpaid?.cents || 0) / 100) * conversionRate;
+      // GAS logic: Use CAD first, fall back to USD — NEVER sum both
+      // (legacy: var currData = currencies['CAD'] || currencies['USD'] || currencies[first])
+      const currData = stats.CAD || stats.USD;
+      const isUsd = !stats.CAD && !!stats.USD;
 
-      const dueCad = (cad.due?.cents || 0) / 100;
-      const dueUsd = ((usd.due?.cents || 0) / 100) * conversionRate;
+      if (!currData) {
+        return { unpaid: 0, dueNow: 0, paid: 0 };
+      }
 
-      const paidCad = (cad.paid?.cents || 0) / 100;
-      const paidUsd = ((usd.paid?.cents || 0) / 100) * conversionRate;
+      let unpaid = (currData.unpaid?.cents || 0) / 100;
+      let dueNow = (currData.due?.cents || 0) / 100;
+      let paid = (currData.paid?.cents || 0) / 100;
 
-      // Sum CAD + converted USD amounts (both may have values)
+      // Only convert if we're using USD and target is CAD
+      if (isUsd) {
+        unpaid = unpaid * conversionRate;
+        dueNow = dueNow * conversionRate;
+        paid = paid * conversionRate;
+      }
+
       return {
-        unpaid: unpaidCad + unpaidUsd,
-        dueNow: dueCad + dueUsd,
-        paid: paidCad + paidUsd,
+        unpaid: Math.round(unpaid * 100) / 100,
+        dueNow: Math.round(dueNow * 100) / 100,
+        paid: Math.round(paid * 100) / 100,
       };
     } catch (error) {
       log.error('Get commission totals error', { error, affiliateId });
