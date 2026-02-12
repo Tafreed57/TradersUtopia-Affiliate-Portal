@@ -238,17 +238,6 @@ export async function getStudentsCommissionData(
       const studentInternalEmail = link.student.internalEmail || link.student.aliasEmail;
       const studentAliasEmail = link.student.aliasEmail;
 
-      // Skip teachers who selected "none" — they're not real students
-      if (link.student.isTeacher) {
-        const profile = await prisma.attendanceProfile.findUnique({
-          where: { userId: link.student.id },
-          select: { currentTeacherEmail: true },
-        });
-        if (profile?.currentTeacherEmail === 'none') {
-          continue;
-        }
-      }
-
       // Fetch affiliate from Rewardful using internal email
       const affiliateResult = await rewardfulApi.getAffiliateByEmail(studentInternalEmail);
 
@@ -362,20 +351,6 @@ export async function addStudentToTeacherWithContext(
           accountStatus: 'ACTIVE',
         },
       });
-    }
-
-    // Prevent adding a teacher-who-selected-none as a student
-    // (matches GAS behavior: teachers who selected "none" are not students)
-    if (student.isTeacher) {
-      const profile = await prisma.attendanceProfile.findUnique({
-        where: { userId: student.id },
-      });
-      if (profile?.currentTeacherEmail === 'none') {
-        return {
-          success: false,
-          error: 'This user is a teacher and has opted out of teacher assignment. They cannot be added as a student.',
-        };
-      }
     }
 
     // Check if link already exists
