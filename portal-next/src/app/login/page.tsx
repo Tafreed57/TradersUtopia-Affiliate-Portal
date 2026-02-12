@@ -290,9 +290,16 @@ function LoginContent() {
                 setGoogleLoading(true);
                 showMessage('Redirecting to Google...', 'info');
 
+                // Wait briefly for Clerk client to initialize if needed
+                let attempts = 0;
+                while (!clerk.client?.signIn && attempts < 20) {
+                  await new Promise((r) => setTimeout(r, 250));
+                  attempts++;
+                }
+
                 const signInResource = clerk.client?.signIn;
                 if (!signInResource) {
-                  showMessage('Authentication service not ready. Please try again.', 'error');
+                  showMessage('Google sign-in is not available. Please check back later or sign in with email.', 'error');
                   setGoogleLoading(false);
                   return;
                 }
