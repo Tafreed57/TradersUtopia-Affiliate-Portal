@@ -219,6 +219,8 @@ export async function saveAdminOverride(
     totalPaidAmount?: number;
     note?: string;
     reason?: string;
+    percentageMultiplier?: number;
+    percentageEnabled?: boolean;
   },
   token: string
 ): Promise<ApiResponse> {
@@ -243,6 +245,16 @@ export async function saveAdminOverride(
     // Get admin email
     const { user: adminUser } = await getSessionUser(token);
 
+    // Build note with optional percentage metadata
+    let note = data.note || null;
+    if (data.percentageEnabled && data.percentageMultiplier != null) {
+      const pctMeta = JSON.stringify({
+        percentageMultiplier: data.percentageMultiplier,
+        percentageEnabled: data.percentageEnabled,
+      });
+      note = note ? `${note} [PCT:${pctMeta}]` : `[PCT:${pctMeta}]`;
+    }
+
     // Upsert override
     await prisma.commissionOverride.upsert({
       where: { userId: user.id },
@@ -251,7 +263,7 @@ export async function saveAdminOverride(
         unpaidAmount: data.unpaidAmount,
         dueNowAmount: data.dueNowAmount,
         totalPaidAmount: data.totalPaidAmount,
-        note: data.note,
+        note,
         reason: data.reason,
         setBy: adminUser?.aliasEmail,
         setAt: new Date(),
@@ -260,7 +272,7 @@ export async function saveAdminOverride(
         unpaidAmount: data.unpaidAmount,
         dueNowAmount: data.dueNowAmount,
         totalPaidAmount: data.totalPaidAmount,
-        note: data.note,
+        note,
         reason: data.reason,
         setBy: adminUser?.aliasEmail,
         setAt: new Date(),

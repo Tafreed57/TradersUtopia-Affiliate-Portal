@@ -110,7 +110,7 @@ function StudentContent() {
     setRefLoading(true);
     try {
       const result = await gsCall<{ success: boolean; rows?: ReferralRow[]; totalCount?: number }>(
-        'getReferralsWithMode', { email: user.email, mode, page, pageSize: 10 }
+        'getReferralsWithMode', { email: user.email, mode, page, pageSize: 25 }
       );
       if (result.success) {
         setRefRows(result.rows || []);
@@ -211,6 +211,7 @@ function StudentContent() {
               <div className="teacher-form">
                 <select value={selectedTeacher} onChange={(e) => setSelectedTeacher(e.target.value)}>
                   <option value="">Select a teacher...</option>
+                  {user?.isTeacher && <option value="none">None (I am a teacher)</option>}
                   {teachers.map(t => <option key={t.email} value={t.email}>{t.name || t.email}</option>)}
                 </select>
                 <button onClick={handleSelectTeacher} disabled={!selectedTeacher}>Save Teacher</button>
@@ -313,7 +314,7 @@ function StudentContent() {
                   <div className="ref-pagination">
                     <button disabled={refPage <= 1} onClick={() => setRefPage(p => p - 1)}>Prev</button>
                     <span>Page {refPage} ({refTotal} total)</span>
-                    <button disabled={refPage * 10 >= refTotal} onClick={() => setRefPage(p => p + 1)}>Next</button>
+                    <button disabled={refPage * 25 >= refTotal} onClick={() => setRefPage(p => p + 1)}>Next</button>
                   </div>
                 </>
               )}
@@ -339,7 +340,16 @@ function StudentContent() {
             </div>
             <div className="admin-results">
               {adminUsers.map((u, i) => (
-                <div key={i} className="admin-user-card" onClick={() => setAdminSelectedUser(u)}>
+                <div key={i} className="admin-user-card" onClick={async () => {
+                  // Load full dashboard for selected user
+                  try {
+                    const token = getStoredToken();
+                    const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', (u.email as string), token);
+                    setAdminSelectedUser(dash);
+                  } catch {
+                    setAdminSelectedUser(u);
+                  }
+                }}>
                   <div className="admin-user-name">{(u.name as string) || (u.email as string)}</div>
                   <div className="admin-user-email">{u.email as string}</div>
                   {!!(u.isTeacher) && <span className="admin-badge teacher">Teacher</span>}
@@ -347,14 +357,83 @@ function StudentContent() {
                 </div>
               ))}
             </div>
-            {adminSelectedUser && (
-              <div className="admin-user-detail">
-                <h4>User Details: {(adminSelectedUser.name || adminSelectedUser.email) as string}</h4>
-                <p>Email: {adminSelectedUser.email as string}</p>
-                <p>Status: {(adminSelectedUser.accountStatus || 'Unknown') as string}</p>
-                <button className="btn-close-detail" onClick={() => setAdminSelectedUser(null)}>Close</button>
-              </div>
-            )}
+            {adminSelectedUser && (() => {
+              const stu = (adminSelectedUser.student || adminSelectedUser) as Record<string, unknown>;
+              const att = (adminSelectedUser.attendance || {}) as Record<string, unknown>;
+              const refs = (adminSelectedUser.referrals || {}) as Record<string, unknown>;
+              const recs = ((att.recentRecords || []) as Record<string, unknown>[]);
+              return (
+                <div className="admin-user-detail">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
+                    <h4 style={{ margin: 0 }}>Student Dashboard: {(stu.name || stu.email) as string}</h4>
+                    <button className="btn-close-detail" onClick={() => setAdminSelectedUser(null)}>Close</button>
+                  </div>
+
+                  {/* Basic info */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, marginBottom: 16 }}>
+                    <div><strong>Login Email:</strong> {(stu.email as string) || '-'}</div>
+                    <div><strong>Internal Email:</strong> {(stu.internalEmail as string) || '-'}</div>
+                    <div><strong>Teacher:</strong> {(stu.teacherEmail as string) || 'Not assigned'}</div>
+                    <div><strong>Status:</strong> {(stu.accountStatus as string) || '-'}</div>
+                    {!!(stu.isTeacher) && <div><span className="admin-badge teacher">Teacher</span></div>}
+                    {!!(stu.isAdmin) && <div><span className="admin-badge admin">Admin</span></div>}
+                  </div>
+
+                  {/* Attendance stats */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16 }}>
+                    <div className="admin-stat-card"><strong>{(att.totalConfirmed as number) || 0}</strong><span>Confirmed</span></div>
+                    <div className="admin-stat-card"><strong>{(refs.leadsCount as number) || 0}</strong><span>Leads</span></div>
+                    <div className="admin-stat-card"><strong>{(refs.conversionsCount as number) || 0}</strong><span>Conversions</span></div>
+                  </div>
+
+                  {/* Recent attendance */}
+                  {recs.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Recent Attendance</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {recs.map((r, ri) => (
+                          <span key={ri} style={{ padding: '3px 8px', background: '#dcfce7', borderRadius: 6, fontSize: 11, color: '#166534' }}>
+                            {r.date as string}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Admin actions */}
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    <button className="admin-action-btn" onClick={async () => {
+                      const newEmail = prompt('New login email:', (stu.email as string));
+                      if (!newEmail) return;
+                      const token = getStoredToken();
+                      const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateAliasEmail', (stu.email as string), newEmail, token);
+                      alert(r.success ? 'Email updated!' : (r.error || 'Failed'));
+                    }}>Edit Login Email</button>
+                    <button className="admin-action-btn" onClick={async () => {
+                      const newEmail = prompt('New internal/affiliate email:', (stu.internalEmail as string) || '');
+                      if (!newEmail) return;
+                      const token = getStoredToken();
+                      const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateInternalEmail', (stu.email as string), newEmail, token);
+                      alert(r.success ? 'Internal email updated!' : (r.error || 'Failed'));
+                    }}>Edit Internal Email</button>
+                    <button className="admin-action-btn" onClick={async () => {
+                      const newTeacher = prompt('New teacher email:', (stu.teacherEmail as string) || '');
+                      if (!newTeacher) return;
+                      const token = getStoredToken();
+                      const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateStudentTeacher', (stu.email as string), newTeacher, token);
+                      alert(r.success ? 'Teacher updated!' : (r.error || 'Failed'));
+                    }}>Change Teacher</button>
+                    <button className="admin-action-btn danger" onClick={async () => {
+                      if (!confirm(`Delete all attendance for ${stu.email}? This cannot be undone!`)) return;
+                      if (!confirm('Are you absolutely sure?')) return;
+                      const token = getStoredToken();
+                      const r = await gsCall<{ success: boolean; error?: string }>('resetAllAttendance', (stu.email as string), token);
+                      alert(r.success ? 'Attendance reset!' : (r.error || 'Failed'));
+                    }}>Reset All Attendance</button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
@@ -496,10 +575,26 @@ function StudentContent() {
         }
         .admin-user-detail h4 { color: #a78bfa; margin: 0 0 12px; }
         .admin-user-detail p { color: rgba(255,255,255,0.7); font-size: 14px; margin: 4px 0; }
+        .admin-user-detail strong { color: rgba(255,255,255,0.5); }
         .btn-close-detail {
-          margin-top: 12px; padding: 8px 16px; background: rgba(255,255,255,0.1);
+          padding: 8px 16px; background: rgba(255,255,255,0.1);
           color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; font-family: inherit;
         }
+        .admin-stat-card {
+          text-align: center; padding: 12px; background: rgba(255,255,255,0.05);
+          border-radius: 10px; border: 1px solid rgba(139,92,246,0.2);
+        }
+        .admin-stat-card strong { display: block; font-size: 20px; color: #a78bfa; }
+        .admin-stat-card span { font-size: 11px; color: rgba(255,255,255,0.5); }
+        .admin-action-btn {
+          width: 100%; padding: 10px 16px; background: rgba(139,92,246,0.2);
+          color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); border-radius: 10px;
+          cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit;
+          transition: all 0.2s;
+        }
+        .admin-action-btn:hover { background: rgba(139,92,246,0.3); }
+        .admin-action-btn.danger { background: rgba(239,68,68,0.2); color: #fca5a5; border-color: rgba(239,68,68,0.3); }
+        .admin-action-btn.danger:hover { background: rgba(239,68,68,0.3); }
 
         @media (max-width: 768px) {
           .page-container { padding: 20px; }

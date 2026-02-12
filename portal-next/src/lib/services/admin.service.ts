@@ -634,3 +634,399 @@ export async function deleteAttendanceRecord(
     return { success: false, error: 'Failed to delete record' };
   }
 }
+
+// ============================================================================
+// CLEAR CACHES
+// ============================================================================
+
+/**
+ * Clear all caches (referral cache, API cache)
+ * Legacy: clearAllCaches()
+ */
+export async function clearAllCaches(): Promise<ApiResponse> {
+  try {
+    await prisma.referralCache.deleteMany();
+    await prisma.apiCache.deleteMany();
+    log.info('All caches cleared');
+    return { success: true, message: 'All caches cleared' };
+  } catch (error) {
+    log.error('Clear caches error', { error });
+    return { success: false, error: 'Failed to clear caches' };
+  }
+}
+
+// ============================================================================
+// ADMIN MANAGE MODE (audit logging)
+// ============================================================================
+
+/**
+ * Admin start managing a user (audit log)
+ * Legacy: adminStartManageUser(adminEmail, targetEmail)
+ */
+export async function adminStartManageUser(
+  adminEmail: string,
+  targetEmail: string
+): Promise<ApiResponse> {
+  log.info('Admin manage mode started', { admin: adminEmail, target: targetEmail });
+  return { success: true };
+}
+
+/**
+ * Admin stop managing a user (audit log)
+ * Legacy: adminStopManageUser(adminEmail, targetEmail)
+ */
+export async function adminStopManageUser(
+  adminEmail: string,
+  targetEmail: string
+): Promise<ApiResponse> {
+  log.info('Admin manage mode stopped', { admin: adminEmail, target: targetEmail });
+  return { success: true };
+}
+
+// ============================================================================
+// ADMIN STUDENT DASHBOARD
+// ============================================================================
+
+/**
+ * Get full student dashboard for admin
+ * Legacy: adminGetStudentDashboard(studentEmail, token)
+ */
+export async function adminGetStudentDashboard(
+  studentEmail: string,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) {
+    return { success: false, error: 'Unauthorized - admin only' };
+  }
+
+  const normalizedEmail = normalizeEmail(studentEmail);
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { aliasEmail: normalizedEmail },
+      include: {
+        attendanceProfile: {
+          include: { records: { orderBy: { date: 'desc' }, take: 50 } },
+        },
+      },
+    });
+
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+
+    // Get referral data
+    let leadsCount = 0;
+    let conversionsCount = 0;
+    try {
+      const emailForApi = user.internalEmail || user.aliasEmail;
+      const affResult = await rewardfulApi.getAffiliateByEmail(emailForApi);
+      if (affResult.success && affResult.affiliate) {
+        const referrals = await rewardfulApi.getAllReferrals(affResult.affiliate.id);
+        for (const ref of referrals) {
+          const state = (ref.conversion_state || '').toLowerCase();
+          if (state === 'conversion' || ref.became_conversion_at || ref.sale_occurred_at) {
+            conversionsCount++;
+          } else if (state !== 'visitor' && (state === 'lead' || ref.became_lead_at)) {
+            leadsCount++;
+          }
+        }
+      }
+    } catch { /* optional */ }
+
+    const records = user.attendanceProfile?.records || [];
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.aliasEmail;
+
+    return {
+      success: true,
+      student: {
+        email: user.aliasEmail,
+        internalEmail: user.internalEmail,
+        name,
+        accountStatus: user.accountStatus,
+        isTeacher: user.isTeacher,
+        isAdmin: user.isAdmin,
+        teacherEmail: user.attendanceProfile?.currentTeacherEmail,
+        createdAt: user.createdAt?.toISOString(),
+      },
+      attendance: {
+        totalConfirmed: records.length,
+        recentRecords: records.slice(0, 30).map(r => ({
+          date: String(r.date).split('T')[0],
+          confirmed: true,
+        })),
+      },
+      referrals: { leadsCount, conversionsCount, totalCount: leadsCount + conversionsCount },
+    } as ApiResponse;
+  } catch (error) {
+    log.error('Admin get student dashboard error', { error });
+    return { success: false, error: 'Failed to load student dashboard' };
+  }
+}
+
+// ============================================================================
+// ADMIN EMAIL EDITING
+// ============================================================================
+
+/**
+ * Update a user's alias email (login email)
+ * Legacy: adminUpdateAliasEmail(studentEmail, newAliasEmail, token)
+ */
+export async function adminUpdateAliasEmail(
+  studentEmail: string,
+  newAliasEmail: string,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  const normalized = normalizeEmail(studentEmail);
+  const newNormalized = normalizeEmail(newAliasEmail);
+  if (!newNormalized || !newNormalized.includes('@')) {
+    return { success: false, error: 'Invalid email format' };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { aliasEmail: normalized } });
+    if (!user) return { success: false, error: 'User not found' };
+
+    // Check if new email already taken
+    const existing = await prisma.user.findUnique({ where: { aliasEmail: newNormalized } });
+    if (existing && existing.id !== user.id) {
+      return { success: false, error: 'Email already in use by another account' };
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        aliasEmail: newNormalized,
+        email: newNormalized,
+        originalAliasEmail: user.originalAliasEmail || user.aliasEmail,
+      },
+    });
+
+    log.info('Admin updated alias email', { old: normalized, new: newNormalized });
+    return { success: true, message: 'Alias email updated' };
+  } catch (error) {
+    log.error('Admin update alias email error', { error });
+    return { success: false, error: 'Failed to update email' };
+  }
+}
+
+/**
+ * Update a user's internal email (Rewardful/commission email)
+ * Legacy: adminUpdateInternalEmail(studentEmail, newInternalEmail, token)
+ */
+export async function adminUpdateInternalEmail(
+  studentEmail: string,
+  newInternalEmail: string,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  const normalized = normalizeEmail(studentEmail);
+
+  try {
+    const user = await prisma.user.findUnique({ where: { aliasEmail: normalized } });
+    if (!user) return { success: false, error: 'User not found' };
+
+    // Verify the new internal email exists in Rewardful
+    const affResult = await rewardfulApi.getAffiliateByEmail(newInternalEmail);
+    if (!affResult.success || !affResult.affiliate) {
+      return { success: false, error: 'Email not found in affiliate system. Please verify it exists.' };
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        internalEmail: newInternalEmail.toLowerCase().trim(),
+        rewardfulAffiliateId: affResult.affiliate.id,
+      },
+    });
+
+    log.info('Admin updated internal email', { user: normalized, newInternal: newInternalEmail });
+    return { success: true, message: 'Internal email updated' };
+  } catch (error) {
+    log.error('Admin update internal email error', { error });
+    return { success: false, error: 'Failed to update internal email' };
+  }
+}
+
+/**
+ * Update a student's teacher assignment
+ * Legacy: adminUpdateStudentTeacher(studentEmail, newTeacherEmail, token)
+ */
+export async function adminUpdateStudentTeacher(
+  studentEmail: string,
+  newTeacherEmail: string,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  const normalized = normalizeEmail(studentEmail);
+  const normalizedTeacher = normalizeEmail(newTeacherEmail);
+
+  try {
+    const student = await prisma.user.findUnique({
+      where: { aliasEmail: normalized },
+      include: { attendanceProfile: true },
+    });
+    if (!student) return { success: false, error: 'Student not found' };
+
+    // Update attendance profile
+    if (student.attendanceProfile) {
+      await prisma.attendanceProfile.update({
+        where: { id: student.attendanceProfile.id },
+        data: { currentTeacherEmail: normalizedTeacher },
+      });
+    }
+
+    // Update teacher-student link
+    const teacher = await prisma.user.findUnique({ where: { aliasEmail: normalizedTeacher } });
+    if (teacher) {
+      // Remove old links
+      await prisma.teacherStudentLink.updateMany({
+        where: { studentId: student.id, status: 'ACTIVE' },
+        data: { status: 'REMOVED', removedAt: new Date(), removedBy: 'admin' },
+      });
+
+      // Create new link
+      await prisma.teacherStudentLink.upsert({
+        where: { teacherId_studentId: { teacherId: teacher.id, studentId: student.id } },
+        create: { teacherId: teacher.id, studentId: student.id, status: 'ACTIVE', createdBy: 'admin' },
+        update: { status: 'ACTIVE', removedAt: null, removedBy: null },
+      });
+    }
+
+    log.info('Admin updated student teacher', { student: normalized, teacher: normalizedTeacher });
+    return { success: true, message: 'Teacher updated' };
+  } catch (error) {
+    log.error('Admin update student teacher error', { error });
+    return { success: false, error: 'Failed to update teacher' };
+  }
+}
+
+/**
+ * Reset all attendance data for a user
+ * Legacy: resetAllAttendance(email, token)
+ */
+export async function resetAllAttendance(
+  email: string,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  const normalized = normalizeEmail(email);
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { aliasEmail: normalized },
+      include: { attendanceProfile: true },
+    });
+    if (!user?.attendanceProfile) return { success: false, error: 'No attendance data found' };
+
+    await prisma.attendanceRecord.deleteMany({
+      where: { profileId: user.attendanceProfile.id },
+    });
+
+    log.info('Admin reset attendance', { email: normalized });
+    return { success: true, message: 'All attendance records deleted' };
+  } catch (error) {
+    log.error('Reset attendance error', { error });
+    return { success: false, error: 'Failed to reset attendance' };
+  }
+}
+
+/**
+ * Fetch affiliate campaigns from Rewardful
+ * Legacy: fetchAffiliateCampaigns(token)
+ */
+export async function fetchAffiliateCampaigns(
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  try {
+    const result = await rewardfulApi.getCampaigns();
+    return {
+      success: true,
+      campaigns: result.campaigns.map(c => ({
+        id: c.id,
+        name: c.name,
+        commissionPercent: c.commission_percent || c.default_commission_percent,
+      })),
+    } as ApiResponse;
+  } catch (error) {
+    log.error('Fetch campaigns error', { error });
+    return { success: false, error: 'Failed to fetch campaigns' };
+  }
+}
+
+/**
+ * Delete orphaned legacy account
+ * Legacy: adminDeleteOrphanedLegacy(email, token)
+ */
+export async function adminDeleteOrphanedLegacy(
+  email: string,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  const normalized = normalizeEmail(email);
+
+  try {
+    const user = await prisma.user.findUnique({ where: { aliasEmail: normalized } });
+    if (!user) return { success: false, error: 'User not found' };
+
+    // Delete the user and all related data (cascading)
+    await prisma.user.delete({ where: { id: user.id } });
+
+    log.info('Admin deleted orphaned legacy account', { email: normalized });
+    return { success: true, message: 'Account deleted' };
+  } catch (error) {
+    log.error('Admin delete orphaned legacy error', { error });
+    return { success: false, error: 'Failed to delete account' };
+  }
+}
+
+/**
+ * Cleanup all orphaned legacy accounts
+ * Legacy: adminCleanupAllOrphanedLegacy(token)
+ */
+export async function adminCleanupAllOrphanedLegacy(
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  try {
+    // Find users with no password and no attendance profile (orphaned)
+    const orphaned = await prisma.user.findMany({
+      where: {
+        passwordHash: null,
+        accountStatus: { in: ['PENDING', 'APPROVED'] },
+        attendanceProfile: null,
+      },
+    });
+
+    let deleted = 0;
+    for (const user of orphaned) {
+      try {
+        await prisma.user.delete({ where: { id: user.id } });
+        deleted++;
+      } catch { /* skip if cascading fails */ }
+    }
+
+    log.info('Admin bulk cleanup', { found: orphaned.length, deleted });
+    return { success: true, message: `Cleaned up ${deleted} orphaned accounts`, count: deleted } as ApiResponse;
+  } catch (error) {
+    log.error('Cleanup orphaned legacy error', { error });
+    return { success: false, error: 'Failed to cleanup' };
+  }
+}

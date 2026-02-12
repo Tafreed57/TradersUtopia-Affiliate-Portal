@@ -74,7 +74,9 @@ export const functionRegistry: Record<string, AnyFunction> = {
   removeStudentFromTeacher: teacherService.removeStudentFromTeacher,
   setStudentPercentageOverride: teacherService.setStudentPercentageOverride,
   updateTeacherEarnings: teacherService.updateTeacherEarnings,
+  getTeacherEarningsHistory: teacherService.getTeacherEarningsHistory,
   recordTeacherPayout: teacherService.recordTeacherPayout,
+  recordTeacherPayment: teacherService.recordTeacherPayout, // GAS alias
   getAllTeachersPaymentData: teacherService.getAllTeachersPaymentData,
 
   // ========================================================================
@@ -105,6 +107,17 @@ export const functionRegistry: Record<string, AnyFunction> = {
   searchAttendanceUsers: adminService.searchAttendanceUsers,
   getStudentAttendanceStats: adminService.getStudentAttendanceStats,
   deleteAttendanceRecord: adminService.deleteAttendanceRecord,
+  clearAllCaches: adminService.clearAllCaches,
+  adminStartManageUser: adminService.adminStartManageUser,
+  adminStopManageUser: adminService.adminStopManageUser,
+  adminGetStudentDashboard: adminService.adminGetStudentDashboard,
+  adminUpdateAliasEmail: adminService.adminUpdateAliasEmail,
+  adminUpdateInternalEmail: adminService.adminUpdateInternalEmail,
+  adminUpdateStudentTeacher: adminService.adminUpdateStudentTeacher,
+  resetAllAttendance: adminService.resetAllAttendance,
+  fetchAffiliateCampaigns: adminService.fetchAffiliateCampaigns,
+  adminDeleteOrphanedLegacy: adminService.adminDeleteOrphanedLegacy,
+  adminCleanupAllOrphanedLegacy: adminService.adminCleanupAllOrphanedLegacy,
 };
 
 // Export function names as a type for type safety

@@ -81,8 +81,20 @@ function TeacherContent() {
   const [statsData, setStatsData] = useState<Record<string, unknown> | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
+  // Student referrals (for View Stats panel)
+  const [statsRefMode, setStatsRefMode] = useState<'leads' | 'conversions'>('leads');
+  const [statsRefRows, setStatsRefRows] = useState<Record<string, unknown>[]>([]);
+  const [statsRefPage, setStatsRefPage] = useState(1);
+  const [statsRefTotal, setStatsRefTotal] = useState(0);
+  const [statsRefLoading, setStatsRefLoading] = useState(false);
+
   // Per-student percentage
   const [percentageInputs, setPercentageInputs] = useState<Record<string, string>>({});
+
+  // Earnings history (from getTeacherEarningsHistory)
+  const [earningsHistory, setEarningsHistory] = useState<{
+    totalUnpaidEarned: number; totalDueNowEarned: number; totalEarned: number;
+  }>({ totalUnpaidEarned: 0, totalDueNowEarned: 0, totalEarned: 0 });
 
   const formatMoney = (amount: number | undefined | null) => {
     if (amount == null) return '$0.00 CAD';
@@ -121,14 +133,26 @@ function TeacherContent() {
         'getStudentsCommissionData', email, token
       );
       if (result.success && result.students) {
-        // Convert array to map by email for easy lookup
         const map: Record<string, StudentCommission> = {};
         result.students.forEach(s => { map[s.email] = s; });
         setCommissionData(map);
       }
-    } catch {
-      // Silent fail
-    }
+    } catch { /* silent */ }
+  }, []);
+
+  const loadEarningsHistory = useCallback(async (email: string) => {
+    try {
+      const result = await gsCall<{
+        success: boolean; totalUnpaidEarned?: number; totalDueNowEarned?: number; totalEarned?: number;
+      }>('getTeacherEarningsHistory', email);
+      if (result.success) {
+        setEarningsHistory({
+          totalUnpaidEarned: result.totalUnpaidEarned || 0,
+          totalDueNowEarned: result.totalDueNowEarned || 0,
+          totalEarned: result.totalEarned || 0,
+        });
+      }
+    } catch { /* silent */ }
   }, []);
 
   useEffect(() => {
@@ -137,7 +161,8 @@ function TeacherContent() {
     setTargetEmail(email);
     loadTeacherData(email);
     loadCommissionData(email);
-  }, [sessionLoading, user, loadTeacherData, loadCommissionData]);
+    loadEarningsHistory(email);
+  }, [sessionLoading, user, loadTeacherData, loadCommissionData, loadEarningsHistory]);
 
   const handleAddStudent = async () => {
     if (!newStudentEmail.trim()) return;
@@ -190,9 +215,24 @@ function TeacherContent() {
       await gsCall('updateTeacherEarnings', targetEmail, token);
       setMsg({ text: 'Earnings updated!', type: 'success' });
       loadTeacherData(targetEmail);
+      loadEarningsHistory(targetEmail);
     } catch (err) {
       setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
     }
+  };
+
+  const loadStudentReferrals = async (studentEmail: string, mode: 'leads' | 'conversions', page: number) => {
+    setStatsRefLoading(true);
+    try {
+      const result = await gsCall<{
+        success: boolean; rows?: Record<string, unknown>[]; totalCount?: number;
+      }>('getStudentReferralsForTeacher', targetEmail, studentEmail, mode, page, 25);
+      if (result.success) {
+        setStatsRefRows(result.rows || []);
+        setStatsRefTotal(result.totalCount || 0);
+      }
+    } catch { /* silent */ }
+    finally { setStatsRefLoading(false); }
   };
 
   const handleViewStats = async (studentEmail: string) => {
@@ -200,12 +240,18 @@ function TeacherContent() {
     setViewingStats(studentEmail);
     setStatsLoading(true);
     setStatsData(null);
+    setStatsRefMode('leads');
+    setStatsRefPage(1);
+    setStatsRefRows([]);
+    setStatsRefTotal(0);
     try {
       const token = getStoredToken();
       const result = await gsCall<Record<string, unknown>>(
         'getStudentAttendanceStats', targetEmail, studentEmail, token
       );
       setStatsData(result);
+      // Also load referrals
+      loadStudentReferrals(studentEmail, 'leads', 1);
     } catch {
       setStatsData(null);
     } finally {
@@ -284,21 +330,21 @@ function TeacherContent() {
               </div>
             </div>
 
-            {/* Locked earnings */}
+            {/* Locked earnings - matches GAS: Locked Unpaid Earned, Locked Due Now Earned, Total Locked */}
             <div className="locked-section">
               <h3>Your Locked Earnings</h3>
               <div className="locked-grid">
                 <div className="locked-card">
-                  <div className="locked-value">{formatMoney(data.earnings?.lockedEarnings)}</div>
-                  <div className="locked-label">Locked Earnings</div>
+                  <div className="locked-value">{formatMoney(earningsHistory.totalUnpaidEarned)}</div>
+                  <div className="locked-label">Locked Unpaid Earned</div>
                 </div>
                 <div className="locked-card">
-                  <div className="locked-value">{formatMoney(data.earnings?.totalEarnedAllTime)}</div>
-                  <div className="locked-label">Total Earned All-Time</div>
+                  <div className="locked-value">{formatMoney(earningsHistory.totalDueNowEarned)}</div>
+                  <div className="locked-label">Locked Due Now Earned</div>
                 </div>
                 <div className="locked-card highlight">
-                  <div className="locked-value">{formatMoney(data.earnings?.totalPaidAllTime)}</div>
-                  <div className="locked-label">Total Paid All-Time</div>
+                  <div className="locked-value">{formatMoney(earningsHistory.totalEarned)}</div>
+                  <div className="locked-label">Total Locked Earnings</div>
                 </div>
               </div>
               <button className="btn-update-earnings" onClick={handleUpdateEarnings}>Update My Earnings</button>
@@ -370,7 +416,6 @@ function TeacherContent() {
                             <p className="loading-text">Loading stats...</p>
                           ) : statsData ? (() => {
                             const stats = (statsData as Record<string, unknown>).stats as Record<string, unknown> || {};
-                            const refs = (statsData as Record<string, unknown>).referrals as Record<string, unknown> || {};
                             const studentInfo = (statsData as Record<string, unknown>).student as Record<string, unknown> || {};
                             const recentRecs = ((statsData as Record<string, unknown>).recentRecords || []) as Record<string, unknown>[];
                             return (
@@ -390,18 +435,6 @@ function TeacherContent() {
                                   <div className="mini-stat"><strong>{(stats.streak as number) || 0}</strong><span>Streak</span></div>
                                 </div>
 
-                                {/* Referrals */}
-                                {refs && (
-                                  <div style={{ marginTop: 12, padding: 12, background: '#f0fdf4', borderRadius: 8 }}>
-                                    <p style={{ fontSize: 12, fontWeight: 600, color: '#047857', marginBottom: 8 }}>Referrals</p>
-                                    <div className="mini-stats-grid">
-                                      <div className="mini-stat"><strong>{(refs.leadsCount as number) || 0}</strong><span>Leads</span></div>
-                                      <div className="mini-stat"><strong>{(refs.conversionsCount as number) || 0}</strong><span>Conversions</span></div>
-                                      <div className="mini-stat"><strong>{(refs.totalCount as number) || 0}</strong><span>Total</span></div>
-                                    </div>
-                                  </div>
-                                )}
-
                                 {/* Recent attendance records */}
                                 {recentRecs.length > 0 && (
                                   <div style={{ marginTop: 12 }}>
@@ -415,6 +448,46 @@ function TeacherContent() {
                                     </div>
                                   </div>
                                 )}
+
+                                {/* Referrals table with Leads/Conversions toggle */}
+                                <div style={{ marginTop: 16 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                                    <p style={{ fontSize: 13, fontWeight: 600, color: '#475569', margin: 0 }}>Referrals</p>
+                                    <div className="ref-toggle-mini">
+                                      <button className={statsRefMode === 'leads' ? 'active' : ''} onClick={() => { setStatsRefMode('leads'); setStatsRefPage(1); loadStudentReferrals(student.email, 'leads', 1); }}>Leads</button>
+                                      <button className={statsRefMode === 'conversions' ? 'active' : ''} onClick={() => { setStatsRefMode('conversions'); setStatsRefPage(1); loadStudentReferrals(student.email, 'conversions', 1); }}>Conversions</button>
+                                    </div>
+                                  </div>
+
+                                  {statsRefLoading ? (
+                                    <p className="loading-text">Loading referrals...</p>
+                                  ) : statsRefRows.length === 0 ? (
+                                    <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: 12 }}>No {statsRefMode} found</p>
+                                  ) : (
+                                    <>
+                                      <table className="ref-table-mini">
+                                        <thead>
+                                          <tr><th>State</th><th>First Click</th><th>Became Lead</th><th>Converted</th></tr>
+                                        </thead>
+                                        <tbody>
+                                          {statsRefRows.map((r, ri) => (
+                                            <tr key={ri}>
+                                              <td>{(r.state as string) || '-'}</td>
+                                              <td>{r.firstClickAt ? new Date(r.firstClickAt as string).toLocaleDateString() : '-'}</td>
+                                              <td>{r.becameLeadAt ? new Date(r.becameLeadAt as string).toLocaleDateString() : '-'}</td>
+                                              <td>{(r.convertedAt || r.becameConversionAt) ? new Date((r.convertedAt || r.becameConversionAt) as string).toLocaleDateString() : '-'}</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 8, fontSize: 12 }}>
+                                        <button disabled={statsRefPage <= 1} onClick={() => { const p = statsRefPage - 1; setStatsRefPage(p); loadStudentReferrals(student.email, statsRefMode, p); }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 12 }}>Prev</button>
+                                        <span>Page {statsRefPage} ({statsRefTotal} total)</span>
+                                        <button disabled={statsRefPage * 25 >= statsRefTotal} onClick={() => { const p = statsRefPage + 1; setStatsRefPage(p); loadStudentReferrals(student.email, statsRefMode, p); }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 12 }}>Next</button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             );
                           })() : (
@@ -583,6 +656,27 @@ function TeacherContent() {
         }
         .mini-stat strong { display: block; font-size: 20px; color: #1e293b; }
         .mini-stat span { font-size: 11px; color: #64748b; }
+
+        .ref-toggle-mini { display: flex; gap: 4px; }
+        .ref-toggle-mini button {
+          padding: 4px 12px; border: 1px solid #e2e8f0; border-radius: 6px;
+          background: white; cursor: pointer; font-size: 11px; font-family: inherit;
+        }
+        .ref-toggle-mini button.active {
+          background: #667eea; color: white; border-color: #667eea;
+        }
+
+        .ref-table-mini {
+          width: 100%; border-collapse: collapse; font-size: 12px;
+          background: white; border-radius: 8px; overflow: hidden;
+        }
+        .ref-table-mini th {
+          padding: 8px 6px; background: #f1f5f9; color: #475569;
+          font-weight: 600; text-align: left; border-bottom: 1px solid #e2e8f0;
+        }
+        .ref-table-mini td {
+          padding: 8px 6px; border-bottom: 1px solid #f1f5f9; color: #64748b;
+        }
 
         .footer-actions { text-align: center; }
         .btn-refresh {

@@ -195,6 +195,8 @@ function CommissionContent() {
         totalPaidAmount: adminTotalPaid ? Number(adminTotalPaid) : null,
         note: adminLastPayout || null,
         reason: adminStatus || null,
+        percentageMultiplier: percentageEnabled && adminPercentage ? Number(adminPercentage) : null,
+        percentageEnabled: percentageEnabled,
       }, token);
       showMsg('Override saved successfully!', '#059669');
       setTimeout(() => fetchData(currentEmail, true), 500);
