@@ -285,18 +285,27 @@ function LoginContent() {
             type="button"
             className="google-btn"
             disabled={googleLoading}
-            onClick={() => {
-              clerk.openSignIn({
-                appearance: { elements: { rootBox: { display: 'none' } } },
-              });
-              // Use Clerk's OAuth redirect for Google
-              clerk.client?.signIn.authenticateWithRedirect({
-                strategy: 'oauth_google',
-                redirectUrl: '/login',
-                redirectUrlComplete: '/login',
-              }).catch(() => {
+            onClick={async () => {
+              try {
+                setGoogleLoading(true);
+                showMessage('Redirecting to Google...', 'info');
+
+                const signInResource = clerk.client?.signIn;
+                if (!signInResource) {
+                  showMessage('Authentication service not ready. Please try again.', 'error');
+                  setGoogleLoading(false);
+                  return;
+                }
+
+                await signInResource.authenticateWithRedirect({
+                  strategy: 'oauth_google',
+                  redirectUrl: '/sso-callback',
+                  redirectUrlComplete: '/login',
+                });
+              } catch {
                 showMessage('Failed to start Google sign-in.', 'error');
-              });
+                setGoogleLoading(false);
+              }
             }}
           >
             {googleLoading ? (
