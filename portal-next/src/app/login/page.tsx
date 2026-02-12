@@ -17,7 +17,7 @@ import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 import { gs, setStoredToken, gsCall } from '@/lib/client/gs-compat';
-import { useUser, useClerk, useSignIn } from '@clerk/nextjs';
+import { useUser, useClerk } from '@clerk/nextjs';
 
 function LoginContent() {
   const router = useRouter();
@@ -34,7 +34,6 @@ function LoginContent() {
   // Clerk hooks for Google sign-in
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
   const clerk = useClerk();
-  const { signIn, isLoaded: signInLoaded } = useSignIn();
 
   // Pre-fill email from URL param
   useEffect(() => {
@@ -286,25 +285,18 @@ function LoginContent() {
             type="button"
             className="google-btn"
             disabled={googleLoading}
-            onClick={async () => {
-              if (!signInLoaded || !signIn) {
+            onClick={() => {
+              if (!clerk.loaded) {
                 showMessage('Google sign-in is loading. Please wait a moment and try again.', 'info');
                 return;
               }
-              try {
-                setGoogleLoading(true);
-                showMessage('Redirecting to Google...', 'info');
-
-                await signIn.authenticateWithRedirect({
-                  strategy: 'oauth_google',
-                  redirectUrl: '/sso-callback',
-                  redirectUrlComplete: '/login',
-                });
-              } catch (err) {
-                console.error('Google sign-in error:', err);
-                showMessage('Failed to start Google sign-in. Please try again.', 'error');
-                setGoogleLoading(false);
-              }
+              // Open Clerk's sign-in modal. Since only Google is enabled,
+              // it shows just the Google option. After auth, useUser() fires
+              // and our useEffect handles the rest.
+              clerk.openSignIn({
+                forceRedirectUrl: '/login',
+                fallbackRedirectUrl: '/login',
+              });
             }}
           >
             {googleLoading ? (
