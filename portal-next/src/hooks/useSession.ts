@@ -20,6 +20,7 @@ export interface SessionUser {
   name: string;
   isTeacher: boolean;
   isAdmin: boolean;
+  isSupervisor?: boolean;
 }
 
 export interface UseSessionResult {

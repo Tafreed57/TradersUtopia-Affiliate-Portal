@@ -54,6 +54,7 @@ export function Navigation({ title, variant = 'dark-bg', hideBack = false }: Nav
           <span className="user-info">
             {user.name || user.email}
             {user.isAdmin && <span className="role-badge admin">Admin</span>}
+            {user.isSupervisor && !user.isAdmin && <span className="role-badge supervisor">Supervisor</span>}
             {user.isTeacher && !user.isAdmin && <span className="role-badge teacher">Teacher</span>}
           </span>
         )}
@@ -173,6 +174,10 @@ export function Navigation({ title, variant = 'dark-bg', hideBack = false }: Nav
           color: white;
         }
 
+        .role-badge.supervisor {
+          background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+          color: white;
+        }
         .role-badge.teacher {
           background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
           color: white;

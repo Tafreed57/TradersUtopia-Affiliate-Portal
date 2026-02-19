@@ -76,8 +76,9 @@ model User {
   rewardfulAffiliateId String?
 
   // Role flags (computed from email lists in legacy, stored for efficiency)
-  isAdmin   Boolean @default(false)
-  isTeacher Boolean @default(false)
+  isAdmin      Boolean @default(false)
+  isTeacher    Boolean @default(false)
+  isSupervisor Boolean @default(false) // Only admin can set; supervisor can view-as by email
 
   // Relations
   sessions             Session[]

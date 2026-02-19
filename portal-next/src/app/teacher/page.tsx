@@ -110,6 +110,7 @@ function TeacherContent() {
   const [acceptRejectLoading, setAcceptRejectLoading] = useState<string | null>(null);
   const [removeConfirmStudent, setRemoveConfirmStudent] = useState<StudentItem | null>(null);
   const [removeLoading, setRemoveLoading] = useState(false);
+  const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
 
   // Earnings history (from getTeacherEarningsHistory)
   const [earningsHistory, setEarningsHistory] = useState<{
@@ -398,6 +399,43 @@ function TeacherContent() {
     <div className="page-bg">
       <div className="page-container">
         <Navigation title="Teacher Portal" variant="light-bg" />
+
+        {/* Supervisor: view as teacher by email */}
+        {user?.isSupervisor && !user?.isAdmin && (
+          <div className="supervisor-bar">
+            <label>View as teacher:</label>
+            <input
+              type="email"
+              value={supervisorViewAsEmail}
+              onChange={(e) => setSupervisorViewAsEmail(e.target.value)}
+              placeholder="Enter teacher email..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && supervisorViewAsEmail.trim()) {
+                  const email = supervisorViewAsEmail.trim();
+                  setTargetEmail(email);
+                  loadTeacherData(email);
+                  loadCommissionData(email);
+                  loadEarningsHistory(email);
+                  loadOpenRequests();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const email = supervisorViewAsEmail.trim();
+                if (!email) return;
+                setTargetEmail(email);
+                loadTeacherData(email);
+                loadCommissionData(email);
+                loadEarningsHistory(email);
+                loadOpenRequests();
+              }}
+            >
+              View
+            </button>
+          </div>
+        )}
 
         {/* Admin manage-user banner */}
         {isManaging && (
@@ -762,6 +800,20 @@ function TeacherContent() {
         }
         @keyframes fadeIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
 
+        .supervisor-bar {
+          display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+          padding: 12px 16px; background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+          border-radius: 12px; border: 1px solid #a78bfa;
+        }
+        .supervisor-bar label { font-weight: 600; color: #5b21b6; font-size: 14px; }
+        .supervisor-bar input {
+          flex: 1; min-width: 200px; padding: 10px 14px; border: 2px solid #c4b5fd;
+          border-radius: 10px; font-size: 14px; font-family: inherit;
+        }
+        .supervisor-bar button {
+          padding: 10px 20px; background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+          color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: inherit;
+        }
         .manage-banner {
           background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 12px 20px;
           border-radius: 12px; border: 2px solid #f59e0b; margin-bottom: 20px;

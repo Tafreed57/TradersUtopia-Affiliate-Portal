@@ -26,9 +26,11 @@ const log = logger.child({ service: 'assignment' });
 /**
  * Get current teacher and any open change request for the logged-in student.
  * GET /student/me/teacher
+ * When viewAsEmail is provided and caller is supervisor, returns data for that student.
  */
 export async function getStudentCurrentTeacher(
-  token: string
+  token: string,
+  viewAsEmail?: string
 ): Promise<ApiResponse & { data?: StudentTeacherState }> {
   const { user: sessionUser } = await getSessionUser(token);
   if (!sessionUser) {
@@ -36,7 +38,20 @@ export async function getStudentCurrentTeacher(
   }
 
   try {
-    const studentId = sessionUser.id;
+    let studentId = sessionUser.id;
+    if (viewAsEmail && viewAsEmail.trim() && sessionUser.isSupervisor) {
+      const normalizedViewAs = normalizeEmail(viewAsEmail.trim());
+      if (!normalizedViewAs) return { success: false, error: 'Invalid email' };
+      const target = await prisma.user.findUnique({
+        where: { aliasEmail: normalizedViewAs },
+      });
+      if (!target) return { success: false, error: 'User not found' };
+      studentId = target.id;
+    } else if (viewAsEmail && viewAsEmail.trim() && !sessionUser.isSupervisor && !sessionUser.isAdmin) {
+      return { success: false, error: 'Not authorized' };
+    }
+
+    // Current ACTIVE assignment only (single active per student enforced in app)
 
     // Current ACTIVE assignment only (single active per student enforced in app)
     const activeLink = await prisma.teacherStudentLink.findFirst({

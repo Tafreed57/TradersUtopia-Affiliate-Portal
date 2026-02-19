@@ -131,6 +131,7 @@ export const functionRegistry: Record<string, AnyFunction> = {
   adminUpdateAliasEmail: adminService.adminUpdateAliasEmail,
   adminUpdateInternalEmail: adminService.adminUpdateInternalEmail,
   adminUpdateStudentTeacher: adminService.adminUpdateStudentTeacher,
+  adminSetSupervisor: adminService.adminSetSupervisor,
   resetAllAttendance: adminService.resetAllAttendance,
   fetchAffiliateCampaigns: adminService.fetchAffiliateCampaigns,
   adminDeleteOrphanedLegacy: adminService.adminDeleteOrphanedLegacy,

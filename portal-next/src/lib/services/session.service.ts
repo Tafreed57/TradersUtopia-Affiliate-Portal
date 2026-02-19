@@ -75,6 +75,7 @@ export async function validateSessionToken(
           .join(' ') || session.user.aliasEmail,
         isTeacher: session.user.isTeacher,
         isAdmin: session.user.isAdmin,
+        isSupervisor: session.user.isSupervisor,
       },
       expiresAt: session.expiresAt.getTime(),
     };
@@ -204,6 +205,7 @@ export async function createSession(aliasEmail: string): Promise<ApiResponse & {
         name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.aliasEmail,
         isTeacher,
         isAdmin,
+        isSupervisor: user.isSupervisor,
       },
     };
   } catch (error) {
@@ -355,7 +357,7 @@ export async function checkPortalAccess(
  * Get session user by token (internal helper)
  */
 export async function getSessionUser(token: string): Promise<{
-  user: { id: string; aliasEmail: string; internalEmail: string | null; isAdmin: boolean; isTeacher: boolean } | null;
+  user: { id: string; aliasEmail: string; internalEmail: string | null; isAdmin: boolean; isTeacher: boolean; isSupervisor: boolean } | null;
   isAdmin: boolean;
 }> {
   if (!token) {

@@ -437,6 +437,7 @@ export async function searchAttendanceUsers(
       accountStatus: u.accountStatus,
       isTeacher: u.isTeacher,
       isAdmin: u.isAdmin,
+      isSupervisor: u.isSupervisor,
       teacherEmail: u.attendanceProfile?.currentTeacherEmail || undefined,
       createdAt: u.createdAt.toISOString(),
       hasPassword: !!u.passwordHash,
@@ -771,6 +772,7 @@ export async function adminGetStudentDashboard(
         accountStatus: user.accountStatus,
         isTeacher: user.isTeacher,
         isAdmin: user.isAdmin,
+        isSupervisor: user.isSupervisor,
         teacherEmail: user.attendanceProfile?.currentTeacherEmail,
         createdAt: user.createdAt?.toISOString(),
       },
@@ -930,6 +932,37 @@ export async function adminUpdateStudentTeacher(
   } catch (error) {
     log.error('Admin update student teacher error', { error });
     return { success: false, error: 'Failed to update teacher' };
+  }
+}
+
+/**
+ * Set or unset a user as supervisor. Admin only.
+ * Legacy: adminSetSupervisor(userEmail, isSupervisor, token)
+ */
+export async function adminSetSupervisor(
+  userEmail: string,
+  isSupervisor: boolean,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  const normalized = normalizeEmail(userEmail);
+
+  try {
+    const user = await prisma.user.findUnique({ where: { aliasEmail: normalized } });
+    if (!user) return { success: false, error: 'User not found' };
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isSupervisor },
+    });
+
+    log.info('Admin set supervisor', { email: normalized, isSupervisor });
+    return { success: true, message: isSupervisor ? 'User set as supervisor' : 'Supervisor role removed' };
+  } catch (error) {
+    log.error('Admin set supervisor error', { error });
+    return { success: false, error: 'Failed to update supervisor' };
   }
 }
 

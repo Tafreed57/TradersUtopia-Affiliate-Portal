@@ -32,6 +32,13 @@ export async function lookupAffiliate(
     return { success: false, error: 'Email is required' };
   }
 
+  if (sessionToken) {
+    const { user: sessionUser } = await getSessionUser(sessionToken);
+    if (sessionUser && sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
+      return { success: false, error: 'Not authorized to view this affiliate\'s data' };
+    }
+  }
+
   log.info('Looking up affiliate', { email: normalizedEmail });
 
   try {

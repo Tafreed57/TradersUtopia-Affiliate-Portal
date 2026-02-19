@@ -145,6 +145,9 @@ export async function getAttendanceData(
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
   }
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
+    return { success: false, error: 'Not authorized to view this user\'s data' };
+  }
 
   try {
     // Find user with attendance profile
@@ -315,6 +318,9 @@ export async function confirmAttendance(
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
   }
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
+    return { success: false, error: 'Not authorized to confirm attendance for this user' };
+  }
 
   // Validate date format
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
@@ -444,7 +450,7 @@ export async function deleteOwnAttendanceRecord(
   const normalizedEmail = normalizeEmail(email);
 
   // Users can only delete their own records
-  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin) {
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
     return { success: false, error: 'You can only delete your own records' };
   }
 

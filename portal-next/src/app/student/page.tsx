@@ -74,19 +74,25 @@ function StudentContent() {
   const [changeRequestSubmitting, setChangeRequestSubmitting] = useState(false);
   const [cancelRequestSubmitting, setCancelRequestSubmitting] = useState(false);
 
+  // Supervisor view-as (by email)
+  const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
+
   // Admin user search
   const [adminSearch, setAdminSearch] = useState('');
   const [adminUsers, setAdminUsers] = useState<Record<string, unknown>[]>([]);
   const [adminSearching, setAdminSearching] = useState(false);
   const [adminSelectedUser, setAdminSelectedUser] = useState<Record<string, unknown> | null>(null);
 
-  const loadData = useCallback(async () => {
-    if (!user?.email) return;
+  const effectiveEmail = (user?.isSupervisor && supervisorViewAsEmail.trim()) ? supervisorViewAsEmail.trim() : user?.email ?? '';
+
+  const loadData = useCallback(async (overrideEmail?: string) => {
+    const email = overrideEmail ?? effectiveEmail;
+    if (!email) return;
     setLoading(true);
     try {
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; data?: AttendancePageData; error?: string }>(
-        'getAttendanceData', user.email, token
+        'getAttendanceData', email, token
       );
       if (result.success && result.data) {
         setData(result.data);
@@ -108,7 +114,7 @@ function StudentContent() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveEmail]);
 
   const loadTeachers = async () => {
     setLoadingTeachers(true);
@@ -119,12 +125,13 @@ function StudentContent() {
     finally { setLoadingTeachers(false); }
   };
 
-  const loadTeacherState = useCallback(async () => {
+  const loadTeacherState = useCallback(async (viewAsOverride?: string) => {
     const token = getStoredToken();
     if (!token) return;
     setLoadingTeacherState(true);
     try {
-      const result = await gs.getStudentCurrentTeacher(token);
+      const viewAs = viewAsOverride ?? ((user?.isSupervisor && supervisorViewAsEmail.trim()) ? supervisorViewAsEmail.trim() : undefined);
+      const result = await gs.getStudentCurrentTeacher(token, viewAs);
       if (result.success && result.data) setTeacherState(result.data);
       else setTeacherState({ teacher: null, openRequest: null });
     } catch {
@@ -132,7 +139,7 @@ function StudentContent() {
     } finally {
       setLoadingTeacherState(false);
     }
-  }, []);
+  }, [user, supervisorViewAsEmail]);
 
   const openChangeTeacherModal = useCallback(async () => {
     setChangeTeacherOpen(true);
@@ -223,13 +230,13 @@ function StudentContent() {
   }, [data, refMode, refPage, loadReferrals]);
 
   const handleConfirm = async () => {
-    if (confirming || !user?.email) return;
+    if (confirming || !effectiveEmail) return;
     setConfirming(true);
     try {
       const today = new Date().toISOString().split('T')[0];
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; error?: string; date?: string; confirmationNumber?: number }>(
-        'confirmAttendance', user.email, today, token
+        'confirmAttendance', effectiveEmail, today, token
       );
       if (result.success) {
         setMsg({ text: 'Attendance confirmed!', type: 'success' });
@@ -334,6 +341,34 @@ function StudentContent() {
         <Navigation title="Student Dashboard" variant="light-bg" />
 
         {msg && <div className={`message ${msg.type}`}>{msg.text}</div>}
+
+        {/* Supervisor: view as student by email */}
+        {user?.isSupervisor && !user?.isAdmin && (
+          <div className="supervisor-bar">
+            <label>View as student:</label>
+            <input
+              type="email"
+              value={supervisorViewAsEmail}
+              onChange={(e) => setSupervisorViewAsEmail(e.target.value)}
+              placeholder="Enter student email..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const trimmed = supervisorViewAsEmail.trim();
+                  if (trimmed) { setSupervisorViewAsEmail(trimmed); loadData(trimmed); loadTeacherState(trimmed); }
+                }
+              }}
+            />
+            <button type="button" onClick={() => {
+              const trimmed = supervisorViewAsEmail.trim();
+              if (!trimmed) return;
+              setSupervisorViewAsEmail(trimmed);
+              loadData(trimmed);
+              loadTeacherState(trimmed);
+            }}>
+              View
+            </button>
+          </div>
+        )}
 
         {/* My Teacher (request + approval workflow) */}
         {!loadingTeacherState && (
@@ -571,7 +606,8 @@ function StudentContent() {
                   <div className="admin-card-badges">
                     {!!(u.isTeacher) && <span className="admin-badge teacher">Teacher</span>}
                     {!!(u.isAdmin) && <span className="admin-badge admin">Admin</span>}
-                    {!(u.isTeacher) && !(u.isAdmin) && <span className="admin-badge student">Student</span>}
+                    {!!(u.isSupervisor) && <span className="admin-badge supervisor">Supervisor</span>}
+                    {!(u.isTeacher) && !(u.isAdmin) && !(u.isSupervisor) && <span className="admin-badge student">Student</span>}
                   </div>
                 </div>
               ))}
@@ -603,6 +639,7 @@ function StudentContent() {
                     <div><strong>Status:</strong> {(stu.accountStatus as string) || '-'}</div>
                     {!!(stu.isTeacher) && <div><span className="admin-badge teacher">Teacher</span></div>}
                     {!!(stu.isAdmin) && <div><span className="admin-badge admin">Admin</span></div>}
+                    {!!(stu.isSupervisor) && <div><span className="admin-badge supervisor">Supervisor</span></div>}
                   </div>
 
                   {/* Attendance stats */}
@@ -649,6 +686,19 @@ function StudentContent() {
                       const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateStudentTeacher', (stu.email as string), newTeacher, token);
                       alert(r.success ? 'Teacher updated!' : (r.error || 'Failed'));
                     }}>Change Teacher</button>
+                    <button className="admin-action-btn" onClick={async () => {
+                      const token = getStoredToken();
+                      if (!token) return;
+                      const isSupervisor = !!(stu.isSupervisor);
+                      const r = await gs.adminSetSupervisor((stu.email as string), !isSupervisor, token);
+                      if (r.success) {
+                        setMsg({ text: !isSupervisor ? 'User set as supervisor.' : 'Supervisor role removed.', type: 'success' });
+                        const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', (stu.email as string), token);
+                        setAdminSelectedUser(dash);
+                      } else {
+                        setMsg({ text: r.error || 'Failed', type: 'error' });
+                      }
+                    }}>{(stu.isSupervisor) ? 'Remove supervisor' : 'Set as supervisor'}</button>
                     <button className="admin-action-btn danger" onClick={async () => {
                       if (!confirm(`Delete all attendance for ${stu.email}? This cannot be undone!`)) return;
                       if (!confirm('Are you absolutely sure?')) return;
@@ -806,6 +856,21 @@ function StudentContent() {
         .ref-pagination button:disabled { background: #cbd5e1; cursor: not-allowed; }
         .ref-pagination span { font-size: 13px; color: #64748b; }
 
+        .supervisor-bar {
+          display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+          padding: 12px 16px; background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+          border-radius: 12px; border: 1px solid #a78bfa;
+        }
+        .supervisor-bar label { font-weight: 600; color: #5b21b6; font-size: 14px; }
+        .supervisor-bar input {
+          flex: 1; min-width: 200px; padding: 10px 14px; border: 2px solid #c4b5fd;
+          border-radius: 10px; font-size: 14px; font-family: inherit;
+        }
+        .supervisor-bar button {
+          padding: 10px 20px; background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+          color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: inherit;
+        }
+
         /* Admin section */
         .admin-section {
           margin-top: 24px; padding: 28px;
@@ -906,6 +971,7 @@ function StudentContent() {
         }
         .admin-badge.teacher { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
         .admin-badge.admin { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .admin-badge.supervisor { background: rgba(139,92,246,0.2); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); }
         .admin-badge.student { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.2); }
 
         .admin-dash-loading {

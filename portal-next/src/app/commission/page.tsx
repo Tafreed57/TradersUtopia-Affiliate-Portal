@@ -56,6 +56,7 @@ function CommissionContent() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [adminLookupEmail, setAdminLookupEmail] = useState('');
+  const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
 
   // Admin override state
   const [adminUnpaid, setAdminUnpaid] = useState('');
@@ -99,7 +100,7 @@ function CommissionContent() {
     showMsg('Fetching commission data...', '#64748b');
     try {
       const token = getStoredToken();
-      const raw = await gsCall<{ success: boolean; data?: CommissionResult; error?: string }>('lookupAffiliate', email, token);
+      const raw = await gsCall<{ success: boolean; data?: CommissionResult; error?: string }>('lookupAffiliate', email, token ?? undefined);
       
       // The backend returns { success, data: CommissionData } - unwrap the data
       const commData = raw.data || raw as unknown as CommissionResult;
@@ -284,6 +285,23 @@ function CommissionContent() {
 
       <div className="container">
         <h2>Affiliate Commission Lookup</h2>
+
+        {/* Supervisor: view as affiliate by email */}
+        {user?.isSupervisor && !user?.isAdmin && (
+          <div className="supervisor-bar">
+            <label>View as affiliate:</label>
+            <input
+              type="email"
+              value={supervisorViewAsEmail}
+              onChange={(e) => setSupervisorViewAsEmail(e.target.value)}
+              placeholder="Enter affiliate email..."
+              onKeyDown={(e) => e.key === 'Enter' && supervisorViewAsEmail.trim() && fetchData(supervisorViewAsEmail.trim())}
+            />
+            <button type="button" onClick={() => supervisorViewAsEmail.trim() && fetchData(supervisorViewAsEmail.trim())}>
+              View
+            </button>
+          </div>
+        )}
 
         {/* Field explanations */}
         <div className="info-box">
@@ -594,6 +612,20 @@ function CommissionContent() {
         }
         .info-box strong { color: #1e3a8a; display: block; margin-bottom: 8px; font-size: 14px; }
 
+        .supervisor-bar {
+          display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+          padding: 12px 16px; background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+          border-radius: 12px; border: 1px solid #a78bfa;
+        }
+        .supervisor-bar label { font-weight: 600; color: #5b21b6; font-size: 14px; }
+        .supervisor-bar input {
+          flex: 1; min-width: 200px; padding: 10px 14px; border: 2px solid #c4b5fd;
+          border-radius: 10px; font-size: 14px; font-family: inherit;
+        }
+        .supervisor-bar button {
+          padding: 10px 20px; background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+          color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: inherit;
+        }
         .identity-box { margin-bottom: 20px; }
         .identity-inner {
           background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 16px 20px;

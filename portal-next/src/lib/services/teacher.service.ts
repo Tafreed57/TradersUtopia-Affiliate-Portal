@@ -128,8 +128,11 @@ export async function getTeacherDataWithContext(
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
   }
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
+    return { success: false, error: 'Not authorized to view this teacher\'s data' };
+  }
 
-  // Verify teacher access
+  // Verify teacher access (the target user must be a teacher)
   const access = await verifyTeacherAccess(normalizedEmail);
   if (!access.hasAccess) {
     return { success: false, error: 'Not authorized as teacher' };
@@ -211,6 +214,9 @@ export async function getStudentsCommissionData(
   const { user: sessionUser } = await getSessionUser(token);
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
+  }
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
+    return { success: false, error: 'Not authorized to view this teacher\'s data' };
   }
 
   try {

@@ -40,13 +40,19 @@ function ClipperContent() {
   const [msg, setMsg] = useState<{ text: string; type: string } | null>(null);
   const [confirming, setConfirming] = useState(false);
 
-  const loadData = useCallback(async () => {
-    if (!user?.email) return;
+  const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
+  const effectiveEmail = (user?.isSupervisor && !user?.isAdmin && supervisorViewAsEmail.trim())
+    ? supervisorViewAsEmail.trim()
+    : user?.email ?? '';
+
+  const loadData = useCallback(async (overrideEmail?: string) => {
+    const email = overrideEmail ?? effectiveEmail;
+    if (!email) return;
     setLoading(true);
     try {
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; data?: AttendancePageData; error?: string }>(
-        'getAttendanceData', user.email, token, 'clipper'
+        'getAttendanceData', email, token, 'clipper'
       );
       if (result.success && result.data) {
         setData(result.data);
@@ -65,20 +71,20 @@ function ClipperContent() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, effectiveEmail]);
 
   useEffect(() => {
     if (!sessionLoading && user) loadData();
   }, [sessionLoading, user, loadData]);
 
   const handleConfirm = async () => {
-    if (confirming || !user?.email) return;
+    if (confirming || !effectiveEmail) return;
     setConfirming(true);
     try {
       const today = new Date().toISOString().split('T')[0];
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; error?: string; date?: string; confirmationNumber?: number }>(
-        'confirmAttendance', user.email, today, token, 'clipper'
+        'confirmAttendance', effectiveEmail, today, token, 'clipper'
       );
       if (result.success) {
         setMsg({ text: 'Clipping attendance confirmed!', type: 'success' });
@@ -106,10 +112,11 @@ function ClipperContent() {
   };
 
   const handleDeleteRecord = async (dateStr: string) => {
-    if (!user?.email) return;
+    if (!effectiveEmail) return;
+    const token = getStoredToken();
     try {
       const result = await gsCall<{ success: boolean; error?: string }>(
-        'deleteOwnAttendanceRecord', user.email, dateStr
+        'deleteOwnAttendanceRecord', effectiveEmail, dateStr, token
       );
       if (result.success) {
         setMsg({ text: 'Record deleted', type: 'success' });
@@ -140,6 +147,34 @@ function ClipperContent() {
         <Navigation title="Clipper Dashboard" variant="light-bg" />
 
         {msg && <div className={`message ${msg.type}`}>{msg.text}</div>}
+
+        {/* Supervisor: view as student by email (clipper attendance) */}
+        {user?.isSupervisor && !user?.isAdmin && (
+          <div className="supervisor-bar">
+            <label>View as student:</label>
+            <input
+              type="email"
+              value={supervisorViewAsEmail}
+              onChange={(e) => setSupervisorViewAsEmail(e.target.value)}
+              placeholder="Enter student email..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const trimmed = supervisorViewAsEmail.trim();
+                  if (trimmed) { setSupervisorViewAsEmail(trimmed); loadData(trimmed); }
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const trimmed = supervisorViewAsEmail.trim();
+                if (trimmed) { setSupervisorViewAsEmail(trimmed); loadData(trimmed); }
+              }}
+            >
+              View
+            </button>
+          </div>
+        )}
 
         {data && (
           <>
@@ -291,6 +326,21 @@ function ClipperContent() {
         .record-status.missed { color: #dc2626; }
         .btn-delete-record { padding: 4px 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px; cursor: pointer; font-size: 11px; font-family: inherit; }
         .empty-msg { color: #64748b; text-align: center; padding: 24px; }
+
+        .supervisor-bar {
+          display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+          padding: 12px 16px; background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+          border-radius: 12px; border: 1px solid #a78bfa;
+        }
+        .supervisor-bar label { font-weight: 600; color: #5b21b6; font-size: 14px; }
+        .supervisor-bar input {
+          flex: 1; min-width: 200px; padding: 10px 14px; border: 2px solid #c4b5fd;
+          border-radius: 10px; font-size: 14px; font-family: inherit;
+        }
+        .supervisor-bar button {
+          padding: 10px 20px; background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+          color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: inherit;
+        }
 
         @media (max-width: 768px) {
           .page-container { padding: 20px; }

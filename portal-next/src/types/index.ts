@@ -29,6 +29,7 @@ export interface UserInfo {
   name: string;
   isTeacher: boolean;
   isAdmin: boolean;
+  isSupervisor?: boolean;
 }
 
 export interface SessionUser extends UserInfo {

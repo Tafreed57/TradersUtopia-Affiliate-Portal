@@ -57,6 +57,7 @@ export const gs = {
         name: string;
         isTeacher: boolean;
         isAdmin: boolean;
+        isSupervisor?: boolean;
       };
       expiresAt?: number;
     }>('validateSessionToken', token);
@@ -219,6 +220,10 @@ export const gs = {
     return gsCall<{ success: boolean }>('clearAllCaches');
   },
 
+  async adminSetSupervisor(userEmail: string, isSupervisor: boolean, token: string) {
+    return gsCall<{ success: boolean; error?: string }>('adminSetSupervisor', userEmail, isSupervisor, token);
+  },
+
   // Teacher
   async getTeacherDataWithContext(email: string, token: string) {
     return gsCall<{ success: boolean; data?: object; error?: string }>(
@@ -229,12 +234,12 @@ export const gs = {
   },
 
   // Teacher–Student assignment (request + approval)
-  async getStudentCurrentTeacher(token: string) {
+  async getStudentCurrentTeacher(token: string, viewAsEmail?: string) {
     return gsCall<{
       success: boolean;
       data?: { teacher: { id: string; email: string; name: string } | null; openRequest: { id: string; toTeacherName: string; requestedAt: string } | null };
       error?: string;
-    }>('getStudentCurrentTeacher', token);
+    }>('getStudentCurrentTeacher', token, viewAsEmail);
   },
 
   async getEligibleTeachersForAssignment(token: string) {
