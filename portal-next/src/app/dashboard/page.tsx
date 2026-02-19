@@ -87,7 +87,7 @@ function DashboardContent() {
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'User';
   const initial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
-  const isTeacherOrAdmin = user?.isTeacher || user?.isAdmin;
+  const isTeacherOrAdmin = user?.isTeacher || user?.isAdmin || user?.isSupervisor;
 
   return (
     <div className="page-bg">
@@ -210,7 +210,7 @@ function DashboardContent() {
                 role="button"
               >
                 <span className="teacher-badge">
-                  {isTeacherOrAdmin ? 'Teachers Only' : 'No Access'}
+                  {user?.isSupervisor && !user?.isTeacher && !user?.isAdmin ? 'Supervisor Access' : isTeacherOrAdmin ? 'Teachers Only' : 'No Access'}
                 </span>
                 <div className="nav-card-content">
                   <div className="nav-icon">

@@ -315,10 +315,9 @@ export async function checkPortalAccess(
     return { hasAccess: true, user };
   }
 
-  // Teacher portal requires teacher role - do a LIVE check via Rewardful
-  // (matches legacy behavior which checked Rewardful on every access)
+  // Teacher portal requires teacher role, admin, or supervisor
   if (portal === 'teacher') {
-    if (user.isTeacher || user.isAdmin) {
+    if (user.isTeacher || user.isAdmin || user.isSupervisor) {
       return { hasAccess: true, user };
     }
     // The session flag might be stale -- do a live check
