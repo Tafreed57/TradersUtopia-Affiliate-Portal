@@ -98,7 +98,8 @@ export async function getStudentCurrentTeacher(
 
 /**
  * List teachers eligible for assignment (for change-teacher dropdown).
- * Returns users with isTeacher and id for createTeacherChangeRequest.
+ * Uses the Rewardful-based teacher list (affiliates with "teacher" in first_name)
+ * and resolves each to a DB user id for createTeacherChangeRequest.
  */
 export async function getEligibleTeachersForAssignment(
   token: string
@@ -109,19 +110,31 @@ export async function getEligibleTeachersForAssignment(
   }
 
   try {
-    const users = await prisma.user.findMany({
-      where: { isTeacher: true },
-      select: { id: true, aliasEmail: true, firstName: true, lastName: true },
-      orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }, { aliasEmail: 'asc' }],
-    });
+    // Use the same Rewardful-based teacher lookup as getAllValidTeachers
+    const { getAllValidTeachers } = await import('./attendance.service');
+    const validResult = await getAllValidTeachers();
 
-    const teachers: TeacherOptionWithId[] = users.map((u) => ({
-      id: u.id,
-      email: u.aliasEmail,
-      name: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.aliasEmail,
-      firstName: u.firstName || '',
-      lastName: u.lastName || '',
-    }));
+    if (!validResult.success || !validResult.teachers) {
+      return { success: false, error: 'Failed to load teachers' };
+    }
+
+    // Resolve each Rewardful teacher email to a DB user (need the id)
+    const teachers: TeacherOptionWithId[] = [];
+    for (const t of validResult.teachers) {
+      const dbUser = await prisma.user.findUnique({
+        where: { aliasEmail: t.email },
+        select: { id: true },
+      });
+      if (dbUser) {
+        teachers.push({
+          id: dbUser.id,
+          email: t.email,
+          name: t.name,
+          firstName: t.firstName || '',
+          lastName: t.lastName || '',
+        });
+      }
+    }
 
     return { success: true, teachers };
   } catch (error) {

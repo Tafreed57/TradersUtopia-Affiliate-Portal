@@ -83,7 +83,8 @@ function StudentContent() {
   const [adminSearching, setAdminSearching] = useState(false);
   const [adminSelectedUser, setAdminSelectedUser] = useState<Record<string, unknown> | null>(null);
 
-  const effectiveEmail = (user?.isSupervisor && supervisorViewAsEmail.trim()) ? supervisorViewAsEmail.trim() : user?.email ?? '';
+  const [committedViewAsEmail, setCommittedViewAsEmail] = useState('');
+  const effectiveEmail = (user?.isSupervisor && committedViewAsEmail) ? committedViewAsEmail : user?.email ?? '';
 
   const loadData = useCallback(async (overrideEmail?: string) => {
     const email = overrideEmail ?? effectiveEmail;
@@ -130,7 +131,7 @@ function StudentContent() {
     if (!token) return;
     setLoadingTeacherState(true);
     try {
-      const viewAs = viewAsOverride ?? ((user?.isSupervisor && supervisorViewAsEmail.trim()) ? supervisorViewAsEmail.trim() : undefined);
+      const viewAs = viewAsOverride ?? ((user?.isSupervisor && committedViewAsEmail) ? committedViewAsEmail : undefined);
       const result = await gs.getStudentCurrentTeacher(token, viewAs);
       if (result.success && result.data) setTeacherState(result.data);
       else setTeacherState({ teacher: null, openRequest: null });
@@ -139,7 +140,7 @@ function StudentContent() {
     } finally {
       setLoadingTeacherState(false);
     }
-  }, [user, supervisorViewAsEmail]);
+  }, [user, committedViewAsEmail]);
 
   const openChangeTeacherModal = useCallback(async () => {
     setChangeTeacherOpen(true);
@@ -359,14 +360,14 @@ function StudentContent() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   const trimmed = supervisorViewAsEmail.trim();
-                  if (trimmed) { setSupervisorViewAsEmail(trimmed); loadData(trimmed); loadTeacherState(trimmed); }
+                  if (trimmed) { setCommittedViewAsEmail(trimmed); loadData(trimmed); loadTeacherState(trimmed); }
                 }
               }}
             />
             <button type="button" onClick={() => {
               const trimmed = supervisorViewAsEmail.trim();
               if (!trimmed) return;
-              setSupervisorViewAsEmail(trimmed);
+              setCommittedViewAsEmail(trimmed);
               loadData(trimmed);
               loadTeacherState(trimmed);
             }}>

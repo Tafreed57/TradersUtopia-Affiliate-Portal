@@ -41,8 +41,9 @@ function ClipperContent() {
   const [confirming, setConfirming] = useState(false);
 
   const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
-  const effectiveEmail = (user?.isSupervisor && !user?.isAdmin && supervisorViewAsEmail.trim())
-    ? supervisorViewAsEmail.trim()
+  const [committedViewAsEmail, setCommittedViewAsEmail] = useState('');
+  const effectiveEmail = (user?.isSupervisor && !user?.isAdmin && committedViewAsEmail)
+    ? committedViewAsEmail
     : user?.email ?? '';
 
   const loadData = useCallback(async (overrideEmail?: string) => {
@@ -160,7 +161,7 @@ function ClipperContent() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   const trimmed = supervisorViewAsEmail.trim();
-                  if (trimmed) { setSupervisorViewAsEmail(trimmed); loadData(trimmed); }
+                  if (trimmed) { setCommittedViewAsEmail(trimmed); loadData(trimmed); }
                 }
               }}
             />
@@ -168,7 +169,7 @@ function ClipperContent() {
               type="button"
               onClick={() => {
                 const trimmed = supervisorViewAsEmail.trim();
-                if (trimmed) { setSupervisorViewAsEmail(trimmed); loadData(trimmed); }
+                if (trimmed) { setCommittedViewAsEmail(trimmed); loadData(trimmed); }
               }}
             >
               View
