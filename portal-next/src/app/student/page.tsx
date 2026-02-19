@@ -84,7 +84,8 @@ function StudentContent() {
   const [adminSelectedUser, setAdminSelectedUser] = useState<Record<string, unknown> | null>(null);
 
   const [committedViewAsEmail, setCommittedViewAsEmail] = useState('');
-  const effectiveEmail = (user?.isSupervisor && committedViewAsEmail) ? committedViewAsEmail : user?.email ?? '';
+  const canViewAs = user?.isSupervisor || user?.isAdmin;
+  const effectiveEmail = (canViewAs && committedViewAsEmail) ? committedViewAsEmail : user?.email ?? '';
 
   const loadData = useCallback(async (overrideEmail?: string) => {
     const email = overrideEmail ?? effectiveEmail;
@@ -131,7 +132,7 @@ function StudentContent() {
     if (!token) return;
     setLoadingTeacherState(true);
     try {
-      const viewAs = viewAsOverride ?? ((user?.isSupervisor && committedViewAsEmail) ? committedViewAsEmail : undefined);
+      const viewAs = viewAsOverride ?? ((canViewAs && committedViewAsEmail) ? committedViewAsEmail : undefined);
       const result = await gs.getStudentCurrentTeacher(token, viewAs);
       if (result.success && result.data) setTeacherState(result.data);
       else setTeacherState({ teacher: null, openRequest: null });
@@ -348,8 +349,8 @@ function StudentContent() {
 
         {msg && <div className={`message ${msg.type}`}>{msg.text}</div>}
 
-        {/* Supervisor: view as student by email */}
-        {user?.isSupervisor && !user?.isAdmin && (
+        {/* Supervisor/Admin: view as student by email */}
+        {canViewAs && (
           <div className="supervisor-bar">
             <label>View as student:</label>
             <input

@@ -178,8 +178,8 @@ function TeacherContent() {
 
   useEffect(() => {
     if (sessionLoading || !user) return;
-    // Supervisors who aren't teachers: don't auto-load own data, wait for search
-    if (user.isSupervisor && !user.isTeacher && !user.isAdmin) {
+    // Supervisors/admins who aren't teachers: don't auto-load own data, wait for search
+    if ((user.isSupervisor || user.isAdmin) && !user.isTeacher) {
       setLoading(false);
       return;
     }
@@ -405,8 +405,8 @@ function TeacherContent() {
       <div className="page-container">
         <Navigation title="Teacher Portal" variant="light-bg" />
 
-        {/* Supervisor: view as teacher by email */}
-        {user?.isSupervisor && !user?.isAdmin && (
+        {/* Supervisor/Admin: view as teacher by email */}
+        {(user?.isSupervisor || user?.isAdmin) && (
           <div className="supervisor-bar">
             <label>View as teacher:</label>
             <input

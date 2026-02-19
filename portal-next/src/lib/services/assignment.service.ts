@@ -39,7 +39,7 @@ export async function getStudentCurrentTeacher(
 
   try {
     let studentId = sessionUser.id;
-    if (viewAsEmail && viewAsEmail.trim() && sessionUser.isSupervisor) {
+    if (viewAsEmail && viewAsEmail.trim() && (sessionUser.isSupervisor || sessionUser.isAdmin)) {
       const normalizedViewAs = normalizeEmail(viewAsEmail.trim());
       if (!normalizedViewAs) return { success: false, error: 'Invalid email' };
       const target = await prisma.user.findUnique({
@@ -50,8 +50,6 @@ export async function getStudentCurrentTeacher(
     } else if (viewAsEmail && viewAsEmail.trim() && !sessionUser.isSupervisor && !sessionUser.isAdmin) {
       return { success: false, error: 'Not authorized' };
     }
-
-    // Current ACTIVE assignment only (single active per student enforced in app)
 
     // Current ACTIVE assignment only (single active per student enforced in app)
     const activeLink = await prisma.teacherStudentLink.findFirst({

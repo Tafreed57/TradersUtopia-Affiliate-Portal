@@ -286,8 +286,8 @@ function CommissionContent() {
       <div className="container">
         <h2>Affiliate Commission Lookup</h2>
 
-        {/* Supervisor: view as affiliate by email */}
-        {user?.isSupervisor && !user?.isAdmin && (
+        {/* Supervisor/Admin: view as affiliate by email */}
+        {(user?.isSupervisor || user?.isAdmin) && (
           <div className="supervisor-bar">
             <label>View as affiliate:</label>
             <input
@@ -313,8 +313,8 @@ function CommissionContent() {
           </div>
         </div>
 
-        {/* Logged in identity */}
-        {!isAdminMode && (
+        {/* Logged in identity (show for regular users, supervisors, or admin using view-as bar) */}
+        {(!isAdminMode || (data && !data._from_admin)) && (
           <div className="identity-box">
             <div className="identity-inner">
               <div>
@@ -329,8 +329,8 @@ function CommissionContent() {
         {/* Message */}
         {message && <div className="msg" style={{ color: message.color }}>{message.text}</div>}
 
-        {/* Regular affiliate results */}
-        {data && data.status !== 'Not found' && !isAdminMode && (
+        {/* Regular affiliate results (show for non-admin or admin view-as) */}
+        {data && data.status !== 'Not found' && (!isAdminMode || !data._from_admin) && (
           <div className="results-section">
             <h3>Commission Details</h3>
             <table className="data-table">

@@ -42,7 +42,8 @@ function ClipperContent() {
 
   const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
   const [committedViewAsEmail, setCommittedViewAsEmail] = useState('');
-  const effectiveEmail = (user?.isSupervisor && !user?.isAdmin && committedViewAsEmail)
+  const canViewAs = user?.isSupervisor || user?.isAdmin;
+  const effectiveEmail = (canViewAs && committedViewAsEmail)
     ? committedViewAsEmail
     : user?.email ?? '';
 
@@ -149,8 +150,8 @@ function ClipperContent() {
 
         {msg && <div className={`message ${msg.type}`}>{msg.text}</div>}
 
-        {/* Supervisor: view as student by email (clipper attendance) */}
-        {user?.isSupervisor && !user?.isAdmin && (
+        {/* Supervisor/Admin: view as student by email (clipper attendance) */}
+        {canViewAs && (
           <div className="supervisor-bar">
             <label>View as student:</label>
             <input
