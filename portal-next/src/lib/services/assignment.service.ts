@@ -118,17 +118,37 @@ export async function getEligibleTeachersForAssignment(
       return { success: false, error: 'Failed to load teachers' };
     }
 
-    // Resolve each Rewardful teacher email to a DB user (need the id)
+    log.debug('Rewardful teachers to resolve', { count: validResult.teachers.length });
+
+    // Resolve each Rewardful teacher email to a DB user (need the id).
+    // Rewardful returns the internal/Rewardful email, which may be stored
+    // as internalEmail (not aliasEmail) in the DB.
     const teachers: TeacherOptionWithId[] = [];
+    const selectFields = { id: true, aliasEmail: true } as const;
     for (const t of validResult.teachers) {
-      const dbUser = await prisma.user.findUnique({
+      let dbUser = await prisma.user.findUnique({
         where: { aliasEmail: t.email },
-        select: { id: true },
+        select: selectFields,
       });
+      if (!dbUser) {
+        dbUser = await prisma.user.findUnique({
+          where: { email: t.email },
+          select: selectFields,
+        });
+      }
+      if (!dbUser) {
+        dbUser = await prisma.user.findFirst({
+          where: { internalEmail: t.email },
+          select: selectFields,
+        });
+      }
+      if (!dbUser) {
+        log.debug('Teacher not found in DB', { rewardfulEmail: t.email, name: t.name });
+      }
       if (dbUser) {
         teachers.push({
           id: dbUser.id,
-          email: t.email,
+          email: dbUser.aliasEmail,
           name: t.name,
           firstName: t.firstName || '',
           lastName: t.lastName || '',
@@ -136,6 +156,7 @@ export async function getEligibleTeachersForAssignment(
       }
     }
 
+    log.debug('Resolved teachers with DB ids', { resolved: teachers.length, total: validResult.teachers.length });
     return { success: true, teachers };
   } catch (error) {
     log.error('getEligibleTeachersForAssignment error', { error });
