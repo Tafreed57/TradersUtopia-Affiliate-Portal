@@ -228,6 +228,54 @@ export const gs = {
     );
   },
 
+  // Teacher–Student assignment (request + approval)
+  async getStudentCurrentTeacher(token: string) {
+    return gsCall<{
+      success: boolean;
+      data?: { teacher: { id: string; email: string; name: string } | null; openRequest: { id: string; toTeacherName: string; requestedAt: string } | null };
+      error?: string;
+    }>('getStudentCurrentTeacher', token);
+  },
+
+  async getEligibleTeachersForAssignment(token: string) {
+    return gsCall<{ success: boolean; teachers?: { id: string; email: string; name: string; firstName: string; lastName: string }[]; error?: string }>(
+      'getEligibleTeachersForAssignment',
+      token
+    );
+  },
+
+  async createTeacherChangeRequest(token: string, toTeacherId: string, message?: string) {
+    return gsCall<{
+      success: boolean;
+      request?: { id: string; status: string; toTeacherName: string; requestedAt: string };
+      error?: string;
+    }>('createTeacherChangeRequest', token, toTeacherId, message);
+  },
+
+  async cancelTeacherChangeRequest(token: string) {
+    return gsCall<{ success: boolean; error?: string }>('cancelTeacherChangeRequest', token);
+  },
+
+  async getTeacherOpenRequests(token: string) {
+    return gsCall<{
+      success: boolean;
+      requests?: { id: string; studentId: string; studentEmail: string; studentName: string; fromTeacherName: string | null; requestedAt: string; message: string | null; status: string }[];
+      error?: string;
+    }>('getTeacherOpenRequests', token);
+  },
+
+  async acceptTeacherChangeRequest(token: string, requestId: string) {
+    return gsCall<{ success: boolean; error?: string }>('acceptTeacherChangeRequest', token, requestId);
+  },
+
+  async rejectTeacherChangeRequest(token: string, requestId: string) {
+    return gsCall<{ success: boolean; error?: string }>('rejectTeacherChangeRequest', token, requestId);
+  },
+
+  async removeStudentFromTeacherByTeacherSession(token: string, studentId: string) {
+    return gsCall<{ success: boolean; error?: string }>('removeStudentFromTeacherByTeacherSession', token, studentId);
+  },
+
   // Attendance
   async getAttendanceData(email: string, token: string, mode?: string) {
     return gsCall<{ success: boolean; data?: object; error?: string }>(

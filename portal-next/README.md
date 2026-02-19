@@ -101,6 +101,19 @@ The Prisma schema maps legacy PropertiesService keys to relational tables:
 | `ADMIN_OVERRIDE_*` | `CommissionOverride` |
 | `TEACHER_EARNINGS_*` | `TeacherEarnings` |
 
+## Deploy (Vercel)
+
+1. **Apply DB changes** (new TeacherChangeRequest table), once:
+   - With migrations: `npx prisma migrate deploy` (use production `DATABASE_URL`).
+   - With push: `npx prisma db push`.
+2. **Deploy:**
+   ```bash
+   cd portal-next
+   npx vercel login   # if needed
+   npx vercel --prod
+   ```
+   Ensure `DATABASE_URL` and `DIRECT_URL` are set in the Vercel project.
+
 ## Scripts
 
 | Script | Description |
@@ -115,6 +128,7 @@ The Prisma schema maps legacy PropertiesService keys to relational tables:
 | `npm run db:migrate` | Run migrations |
 | `npm run db:studio` | Open Prisma Studio |
 | `npm run typecheck` | Run TypeScript checks |
+| `npm run test` | Run tests (Vitest) |
 
 ## Migration Notes
 

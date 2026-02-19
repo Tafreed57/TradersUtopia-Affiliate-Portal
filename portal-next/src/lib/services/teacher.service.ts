@@ -157,6 +157,7 @@ export async function getTeacherDataWithContext(
     });
 
     const students = links.map((link) => ({
+      id: link.student.id,
       email: link.student.aliasEmail,
       internalEmail: link.student.internalEmail || undefined,
       name:

@@ -84,6 +84,10 @@ model User {
   attendanceProfile    AttendanceProfile?
   teacherLinks         TeacherStudentLink[] @relation("TeacherLinks")
   studentLinks         TeacherStudentLink[] @relation("StudentLinks")
+  teacherChangeRequestsAsStudent    TeacherChangeRequest[] @relation("ChangeRequestStudent")
+  teacherChangeRequestsFromTeacher  TeacherChangeRequest[] @relation("ChangeRequestFromTeacher")
+  teacherChangeRequestsToTeacher    TeacherChangeRequest[] @relation("ChangeRequestToTeacher")
+  teacherChangeRequestsResolvedBy   TeacherChangeRequest[] @relation("ChangeRequestResolvedBy")
   commissionOverride   CommissionOverride?
   teacherEarnings      TeacherEarnings?
   passwordResetTokens  PasswordResetToken[]
@@ -189,6 +193,48 @@ model TeacherStudentLink {
 enum LinkStatus {
   ACTIVE
   REMOVED
+}
+
+// ============================================================================
+// TEACHER CHANGE REQUEST (approval workflow)
+// ============================================================================
+
+/// Request for a student to join or switch to a teacher. Target teacher must accept.
+model TeacherChangeRequest {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentId String
+  student   User   @relation("ChangeRequestStudent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  fromTeacherId String? // null if student had no current teacher
+  fromTeacher   User?   @relation("ChangeRequestFromTeacher", fields: [fromTeacherId], references: [id], onDelete: SetNull)
+
+  toTeacherId String
+  toTeacher   User   @relation("ChangeRequestToTeacher", fields: [toTeacherId], references: [id], onDelete: Cascade)
+
+  status TeacherChangeRequestStatus @default(OPEN)
+
+  requestedAt DateTime @default(now())
+  resolvedAt  DateTime?
+  resolvedByTeacherId String?
+  resolvedBy   User?   @relation("ChangeRequestResolvedBy", fields: [resolvedByTeacherId], references: [id], onDelete: SetNull)
+
+  message String? // optional message from student
+
+  @@index([studentId])
+  @@index([toTeacherId])
+  @@index([status])
+  @@index([studentId, status])
+}
+
+enum TeacherChangeRequestStatus {
+  OPEN
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  EXPIRED
 }
 
 // ============================================================================

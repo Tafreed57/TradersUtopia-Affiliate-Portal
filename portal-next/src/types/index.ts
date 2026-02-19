@@ -188,6 +188,7 @@ export interface CommissionOverrideData {
 // ============================================================================
 
 export interface StudentData {
+  id: string;
   email: string;
   internalEmail?: string;
   name: string;
@@ -271,6 +272,40 @@ export interface TeacherOption {
   name: string;
   firstName: string;
   lastName: string;
+}
+
+/** Teacher option including id for assignment request (student change-teacher flow) */
+export interface TeacherOptionWithId extends TeacherOption {
+  id: string;
+}
+
+/** Current teacher + open request status for student dashboard */
+export interface StudentTeacherState {
+  teacher: {
+    id: string;
+    email: string;
+    name: string;
+  } | null;
+  openRequest: {
+    id: string;
+    toTeacherId: string;
+    toTeacherName: string;
+    requestedAt: string;
+  } | null;
+}
+
+/** Teacher change request as returned to teacher portal */
+export interface TeacherChangeRequestRow {
+  id: string;
+  studentId: string;
+  studentEmail: string;
+  studentName: string;
+  fromTeacherId: string | null;
+  fromTeacherName: string | null;
+  toTeacherId: string;
+  requestedAt: string;
+  message: string | null;
+  status: string;
 }
 
 // ============================================================================

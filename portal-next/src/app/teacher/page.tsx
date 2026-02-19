@@ -19,15 +19,27 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
 import { useSession } from '@/hooks/useSession';
-import { gsCall, getStoredToken } from '@/lib/client/gs-compat';
+import { gs, gsCall, getStoredToken } from '@/lib/client/gs-compat';
 
 interface StudentItem {
+  id: string;
   email: string;
   name?: string;
   internalEmail?: string;
   affiliateId?: string;
   percentageOverride?: number;
   addedDate?: string;
+}
+
+interface OpenRequestRow {
+  id: string;
+  studentId: string;
+  studentEmail: string;
+  studentName: string;
+  fromTeacherName: string | null;
+  requestedAt: string;
+  message: string | null;
+  status: string;
 }
 
 interface TeacherPageData {
@@ -90,6 +102,14 @@ function TeacherContent() {
 
   // Per-student percentage
   const [percentageInputs, setPercentageInputs] = useState<Record<string, string>>({});
+
+  // Tabs: Students | Requests (assignment workflow)
+  const [activeTab, setActiveTab] = useState<'students' | 'requests'>('students');
+  const [openRequests, setOpenRequests] = useState<OpenRequestRow[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [acceptRejectLoading, setAcceptRejectLoading] = useState<string | null>(null);
+  const [removeConfirmStudent, setRemoveConfirmStudent] = useState<StudentItem | null>(null);
+  const [removeLoading, setRemoveLoading] = useState(false);
 
   // Earnings history (from getTeacherEarningsHistory)
   const [earningsHistory, setEarningsHistory] = useState<{
@@ -187,13 +207,100 @@ function TeacherContent() {
     }
   };
 
-  const handleRemoveStudent = async (studentEmail: string) => {
-    if (!confirm(`Remove ${studentEmail}?`)) return;
+  const loadOpenRequests = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) {
+      setOpenRequests([]);
+      return;
+    }
+    setRequestsLoading(true);
     try {
-      await gsCall('removeStudentFromTeacher', targetEmail, studentEmail);
-      loadTeacherData(targetEmail);
+      const result = await gs.getTeacherOpenRequests(token);
+      if (result.success && result.requests) setOpenRequests(result.requests);
+      else setOpenRequests([]);
+    } catch {
+      setOpenRequests([]);
+    } finally {
+      setRequestsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'requests') loadOpenRequests();
+  }, [activeTab, loadOpenRequests]);
+
+  const handleAcceptRequest = async (requestId: string) => {
+    const token = getStoredToken();
+    if (!token) {
+      setMsg({ text: 'Session expired. Please sign in again.', type: 'error' });
+      return;
+    }
+    setAcceptRejectLoading(requestId);
+    try {
+      const result = await gs.acceptTeacherChangeRequest(token, requestId);
+      if (result.success) {
+        setMsg({ text: 'Request accepted. Student added to your list.', type: 'success' });
+        loadOpenRequests();
+        loadTeacherData(targetEmail);
+        loadCommissionData(targetEmail);
+      } else {
+        setMsg({ text: result.error || 'Failed to accept', type: 'error' });
+      }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error');
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+    } finally {
+      setAcceptRejectLoading(null);
+    }
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    const token = getStoredToken();
+    if (!token) {
+      setMsg({ text: 'Session expired. Please sign in again.', type: 'error' });
+      return;
+    }
+    setAcceptRejectLoading(requestId);
+    try {
+      const result = await gs.rejectTeacherChangeRequest(token, requestId);
+      if (result.success) {
+        setMsg({ text: 'Request rejected.', type: 'success' });
+        loadOpenRequests();
+      } else {
+        setMsg({ text: result.error || 'Failed to reject', type: 'error' });
+      }
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+    } finally {
+      setAcceptRejectLoading(null);
+    }
+  };
+
+  const handleRemoveStudent = async (student: StudentItem) => {
+    setRemoveConfirmStudent(student);
+  };
+
+  const handleConfirmRemoveStudent = async () => {
+    if (!removeConfirmStudent) return;
+    const token = getStoredToken();
+    if (!token) {
+      setMsg({ text: 'Session expired. Please sign in again.', type: 'error' });
+      return;
+    }
+    setRemoveLoading(true);
+    try {
+      const result = await gs.removeStudentFromTeacherByTeacherSession(token, removeConfirmStudent.id);
+      if (result.success) {
+        setMsg({ text: 'Student removed.', type: 'success' });
+        setRemoveConfirmStudent(null);
+        loadTeacherData(targetEmail);
+        loadCommissionData(targetEmail);
+      } else {
+        setMsg({ text: result.error || 'Failed to remove', type: 'error' });
+      }
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+    } finally {
+      setRemoveLoading(false);
     }
   };
 
@@ -357,6 +464,72 @@ function TeacherContent() {
               <button className="btn-update-earnings" onClick={handleUpdateEarnings}>Update My Earnings</button>
             </div>
 
+            {/* Tabs: Students | Requests */}
+            <div className="teacher-tabs">
+              <button
+                type="button"
+                className={activeTab === 'students' ? 'active' : ''}
+                onClick={() => setActiveTab('students')}
+              >
+                Students ({data.students?.length || 0})
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'requests' ? 'active' : ''}
+                onClick={() => setActiveTab('requests')}
+              >
+                Requests ({openRequests.length})
+              </button>
+            </div>
+
+            {activeTab === 'requests' && (
+              <div className="requests-section">
+                <h3>Pending requests</h3>
+                <p className="section-hint">Students who requested to join you. Accept or reject.</p>
+                {requestsLoading ? (
+                  <p className="loading-text">Loading requests...</p>
+                ) : openRequests.length === 0 ? (
+                  <p className="empty-msg">No pending requests.</p>
+                ) : (
+                  <div className="request-cards">
+                    {openRequests.map((req) => (
+                      <div key={req.id} className="request-card">
+                        <div className="request-card-body">
+                          <p className="request-student">{req.studentName || req.studentEmail}</p>
+                          <p className="request-email">{req.studentEmail}</p>
+                          {req.fromTeacherName && (
+                            <p className="request-from">From teacher: {req.fromTeacherName}</p>
+                          )}
+                          <p className="request-date">Requested {new Date(req.requestedAt).toLocaleString()}</p>
+                          {req.message && <p className="request-message">&quot;{req.message}&quot;</p>}
+                        </div>
+                        <div className="request-card-actions">
+                          <button
+                            type="button"
+                            className="btn-accept"
+                            onClick={() => handleAcceptRequest(req.id)}
+                            disabled={acceptRejectLoading !== null}
+                          >
+                            {acceptRejectLoading === req.id ? 'Accepting...' : 'Accept'}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-reject"
+                            onClick={() => handleRejectRequest(req.id)}
+                            disabled={acceptRejectLoading !== null}
+                          >
+                            {acceptRejectLoading === req.id ? 'Rejecting...' : 'Reject'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'students' && (
+              <>
             {/* Add student */}
             <div className="add-section">
               <h3>Add Student</h3>
@@ -383,7 +556,7 @@ function TeacherContent() {
                 data.students.map((student) => {
                   const cd = commissionData[student.email] || {} as StudentCommission;
                   return (
-                    <div key={student.email} className="student-card">
+                    <div key={student.id} className="student-card">
                       <div className="student-header">
                         <div className="student-info">
                           <span className="student-email">{student.name || student.email}</span>
@@ -412,7 +585,7 @@ function TeacherContent() {
                           <button className="btn-stats" onClick={() => handleViewStats(student.email)}>
                             {viewingStats === student.email ? 'Hide Stats' : 'View Stats'}
                           </button>
-                          <button className="btn-remove" onClick={() => handleRemoveStudent(student.email)}>Remove</button>
+                          <button className="btn-remove" onClick={() => handleRemoveStudent(student)}>Remove</button>
                         </div>
                       </div>
 
@@ -540,6 +713,8 @@ function TeacherContent() {
                 })
               )}
             </div>
+              </>
+            )}
 
             {/* Refresh button */}
             <div className="footer-actions">
@@ -548,11 +723,28 @@ function TeacherContent() {
                 loadTeacherData(targetEmail);
                 loadCommissionData(targetEmail);
                 loadEarningsHistory(targetEmail);
+                if (activeTab === 'requests') loadOpenRequests();
               }}>
                 Refresh Data
               </button>
             </div>
           </>
+        )}
+
+        {/* Remove student confirmation modal */}
+        {removeConfirmStudent && (
+          <div className="modal-overlay" onClick={() => !removeLoading && setRemoveConfirmStudent(null)}>
+            <div className="modal-content remove-modal" onClick={e => e.stopPropagation()}>
+              <h3>Remove student</h3>
+              <p>Remove <strong>{removeConfirmStudent.name || removeConfirmStudent.email}</strong> from your list? They will have no teacher until they request another.</p>
+              <div className="modal-actions">
+                <button type="button" className="btn-modal-secondary" onClick={() => setRemoveConfirmStudent(null)} disabled={removeLoading}>Cancel</button>
+                <button type="button" className="btn-modal-danger" onClick={handleConfirmRemoveStudent} disabled={removeLoading}>
+                  {removeLoading ? 'Removing...' : 'Remove'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
@@ -648,6 +840,51 @@ function TeacherContent() {
           font-weight: 600; font-size: 15px; font-family: inherit;
         }
         .add-row button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .teacher-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+        .teacher-tabs button {
+          padding: 10px 20px; border: 2px solid #e2e8f0; border-radius: 10px;
+          background: white; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; color: #475569;
+        }
+        .teacher-tabs button.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-color: transparent; }
+
+        .requests-section { margin-bottom: 24px; }
+        .requests-section h3 { color: #1e293b; font-size: 18px; margin: 0 0 4px; }
+        .section-hint { font-size: 13px; color: #64748b; margin: 0 0 16px; }
+        .request-cards { display: flex; flex-direction: column; gap: 12px; }
+        .request-card {
+          display: flex; align-items: stretch; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+          background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 14px; padding: 16px;
+        }
+        .request-card-body { flex: 1; min-width: 0; }
+        .request-student { font-weight: 600; color: #1e293b; margin: 0 0 2px; }
+        .request-email { font-size: 13px; color: #64748b; margin: 0 0 4px; }
+        .request-from { font-size: 12px; color: #475569; margin: 0 0 2px; }
+        .request-date { font-size: 12px; color: #94a3b8; margin: 0 0 4px; }
+        .request-message { font-size: 13px; font-style: italic; color: #475569; margin: 0; }
+        .request-card-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .btn-accept {
+          padding: 8px 16px; background: linear-gradient(135deg, #16a34a, #059669); color: white;
+          border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; font-family: inherit;
+        }
+        .btn-accept:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-reject {
+          padding: 8px 16px; background: #f1f5f9; color: #64748b; border: 2px solid #e2e8f0;
+          border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; font-family: inherit;
+        }
+        .btn-reject:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .modal-overlay {
+          position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
+          align-items: center; justify-content: center; z-index: 100; padding: 20px;
+        }
+        .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .remove-modal h3 { margin: 0 0 12px; color: #1e293b; }
+        .remove-modal p { font-size: 14px; color: #475569; margin: 0 0 16px; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .btn-modal-secondary { padding: 10px 18px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 500; }
+        .btn-modal-danger { padding: 10px 18px; background: #dc2626; color: white; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600; }
+        .btn-modal-secondary:disabled, .btn-modal-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .students-section { margin-bottom: 24px; }
         .students-section h3 { color: #1e293b; font-size: 18px; margin: 0 0 16px; }

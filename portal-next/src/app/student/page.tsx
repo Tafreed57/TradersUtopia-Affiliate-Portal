@@ -17,7 +17,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
 import { useSession } from '@/hooks/useSession';
-import { gsCall, getStoredToken } from '@/lib/client/gs-compat';
+import { gs, gsCall, getStoredToken } from '@/lib/client/gs-compat';
 
 interface AttendanceRecord {
   date: string;
@@ -34,6 +34,10 @@ interface AttendancePageData {
 }
 
 interface Teacher { email: string; name: string; }
+interface StudentTeacherState {
+  teacher: { id: string; email: string; name: string } | null;
+  openRequest: { id: string; toTeacherName: string; requestedAt: string } | null;
+}
 
 interface ReferralRow {
   state?: string; firstClickAt?: string; becameLeadAt?: string; convertedAt?: string;
@@ -59,6 +63,16 @@ function StudentContent() {
   const [refLoading, setRefLoading] = useState(false);
   const [refPage, setRefPage] = useState(1);
   const [refTotal, setRefTotal] = useState(0);
+
+  // My Teacher + Change Teacher (request workflow)
+  const [teacherState, setTeacherState] = useState<StudentTeacherState | null>(null);
+  const [loadingTeacherState, setLoadingTeacherState] = useState(false);
+  const [changeTeacherOpen, setChangeTeacherOpen] = useState(false);
+  const [eligibleTeachers, setEligibleTeachers] = useState<{ id: string; email: string; name: string }[]>([]);
+  const [selectedToTeacherId, setSelectedToTeacherId] = useState('');
+  const [changeRequestMessage, setChangeRequestMessage] = useState('');
+  const [changeRequestSubmitting, setChangeRequestSubmitting] = useState(false);
+  const [cancelRequestSubmitting, setCancelRequestSubmitting] = useState(false);
 
   // Admin user search
   const [adminSearch, setAdminSearch] = useState('');
@@ -105,6 +119,82 @@ function StudentContent() {
     finally { setLoadingTeachers(false); }
   };
 
+  const loadTeacherState = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) return;
+    setLoadingTeacherState(true);
+    try {
+      const result = await gs.getStudentCurrentTeacher(token);
+      if (result.success && result.data) setTeacherState(result.data);
+      else setTeacherState({ teacher: null, openRequest: null });
+    } catch {
+      setTeacherState({ teacher: null, openRequest: null });
+    } finally {
+      setLoadingTeacherState(false);
+    }
+  }, []);
+
+  const openChangeTeacherModal = useCallback(async () => {
+    setChangeTeacherOpen(true);
+    setSelectedToTeacherId('');
+    setChangeRequestMessage('');
+    const token = getStoredToken();
+    if (!token) return;
+    try {
+      const result = await gs.getEligibleTeachersForAssignment(token);
+      if (result.success && result.teachers) setEligibleTeachers(result.teachers);
+      else setEligibleTeachers([]);
+    } catch {
+      setEligibleTeachers([]);
+    }
+  }, []);
+
+  const handleSubmitChangeRequest = async () => {
+    if (!selectedToTeacherId) return;
+    const token = getStoredToken();
+    if (!token) {
+      setMsg({ text: 'Session expired. Please sign in again.', type: 'error' });
+      return;
+    }
+    setChangeRequestSubmitting(true);
+    try {
+      const result = await gs.createTeacherChangeRequest(token, selectedToTeacherId, changeRequestMessage || undefined);
+      if (result.success) {
+        setMsg({ text: 'Request sent. The teacher must approve before the change takes effect.', type: 'success' });
+        setChangeTeacherOpen(false);
+        loadTeacherState();
+      } else {
+        setMsg({ text: result.error || 'Failed to submit request', type: 'error' });
+      }
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+    } finally {
+      setChangeRequestSubmitting(false);
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    const token = getStoredToken();
+    if (!token) {
+      setMsg({ text: 'Session expired. Please sign in again.', type: 'error' });
+      return;
+    }
+    setCancelRequestSubmitting(true);
+    try {
+      const result = await gs.cancelTeacherChangeRequest(token);
+      if (result.success) {
+        setMsg({ text: 'Request cancelled.', type: 'success' });
+        loadTeacherState();
+      } else {
+        setMsg({ text: result.error || 'Failed to cancel', type: 'error' });
+      }
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+    } finally {
+      setCancelRequestSubmitting(false);
+    }
+  };
+
   const loadReferrals = useCallback(async (mode: 'leads' | 'conversions', page: number) => {
     if (!user?.email) return;
     setRefLoading(true);
@@ -123,6 +213,10 @@ function StudentContent() {
   useEffect(() => {
     if (!sessionLoading && user) loadData();
   }, [sessionLoading, user, loadData]);
+
+  useEffect(() => {
+    if (!sessionLoading && user) loadTeacherState();
+  }, [sessionLoading, user, loadTeacherState]);
 
   useEffect(() => {
     if (data && !data.needsTeacherAssignment) loadReferrals(refMode, refPage);
@@ -241,21 +335,59 @@ function StudentContent() {
 
         {msg && <div className={`message ${msg.type}`}>{msg.text}</div>}
 
-        {/* Teacher selection */}
-        {data?.needsTeacherAssignment && (
-          <div className="teacher-selection">
-            <h3>Select Your Teacher</h3>
-            <p>Please select your teacher to get started</p>
-            {loadingTeachers ? <p className="loading-text">Loading teachers...</p> : (
-              <div className="teacher-form">
-                <select value={selectedTeacher} onChange={(e) => setSelectedTeacher(e.target.value)}>
-                  <option value="">Select a teacher...</option>
-                  {user?.isTeacher && <option value="none">None (I am a teacher)</option>}
-                  {teachers.map(t => <option key={t.email} value={t.email}>{t.name || t.email}</option>)}
-                </select>
-                <button onClick={handleSelectTeacher} disabled={!selectedTeacher}>Save Teacher</button>
+        {/* My Teacher (request + approval workflow) */}
+        {!loadingTeacherState && (
+          <div className="my-teacher-card">
+            <h3>My Teacher</h3>
+            {teacherState?.teacher ? (
+              <div className="my-teacher-info">
+                <p className="my-teacher-name">{teacherState.teacher.name}</p>
+                <p className="my-teacher-email">{teacherState.teacher.email}</p>
+              </div>
+            ) : (
+              <p className="my-teacher-none">No teacher assigned</p>
+            )}
+            {teacherState?.openRequest && (
+              <div className="my-teacher-pending">
+                <p>Request pending approval by <strong>{teacherState.openRequest.toTeacherName}</strong></p>
+                <p className="my-teacher-pending-date">Requested {new Date(teacherState.openRequest.requestedAt).toLocaleDateString()}</p>
+                <button type="button" className="btn-cancel-request" onClick={handleCancelRequest} disabled={cancelRequestSubmitting}>
+                  {cancelRequestSubmitting ? 'Cancelling...' : 'Cancel request'}
+                </button>
               </div>
             )}
+            <button type="button" className="btn-change-teacher" onClick={openChangeTeacherModal}>
+              {teacherState?.teacher ? 'Change Teacher' : 'Request a teacher'}
+            </button>
+          </div>
+        )}
+
+        {/* Change Teacher modal */}
+        {changeTeacherOpen && (
+          <div className="modal-overlay" onClick={() => !changeRequestSubmitting && setChangeTeacherOpen(false)}>
+            <div className="modal-content my-teacher-modal" onClick={e => e.stopPropagation()}>
+              <h3>{teacherState?.teacher ? 'Change Teacher' : 'Request a teacher'}</h3>
+              <p className="modal-hint">The teacher must accept your request before the change takes effect.</p>
+              <div className="modal-field">
+                <label>Teacher</label>
+                <select value={selectedToTeacherId} onChange={e => setSelectedToTeacherId(e.target.value)}>
+                  <option value="">Select a teacher...</option>
+                  {eligibleTeachers.map(t => (
+                    <option key={t.id} value={t.id}>{t.name || t.email}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="modal-field">
+                <label>Message (optional)</label>
+                <input type="text" value={changeRequestMessage} onChange={e => setChangeRequestMessage(e.target.value)} placeholder="Optional message to teacher" />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-modal-secondary" onClick={() => setChangeTeacherOpen(false)} disabled={changeRequestSubmitting}>Cancel</button>
+                <button type="button" className="btn-modal-primary" onClick={handleSubmitChangeRequest} disabled={!selectedToTeacherId || changeRequestSubmitting}>
+                  {changeRequestSubmitting ? 'Submitting...' : 'Submit request'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -550,13 +682,57 @@ function StudentContent() {
         .message.success { background: #f0fdf4; color: #16a34a; border-left: 4px solid #16a34a; }
         .message.error { background: #fef2f2; color: #dc2626; border-left: 4px solid #dc2626; }
 
-        .teacher-selection { text-align: center; padding: 24px; margin-bottom: 20px; background: #f8fafc; border-radius: 16px; border: 2px solid #e2e8f0; }
-        .teacher-selection h3 { color: #1e293b; margin: 0 0 8px; }
-        .teacher-selection p { color: #64748b; margin: 0 0 16px; }
-        .teacher-form { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .teacher-form select { padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; min-width: 200px; background: white; font-family: inherit; }
-        .teacher-form button { padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-family: inherit; }
-        .teacher-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .my-teacher-card {
+          background: linear-gradient(135deg, #e0e7ff, #c7d2fe); padding: 20px 24px;
+          border-radius: 16px; margin-bottom: 20px; border: 2px solid #a5b4fc;
+        }
+        .my-teacher-card h3 { color: #3730a3; font-size: 18px; margin: 0 0 12px; }
+        .my-teacher-info { margin-bottom: 8px; }
+        .my-teacher-name { font-weight: 600; color: #1e293b; margin: 0 0 2px; }
+        .my-teacher-email { font-size: 14px; color: #475569; margin: 0; }
+        .my-teacher-none { color: #64748b; margin: 0 0 12px; }
+        .my-teacher-pending {
+          background: rgba(254,243,199,0.8); padding: 12px; border-radius: 10px;
+          margin-bottom: 12px; border: 1px solid #fcd34d;
+        }
+        .my-teacher-pending p { margin: 0 0 4px; font-size: 14px; color: #78350f; }
+        .my-teacher-pending-date { font-size: 12px; color: #92400e !important; }
+        .btn-cancel-request {
+          padding: 6px 14px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+          border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; margin-top: 8px;
+        }
+        .btn-cancel-request:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-change-teacher {
+          padding: 10px 20px; background: linear-gradient(135deg, #667eea, #764ba2); color: white;
+          border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit;
+        }
+        .btn-change-teacher:hover { opacity: 0.95; }
+        .modal-overlay {
+          position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
+          align-items: center; justify-content: center; z-index: 100; padding: 20px;
+        }
+        .modal-content {
+          background: white; border-radius: 16px; padding: 24px; max-width: 420px; width: 100%;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .my-teacher-modal h3 { margin: 0 0 8px; color: #1e293b; }
+        .modal-hint { font-size: 13px; color: #64748b; margin: 0 0 16px; }
+        .modal-field { margin-bottom: 14px; }
+        .modal-field label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+        .modal-field select, .modal-field input {
+          width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 10px;
+          font-size: 14px; font-family: inherit; box-sizing: border-box;
+        }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+        .btn-modal-secondary {
+          padding: 10px 18px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+          border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 500;
+        }
+        .btn-modal-primary {
+          padding: 10px 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: white;
+          border: none; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: 600;
+        }
+        .btn-modal-primary:disabled, .btn-modal-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .welcome-card {
           background: linear-gradient(135deg, #dbeafe, #e0e7ff); padding: 24px;

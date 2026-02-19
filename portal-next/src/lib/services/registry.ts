@@ -13,6 +13,7 @@ import * as attendanceService from './attendance.service';
 import * as referralService from './referral.service';
 import * as adminService from './admin.service';
 import * as navigationService from './navigation.service';
+import * as assignmentService from './assignment.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyFunction = (...args: any[]) => Promise<any> | any;
@@ -79,6 +80,18 @@ export const functionRegistry: Record<string, AnyFunction> = {
   recordTeacherPayout: teacherService.recordTeacherPayout,
   recordTeacherPayment: teacherService.recordTeacherPayout, // GAS alias
   getAllTeachersPaymentData: teacherService.getAllTeachersPaymentData,
+
+  // ========================================================================
+  // TEACHER–STUDENT ASSIGNMENT (request + approval workflow)
+  // ========================================================================
+  getStudentCurrentTeacher: assignmentService.getStudentCurrentTeacher,
+  getEligibleTeachersForAssignment: assignmentService.getEligibleTeachersForAssignment,
+  createTeacherChangeRequest: assignmentService.createTeacherChangeRequest,
+  cancelTeacherChangeRequest: assignmentService.cancelTeacherChangeRequest,
+  getTeacherOpenRequests: assignmentService.getTeacherOpenRequests,
+  acceptTeacherChangeRequest: assignmentService.acceptTeacherChangeRequest,
+  rejectTeacherChangeRequest: assignmentService.rejectTeacherChangeRequest,
+  removeStudentFromTeacherByTeacherSession: assignmentService.removeStudentFromTeacherByTeacherSession,
 
   // ========================================================================
   // ATTENDANCE PORTAL
