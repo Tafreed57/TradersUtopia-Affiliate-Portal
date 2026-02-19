@@ -165,9 +165,14 @@ function StudentContent() {
     }
     setChangeRequestSubmitting(true);
     try {
-      const result = await gs.createTeacherChangeRequest(token, selectedToTeacherId, changeRequestMessage || undefined);
+      const result = await gs.createTeacherChangeRequest(token, selectedToTeacherId, changeRequestMessage || undefined) as { success: boolean; autoAccepted?: boolean; error?: string };
       if (result.success) {
-        setMsg({ text: 'Request sent. The teacher must approve before the change takes effect.', type: 'success' });
+        if (result.autoAccepted) {
+          setMsg({ text: 'Teacher assigned! You can now confirm attendance.', type: 'success' });
+          loadData();
+        } else {
+          setMsg({ text: 'Request sent. The teacher must approve before the change takes effect.', type: 'success' });
+        }
         setChangeTeacherOpen(false);
         loadTeacherState();
       } else {
@@ -392,7 +397,7 @@ function StudentContent() {
               </div>
             )}
             <button type="button" className="btn-change-teacher" onClick={openChangeTeacherModal}>
-              {teacherState?.teacher ? 'Change Teacher' : 'Request a teacher'}
+              {teacherState?.teacher ? 'Change Teacher' : 'Select a Teacher'}
             </button>
           </div>
         )}
@@ -401,8 +406,12 @@ function StudentContent() {
         {changeTeacherOpen && (
           <div className="modal-overlay" onClick={() => !changeRequestSubmitting && setChangeTeacherOpen(false)}>
             <div className="modal-content my-teacher-modal" onClick={e => e.stopPropagation()}>
-              <h3>{teacherState?.teacher ? 'Change Teacher' : 'Request a teacher'}</h3>
-              <p className="modal-hint">The teacher must accept your request before the change takes effect.</p>
+              <h3>{teacherState?.teacher ? 'Change Teacher' : 'Select a Teacher'}</h3>
+              {teacherState?.teacher ? (
+                <p className="modal-hint">The teacher must accept your request before the change takes effect.</p>
+              ) : (
+                <p className="modal-hint">Select a teacher to get started. You will be assigned immediately.</p>
+              )}
               <div className="modal-field">
                 <label>Teacher</label>
                 <select value={selectedToTeacherId} onChange={e => setSelectedToTeacherId(e.target.value)}>
@@ -419,7 +428,7 @@ function StudentContent() {
               <div className="modal-actions">
                 <button type="button" className="btn-modal-secondary" onClick={() => setChangeTeacherOpen(false)} disabled={changeRequestSubmitting}>Cancel</button>
                 <button type="button" className="btn-modal-primary" onClick={handleSubmitChangeRequest} disabled={!selectedToTeacherId || changeRequestSubmitting}>
-                  {changeRequestSubmitting ? 'Submitting...' : 'Submit request'}
+                  {changeRequestSubmitting ? 'Submitting...' : teacherState?.teacher ? 'Submit request' : 'Select teacher'}
                 </button>
               </div>
             </div>

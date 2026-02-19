@@ -127,6 +127,89 @@ describe('assignment.service', () => {
       expect(result.error).toMatch(/pending request|already have/);
       expect(prisma.teacherChangeRequest.create).not.toHaveBeenCalled();
     });
+
+    it('auto-accepts when student has no current teacher (first assignment)', async () => {
+      vi.mocked(getSessionUser).mockResolvedValue({
+        user: { id: 'student-new', aliasEmail: 'new@t.com', internalEmail: null, isAdmin: false, isTeacher: false },
+        isAdmin: false,
+      });
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'teacher-1',
+        isTeacher: true,
+        aliasEmail: 'teacher@test.com',
+        firstName: 'Test',
+        lastName: 'Teacher',
+      } as never);
+      // No current active link = first assignment
+      vi.mocked(prisma.teacherStudentLink.findFirst).mockResolvedValue(null);
+      vi.mocked(prisma.teacherChangeRequest.findFirst).mockResolvedValue(null);
+      vi.mocked(prisma.teacherChangeRequest.create).mockResolvedValue({
+        id: 'req-new',
+        studentId: 'student-new',
+        toTeacherId: 'teacher-1',
+        status: 'ACCEPTED',
+        requestedAt: new Date(),
+        toTeacher: {
+          aliasEmail: 'teacher@test.com',
+          firstName: 'Test',
+          lastName: 'Teacher',
+        },
+      } as never);
+      vi.mocked(prisma.teacherStudentLink.findUnique).mockResolvedValue(null);
+      vi.mocked(prisma.teacherStudentLink.create).mockResolvedValue({} as never);
+      vi.mocked(prisma.attendanceProfile.upsert).mockResolvedValue({} as never);
+
+      const result = await createTeacherChangeRequest('token', 'teacher-1');
+      expect(result.success).toBe(true);
+      expect((result as { autoAccepted?: boolean }).autoAccepted).toBe(true);
+      expect(result.request?.status).toBe('ACCEPTED');
+      // Should create the link directly
+      expect(prisma.teacherStudentLink.create).toHaveBeenCalled();
+      // Should update attendance profile
+      expect(prisma.attendanceProfile.upsert).toHaveBeenCalled();
+    });
+
+    it('creates OPEN request when student already has a teacher (change)', async () => {
+      vi.mocked(getSessionUser).mockResolvedValue({
+        user: { id: 'student-1', aliasEmail: 's@t.com', internalEmail: null, isAdmin: false, isTeacher: false },
+        isAdmin: false,
+      });
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'teacher-2',
+        isTeacher: true,
+        aliasEmail: 't2@test.com',
+        firstName: 'T2',
+        lastName: 'Teacher',
+      } as never);
+      // Has a current active teacher
+      vi.mocked(prisma.teacherStudentLink.findFirst).mockResolvedValue({
+        id: 'link-1',
+        teacherId: 'teacher-1',
+        studentId: 'student-1',
+        status: 'ACTIVE',
+      } as never);
+      vi.mocked(prisma.teacherChangeRequest.findFirst).mockResolvedValue(null);
+      vi.mocked(prisma.teacherChangeRequest.create).mockResolvedValue({
+        id: 'req-change',
+        studentId: 'student-1',
+        toTeacherId: 'teacher-2',
+        status: 'OPEN',
+        requestedAt: new Date(),
+        toTeacher: {
+          aliasEmail: 't2@test.com',
+          firstName: 'T2',
+          lastName: 'Teacher',
+        },
+      } as never);
+
+      const result = await createTeacherChangeRequest('token', 'teacher-2');
+      expect(result.success).toBe(true);
+      expect((result as { autoAccepted?: boolean }).autoAccepted).toBeFalsy();
+      expect(result.request?.status).toBe('OPEN');
+      // Should NOT create the link directly (needs teacher approval)
+      expect(prisma.teacherStudentLink.create).not.toHaveBeenCalled();
+      expect(prisma.attendanceProfile.upsert).not.toHaveBeenCalled();
+    });
   });
 
   describe('acceptTeacherChangeRequest', () => {

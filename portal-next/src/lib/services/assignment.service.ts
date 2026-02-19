@@ -176,29 +176,75 @@ export async function createTeacherChangeRequest(
       };
     }
 
+    const isFirstAssignment = !currentActive;
+
     const request = await prisma.teacherChangeRequest.create({
       data: {
         studentId,
         fromTeacherId: currentActive?.teacherId ?? null,
         toTeacherId,
-        status: 'OPEN',
+        status: isFirstAssignment ? 'ACCEPTED' : 'OPEN',
         message: message ?? null,
+        ...(isFirstAssignment
+          ? { resolvedAt: new Date(), resolvedByTeacherId: toTeacherId }
+          : {}),
       },
       include: { toTeacher: true },
     });
+
+    // First-time assignment: immediately create the link + update attendance profile
+    if (isFirstAssignment) {
+      const existingLink = await prisma.teacherStudentLink.findUnique({
+        where: { teacherId_studentId: { teacherId: toTeacherId, studentId } },
+      });
+
+      if (existingLink) {
+        await prisma.teacherStudentLink.update({
+          where: { id: existingLink.id },
+          data: {
+            status: 'ACTIVE',
+            removedAt: null,
+            removedBy: null,
+            createdBy: 'first_assignment',
+          },
+        });
+      } else {
+        await prisma.teacherStudentLink.create({
+          data: {
+            teacherId: toTeacherId,
+            studentId,
+            status: 'ACTIVE',
+            createdBy: 'first_assignment',
+          },
+        });
+      }
+
+      await prisma.attendanceProfile.upsert({
+        where: { userId: studentId },
+        create: { userId: studentId, currentTeacherEmail: toTeacher.aliasEmail },
+        update: { currentTeacherEmail: toTeacher.aliasEmail, updatedAt: new Date() },
+      });
+
+      log.info('First teacher assignment (auto-accepted)', {
+        requestId: request.id,
+        studentId,
+        toTeacherId,
+      });
+    } else {
+      log.info('Teacher change request created', {
+        requestId: request.id,
+        studentId,
+        toTeacherId,
+      });
+    }
 
     const toTeacherName =
       [request.toTeacher.firstName, request.toTeacher.lastName].filter(Boolean).join(' ') ||
       request.toTeacher.aliasEmail;
 
-    log.info('Teacher change request created', {
-      requestId: request.id,
-      studentId,
-      toTeacherId,
-    });
-
     return {
       success: true,
+      autoAccepted: isFirstAssignment,
       request: {
         id: request.id,
         status: request.status,
