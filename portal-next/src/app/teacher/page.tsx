@@ -178,6 +178,11 @@ function TeacherContent() {
 
   useEffect(() => {
     if (sessionLoading || !user) return;
+    // Supervisors who aren't teachers: don't auto-load own data, wait for search
+    if (user.isSupervisor && !user.isTeacher && !user.isAdmin) {
+      setLoading(false);
+      return;
+    }
     const email = user.email;
     setTargetEmail(email);
     loadTeacherData(email);
@@ -412,6 +417,7 @@ function TeacherContent() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && supervisorViewAsEmail.trim()) {
                   const email = supervisorViewAsEmail.trim();
+                  setMsg(null);
                   setTargetEmail(email);
                   loadTeacherData(email);
                   loadCommissionData(email);
@@ -425,6 +431,7 @@ function TeacherContent() {
               onClick={() => {
                 const email = supervisorViewAsEmail.trim();
                 if (!email) return;
+                setMsg(null);
                 setTargetEmail(email);
                 loadTeacherData(email);
                 loadCommissionData(email);
