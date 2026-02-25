@@ -18,6 +18,7 @@ import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
 import { useSession } from '@/hooks/useSession';
 import { gsCall, getStoredToken } from '@/lib/client/gs-compat';
+import { formatDateString } from '@/lib/utils';
 
 interface AttendanceRecord {
   date: string;
@@ -83,7 +84,7 @@ function ClipperContent() {
     if (confirming || !effectiveEmail) return;
     setConfirming(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = formatDateString(new Date());
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; error?: string; date?: string; confirmationNumber?: number }>(
         'confirmAttendance', effectiveEmail, today, token, 'clipper'
@@ -134,8 +135,8 @@ function ClipperContent() {
   const now = new Date();
   const todayStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  const todayDateStr = now.toISOString().split('T')[0];
-  const todayConfirmed = data?.records?.some(r => r.date === todayDateStr && r.type === 'confirmed') || false;
+  const todayDateStr = formatDateString(now);
+  const todayConfirmed = data?.records?.some(r => r.date.split('T')[0] === todayDateStr && r.type === 'confirmed') || false;
   const totalDays = (data?.stats?.totalConfirmed || 0) + (data?.stats?.totalMissed || 0);
   const attendanceRate = totalDays > 0 ? Math.round(((data?.stats?.totalConfirmed || 0) / totalDays) * 100) + '%' : '0%';
 
@@ -227,8 +228,7 @@ function ClipperContent() {
                 ) : (
                   data.records.slice(0, 50).map((r, i) => {
                     const baseDate = r.date.split('T')[0];
-                    const hasTime = r.date.includes('T');
-                    const recordTime = hasTime && r.confirmedAt
+                    const recordTime = r.type === 'confirmed' && r.confirmedAt
                       ? new Date(r.confirmedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
                       : '';
                     return (

@@ -18,6 +18,7 @@ import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
 import { useSession } from '@/hooks/useSession';
 import { gs, gsCall, getStoredToken } from '@/lib/client/gs-compat';
+import { formatDateString } from '@/lib/utils';
 
 interface AttendanceRecord {
   date: string;
@@ -240,7 +241,7 @@ function StudentContent() {
     if (confirming || !effectiveEmail) return;
     setConfirming(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = formatDateString(new Date());
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; error?: string; date?: string; confirmationNumber?: number }>(
         'confirmAttendance', effectiveEmail, today, token
@@ -329,10 +330,10 @@ function StudentContent() {
   const now = new Date();
   const todayStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  const todayDateStr = now.toISOString().split('T')[0];
+  const todayDateStr = formatDateString(now);
   
   // Compute todayConfirmed from records
-  const todayConfirmed = data?.records?.some(r => r.date === todayDateStr && r.type === 'confirmed') || false;
+  const todayConfirmed = data?.records?.some(r => r.date.split('T')[0] === todayDateStr && r.type === 'confirmed') || false;
   
   // Compute attendance rate
   const totalDays = (data?.stats?.totalConfirmed || 0) + (data?.stats?.totalMissed || 0);
@@ -485,8 +486,7 @@ function StudentContent() {
                 ) : (
                   data.records.slice(0, 50).map((r, i) => {
                     const baseDate = r.date.split('T')[0];
-                    const hasTime = r.date.includes('T');
-                    const timeStr = hasTime && r.confirmedAt
+                    const timeStr = r.type === 'confirmed' && r.confirmedAt
                       ? new Date(r.confirmedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
                       : '';
                     return (

@@ -6,7 +6,7 @@
 
 import { prisma } from '@/lib/db';
 import { config, normalizeEmail, isAdminEmail, isTeacherOverrideEmail } from '@/lib/config';
-import { logger } from '@/lib/utils/logger';
+import { logger, formatDateString } from '@/lib/utils';
 import { getSessionUser } from './session.service';
 import { rewardfulApi } from './rewardful.service';
 import type { ApiResponse, AttendanceData, AttendanceRecord, TeacherOption } from '@/types';
@@ -209,7 +209,7 @@ export async function getAttendanceData(
 
       const currentDate = new Date(firstDate);
       while (currentDate <= today) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+        const dateStr = formatDateString(currentDate);
 
         // Skip weekends (optional)
         const dayOfWeek = currentDate.getDay();
@@ -245,7 +245,7 @@ export async function getAttendanceData(
       .reverse();
 
     if (sortedConfirmed.length > 0) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = formatDateString(new Date());
       let checkDate = today;
 
       for (const date of sortedConfirmed) {
@@ -286,15 +286,14 @@ export async function getAttendanceData(
  * Helper: Get previous weekday
  */
 function getPreviousWeekday(dateStr: string): string {
-  const date = new Date(dateStr);
+  const date = new Date(dateStr + 'T12:00:00');
   date.setDate(date.getDate() - 1);
 
-  // Skip weekends
   while (date.getDay() === 0 || date.getDay() === 6) {
     date.setDate(date.getDate() - 1);
   }
 
-  return date.toISOString().split('T')[0];
+  return formatDateString(date);
 }
 
 // ============================================================================
