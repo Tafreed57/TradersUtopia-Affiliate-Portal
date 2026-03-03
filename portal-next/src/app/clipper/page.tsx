@@ -1,12 +1,11 @@
 'use client';
 
 /**
- * Clipper Attendance Dashboard
+ * Clipper Dashboard
  *
- * Simplified attendance-only view for clippers.
+ * Clipper view with attendance, commission lookup, and referrals.
  * Same layout as the student dashboard but without:
  * - Teacher selection
- * - Referrals / leads
  * - Admin section
  *
  * Uses mode="clipper" for separate attendance records.
@@ -34,12 +33,41 @@ interface AttendancePageData {
   needsTeacherAssignment: boolean;
 }
 
+interface CommissionResult {
+  affiliateId?: string;
+  unpaidAmount?: number;
+  dueNowAmount?: number;
+  totalPaidAmount?: number;
+  lastFetchedAt?: number;
+  percentage?: number;
+  percentageApplied?: boolean;
+  status?: string;
+  [key: string]: unknown;
+}
+
+interface ReferralRow {
+  state?: string; firstClickAt?: string; becameLeadAt?: string; convertedAt?: string;
+  becameConversionAt?: string; createdAt?: string;
+  [key: string]: unknown;
+}
+
 function ClipperContent() {
   const { user, isLoading: sessionLoading } = useSession();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<AttendancePageData | null>(null);
   const [msg, setMsg] = useState<{ text: string; type: string } | null>(null);
   const [confirming, setConfirming] = useState(false);
+
+  // Commission
+  const [commData, setCommData] = useState<CommissionResult | null>(null);
+  const [commLoading, setCommLoading] = useState(false);
+
+  // Referrals
+  const [refMode, setRefMode] = useState<'leads' | 'conversions'>('leads');
+  const [refRows, setRefRows] = useState<ReferralRow[]>([]);
+  const [refLoading, setRefLoading] = useState(false);
+  const [refPage, setRefPage] = useState(1);
+  const [refTotal, setRefTotal] = useState(0);
 
   const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
   const [committedViewAsEmail, setCommittedViewAsEmail] = useState('');
@@ -76,9 +104,53 @@ function ClipperContent() {
     }
   }, [user, effectiveEmail]);
 
+  const formatMoney = (amount: number | undefined | null) => {
+    if (amount == null) return '-';
+    return '$' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' CAD';
+  };
+
+  const fetchCommission = useCallback(async (email?: string) => {
+    const target = email ?? effectiveEmail;
+    if (!target) return;
+    setCommLoading(true);
+    try {
+      const token = getStoredToken();
+      const raw = await gsCall<{ success: boolean; data?: CommissionResult; error?: string }>('lookupAffiliate', target, token ?? undefined);
+      const result = raw.data || raw as unknown as CommissionResult;
+      if (raw.success) {
+        setCommData(result);
+      }
+    } catch { /* silent */ }
+    finally { setCommLoading(false); }
+  }, [effectiveEmail]);
+
+  const loadReferrals = useCallback(async (mode: 'leads' | 'conversions', page: number) => {
+    const target = effectiveEmail;
+    if (!target) return;
+    setRefLoading(true);
+    try {
+      const result = await gsCall<{ success: boolean; rows?: ReferralRow[]; totalCount?: number }>(
+        'getReferralsWithMode', { email: target, mode, page, pageSize: 25 }
+      );
+      if (result.success) {
+        setRefRows(result.rows || []);
+        setRefTotal(result.totalCount || 0);
+      }
+    } catch { /* silent */ }
+    finally { setRefLoading(false); }
+  }, [effectiveEmail]);
+
   useEffect(() => {
     if (!sessionLoading && user) loadData();
   }, [sessionLoading, user, loadData]);
+
+  useEffect(() => {
+    if (!sessionLoading && user) fetchCommission();
+  }, [sessionLoading, user, fetchCommission]);
+
+  useEffect(() => {
+    if (data) loadReferrals(refMode, refPage);
+  }, [data, refMode, refPage, loadReferrals]);
 
   const handleConfirm = async () => {
     if (confirming || !effectiveEmail) return;
@@ -251,6 +323,83 @@ function ClipperContent() {
                 )}
               </div>
             </div>
+
+            {/* Commission Lookup */}
+            <div className="section-card commission-section">
+              <div className="commission-header">
+                <h3>Commission Lookup</h3>
+                <button className="btn-refresh-comm" onClick={() => fetchCommission()} disabled={commLoading}>
+                  {commLoading ? 'Loading...' : 'Refresh'}
+                </button>
+              </div>
+
+              <div className="commission-info-box">
+                <strong>Field Explanations:</strong>
+                <div style={{ marginLeft: 8 }}>
+                  <strong>Unpaid Amount:</strong> Total commissions not yet paid (includes pending + approved)<br />
+                  <strong>Due Now:</strong> Approved commissions ready for immediate payout (subset of unpaid)<br />
+                  <strong>Total Paid:</strong> Total amount already paid out historically
+                </div>
+              </div>
+
+              {commLoading && !commData && <p className="loading-text">Fetching commission data...</p>}
+
+              {commData && (
+                <table className="commission-table">
+                  <tbody>
+                    <tr><td>Affiliate ID</td><td>{(commData.affiliateId as string) || '-'}</td></tr>
+                    <tr><td>Unpaid Amount</td><td>{formatMoney(commData.unpaidAmount as number)}</td></tr>
+                    <tr><td>Due Now</td><td>{formatMoney(commData.dueNowAmount as number)}</td></tr>
+                    <tr><td>Total Paid</td><td>{formatMoney(commData.totalPaidAmount as number)}</td></tr>
+                    <tr><td>Last Fetched</td><td>{commData.lastFetchedAt ? new Date(commData.lastFetchedAt as number).toLocaleDateString() : '-'}</td></tr>
+                    <tr><td>Status</td><td>{commData.percentageApplied ? `${commData.percentage}% applied` : 'Active'}</td></tr>
+                  </tbody>
+                </table>
+              )}
+
+              {!commLoading && !commData && (
+                <p className="empty-msg">No commission data available</p>
+              )}
+            </div>
+
+            {/* Referrals */}
+            <div className="section-card referrals">
+              <div className="ref-header">
+                <h3>Referrals</h3>
+                <div className="ref-toggle">
+                  <button className={refMode === 'leads' ? 'active' : ''} onClick={() => { setRefMode('leads'); setRefPage(1); }}>Leads</button>
+                  <button className={refMode === 'conversions' ? 'active' : ''} onClick={() => { setRefMode('conversions'); setRefPage(1); }}>Conversions</button>
+                </div>
+              </div>
+              {refLoading ? (
+                <p className="loading-text">Loading referrals...</p>
+              ) : refRows.length === 0 ? (
+                <p className="empty-msg">No {refMode} found</p>
+              ) : (
+                <>
+                  <table className="ref-table">
+                    <thead>
+                      <tr><th>State</th><th>First Click</th><th>Became Lead</th><th>Converted</th></tr>
+                    </thead>
+                    <tbody>
+                      {refRows.map((r, i) => (
+                        <tr key={i}>
+                          <td>{r.state || '-'}</td>
+                          <td>{r.firstClickAt ? new Date(r.firstClickAt).toLocaleDateString() : '-'}</td>
+                          <td>{r.becameLeadAt ? new Date(r.becameLeadAt).toLocaleDateString() : '-'}</td>
+                          <td>{r.convertedAt ? new Date(r.convertedAt).toLocaleDateString() : '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="ref-pagination">
+                    <button disabled={refPage <= 1} onClick={() => setRefPage(p => p - 1)}>Prev</button>
+                    <span>Page {refPage} ({refTotal} total)</span>
+                    <button disabled={refPage * 25 >= refTotal} onClick={() => setRefPage(p => p + 1)}>Next</button>
+                  </div>
+                </>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -344,9 +493,61 @@ function ClipperContent() {
           color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: inherit;
         }
 
+        .loading-text { color: #64748b; text-align: center; padding: 16px; }
+
+        .commission-section h3 { margin: 0; }
+        .commission-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+        .btn-refresh-comm {
+          padding: 8px 18px; background: linear-gradient(135deg, #0ea5e9, #6366f1);
+          color: white; border: none; border-radius: 10px; cursor: pointer;
+          font-weight: 600; font-size: 13px; font-family: inherit; transition: all 0.3s;
+        }
+        .btn-refresh-comm:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn-refresh-comm:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .commission-info-box {
+          font-size: 13px; margin-bottom: 16px; padding: 14px;
+          background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+          border-radius: 12px; color: #1e40af; border-left: 4px solid #3b82f6; line-height: 1.6;
+        }
+        .commission-info-box > strong { color: #1e3a8a; display: block; margin-bottom: 6px; font-size: 14px; }
+
+        .commission-table {
+          width: 100%; border-collapse: collapse; font-size: 15px;
+          background: white; border-radius: 12px; overflow: hidden;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .commission-table td {
+          padding: 14px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top;
+        }
+        .commission-table td:first-child { font-weight: 600; color: #475569; width: 45%; }
+        .commission-table td:last-child { color: #1e293b; font-weight: 500; }
+        .commission-table tr:last-child td { border-bottom: none; }
+        .commission-table tr:hover { background: #f8fafc; }
+
+        .referrals h3 { margin: 0; }
+        .ref-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+        .ref-toggle { display: flex; gap: 4px; }
+        .ref-toggle button {
+          padding: 8px 16px; border: 2px solid #e2e8f0; border-radius: 8px; background: white;
+          cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; color: #475569;
+        }
+        .ref-toggle button.active { background: linear-gradient(135deg, #0ea5e9, #6366f1); color: white; border-color: transparent; }
+
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .ref-table th { text-align: left; padding: 10px 12px; background: #f8fafc; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+        .ref-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+        .ref-table tr:hover { background: #f8fafc; }
+
+        .ref-pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 16px; }
+        .ref-pagination button { padding: 6px 16px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; }
+        .ref-pagination button:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .ref-pagination span { font-size: 13px; color: #64748b; }
+
         @media (max-width: 768px) {
           .page-container { padding: 20px; }
           .stats-grid { grid-template-columns: repeat(2, 1fr); }
+          .commission-table { font-size: 14px; }
         }
       `}</style>
     </div>
