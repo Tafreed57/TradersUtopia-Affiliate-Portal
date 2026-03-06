@@ -107,13 +107,21 @@ function StudentContent() {
         if (flat.records || flat.stats) {
           setData(flat);
           if (flat.needsTeacherAssignment) loadTeachers();
+        } else if (committedViewAsEmail || overrideEmail) {
+          setData({ user: { email }, records: [], stats: { totalConfirmed: 0, totalMissed: 0, streak: 0 }, needsTeacherAssignment: true } as AttendancePageData);
         } else {
           setMsg({ text: 'No attendance data found', type: 'error' });
         }
       } else {
+        if (committedViewAsEmail || overrideEmail) {
+          setData({ user: { email }, records: [], stats: { totalConfirmed: 0, totalMissed: 0, streak: 0 }, needsTeacherAssignment: true } as AttendancePageData);
+        }
         setMsg({ text: result.error || 'Failed to load', type: 'error' });
       }
     } catch (err) {
+      if (committedViewAsEmail || overrideEmail) {
+        setData({ user: { email }, records: [], stats: { totalConfirmed: 0, totalMissed: 0, streak: 0 }, needsTeacherAssignment: true } as AttendancePageData);
+      }
       setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
     } finally {
       setLoading(false);

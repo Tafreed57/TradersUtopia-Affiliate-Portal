@@ -172,12 +172,31 @@ export async function getAttendanceData(
     // Create profile if doesn't exist
     let profile = user.attendanceProfile;
     if (!profile) {
-      profile = await prisma.attendanceProfile.create({
-        data: {
-          userId: user.id,
-        },
-        include: { records: true },
-      });
+      try {
+        profile = await prisma.attendanceProfile.create({
+          data: {
+            userId: user.id,
+          },
+          include: { records: true },
+        });
+      } catch {
+        // Handle race condition / unique constraint - profile may have been created concurrently
+        profile = await prisma.attendanceProfile.findUnique({
+          where: { userId: user.id },
+          include: { records: true },
+        });
+        if (!profile) {
+          return {
+            success: true,
+            data: {
+              user: { email: normalizedEmail, createdAt: user.createdAt.toISOString() },
+              records: [],
+              stats: { totalConfirmed: 0, totalMissed: 0, streak: 0 },
+              needsTeacherAssignment: attendanceMode !== 'clipper',
+            },
+          };
+        }
+      }
     }
 
     // Build records with missed days calculation
