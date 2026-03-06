@@ -463,7 +463,7 @@ function StudentContent() {
           </div>
         )}
 
-        {data && !data.needsTeacherAssignment && (
+        {data && (!data.needsTeacherAssignment || committedViewAsEmail) && (
           <>
             {/* Welcome card */}
             <div className="welcome-card">
