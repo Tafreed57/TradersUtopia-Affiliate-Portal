@@ -12,7 +12,7 @@
  * - Admin section: dark theme, search users, view/edit student dashboards
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
@@ -78,9 +78,10 @@ function StudentContent() {
   // Supervisor view-as (by email)
   const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
 
-  // Admin user search
+  // Admin/Supervisor user search (preloaded + local filter)
   const [adminSearch, setAdminSearch] = useState('');
-  const [adminUsers, setAdminUsers] = useState<Record<string, unknown>[]>([]);
+  const [allUsers, setAllUsers] = useState<Record<string, unknown>[]>([]);
+  const [allUsersLoaded, setAllUsersLoaded] = useState(false);
   const [adminSearching, setAdminSearching] = useState(false);
   const [adminSelectedUser, setAdminSelectedUser] = useState<Record<string, unknown> | null>(null);
 
@@ -295,35 +296,42 @@ function StudentContent() {
     }
   };
 
-  // Debounced live search
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const handleAdminSearchInput = (value: string) => {
-    setAdminSearch(value);
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    if (!value.trim()) { setAdminUsers([]); return; }
-    searchTimeoutRef.current = setTimeout(async () => {
-      setAdminSearching(true);
-      try {
-        const result = await gsCall<{ success: boolean; users?: Record<string, unknown>[] }>(
-          'searchAttendanceUsers', value.trim()
-        );
-        if (result.success) setAdminUsers(result.users || []);
-      } catch { /* silent */ }
-      finally { setAdminSearching(false); }
-    }, 300);
-  };
-
-  const handleAdminSearch = async () => {
-    if (!adminSearch.trim()) return;
+  const preloadAllUsers = useCallback(async () => {
+    if (allUsersLoaded) return;
     setAdminSearching(true);
     try {
       const result = await gsCall<{ success: boolean; users?: Record<string, unknown>[] }>(
-        'searchAttendanceUsers', adminSearch.trim()
+        'searchAttendanceUsers', ''
       );
-      if (result.success) setAdminUsers(result.users || []);
+      if (result.success) {
+        const sorted = (result.users || []).sort((a, b) => {
+          const nameA = ((a.name as string) || (a.email as string) || '').toLowerCase();
+          const nameB = ((b.name as string) || (b.email as string) || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+        setAllUsers(sorted);
+        setAllUsersLoaded(true);
+      }
     } catch { /* silent */ }
     finally { setAdminSearching(false); }
-  };
+  }, [allUsersLoaded]);
+
+  useEffect(() => {
+    if (!sessionLoading && user && (user.isAdmin || user.isSupervisor)) {
+      preloadAllUsers();
+    }
+  }, [sessionLoading, user, preloadAllUsers]);
+
+  const adminUsers = (() => {
+    const q = adminSearch.toLowerCase().trim();
+    if (!q) return allUsers;
+    return allUsers.filter((u) => {
+      const name = ((u.name as string) || '').toLowerCase();
+      const email = ((u.email as string) || '').toLowerCase();
+      const teacher = ((u.teacherEmail as string) || '').toLowerCase();
+      return name.includes(q) || email.includes(q) || teacher.includes(q);
+    });
+  })();
 
   const [dashLoading, setDashLoading] = useState(false);
 
@@ -551,16 +559,16 @@ function StudentContent() {
           </>
         )}
 
-        {/* Admin section */}
-        {user?.isAdmin && (
+        {/* Admin / Supervisor section */}
+        {(user?.isAdmin || user?.isSupervisor) && (
           <div className="admin-section">
             <div className="admin-header">
               <div className="admin-header-icon">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
               </div>
               <div>
-                <h3>Admin Console</h3>
-                <p className="admin-subtitle">Search and manage all users in the system</p>
+                <h3>{user?.isAdmin ? 'Admin Console' : 'Supervisor Console'}</h3>
+                <p className="admin-subtitle">{user?.isAdmin ? 'Search and manage all users in the system' : 'Search and view user details'}</p>
               </div>
             </div>
 
@@ -571,14 +579,13 @@ function StudentContent() {
               <input
                 type="text"
                 value={adminSearch}
-                onChange={(e) => handleAdminSearchInput(e.target.value)}
-                placeholder="Start typing to search users..."
-                onKeyDown={(e) => e.key === 'Enter' && handleAdminSearch()}
+                onChange={(e) => setAdminSearch(e.target.value)}
+                placeholder={allUsersLoaded ? `Search ${allUsers.length} users...` : 'Loading users...'}
                 className="admin-search-input"
               />
               {adminSearching && <div className="admin-search-spinner" />}
               {adminSearch && !adminSearching && (
-                <button className="admin-search-clear" onClick={() => { setAdminSearch(''); setAdminUsers([]); setAdminSelectedUser(null); }}>
+                <button className="admin-search-clear" onClick={() => { setAdminSearch(''); setAdminSelectedUser(null); }}>
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 </button>
               )}
@@ -588,10 +595,19 @@ function StudentContent() {
               <div className="admin-empty">No users found for &quot;{adminSearch}&quot;</div>
             )}
 
-            {!adminSearch && !adminSelectedUser && (
+            {!allUsersLoaded && !adminSearching && (
               <div className="admin-hint">
-                <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" opacity="0.3"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <p>Search by name or email to view user details</p>
+                <div className="admin-search-spinner large" />
+                <p>Loading users...</p>
+              </div>
+            )}
+
+            {allUsersLoaded && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, padding: '0 4px' }}>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+                  {adminSearch ? `${adminUsers.length} of ${allUsers.length} users` : `${allUsers.length} users`}
+                </span>
+                <button style={{ fontSize: 11, color: '#a78bfa', background: 'none', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: 'inherit' }} onClick={() => { setAllUsersLoaded(false); preloadAllUsers(); }}>Reload</button>
               </div>
             )}
 
@@ -631,6 +647,7 @@ function StudentContent() {
               </div>
             )}
             {adminSelectedUser && (() => {
+              const isAdmin = !!user?.isAdmin;
               const stu = (adminSelectedUser.student || adminSelectedUser) as Record<string, unknown>;
               const att = (adminSelectedUser.attendance || {}) as Record<string, unknown>;
               const refs = (adminSelectedUser.referrals || {}) as Record<string, unknown>;
@@ -644,13 +661,13 @@ function StudentContent() {
 
                   {/* Basic info */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, marginBottom: 16 }}>
-                    <div><strong>Login Email:</strong> {(stu.email as string) || '-'}</div>
-                    <div><strong>Internal Email:</strong> {(stu.internalEmail as string) || '-'}</div>
+                    <div><strong>Email:</strong> {(stu.email as string) || '-'}</div>
+                    {isAdmin && <div><strong>Internal Email:</strong> {(stu.internalEmail as string) || '-'}</div>}
                     <div><strong>Teacher:</strong> {(stu.teacherEmail as string) || 'Not assigned'}</div>
-                    <div><strong>Status:</strong> {(stu.accountStatus as string) || '-'}</div>
+                    {isAdmin && <div><strong>Status:</strong> {(stu.accountStatus as string) || '-'}</div>}
                     {!!(stu.isTeacher) && <div><span className="admin-badge teacher">Teacher</span></div>}
-                    {!!(stu.isAdmin) && <div><span className="admin-badge admin">Admin</span></div>}
-                    {!!(stu.isSupervisor) && <div><span className="admin-badge supervisor">Supervisor</span></div>}
+                    {isAdmin && !!(stu.isAdmin) && <div><span className="admin-badge admin">Admin</span></div>}
+                    {isAdmin && !!(stu.isSupervisor) && <div><span className="admin-badge supervisor">Supervisor</span></div>}
                   </div>
 
                   {/* Attendance stats */}
@@ -674,22 +691,26 @@ function StudentContent() {
                     </div>
                   )}
 
-                  {/* Admin actions */}
+                  {/* Actions - admin gets full control, supervisor gets limited view */}
                   <div style={{ display: 'grid', gap: 8 }}>
-                    <button className="admin-action-btn" onClick={async () => {
-                      const newEmail = prompt('New login email:', (stu.email as string));
-                      if (!newEmail) return;
-                      const token = getStoredToken();
-                      const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateAliasEmail', (stu.email as string), newEmail, token);
-                      alert(r.success ? 'Email updated!' : (r.error || 'Failed'));
-                    }}>Edit Login Email</button>
-                    <button className="admin-action-btn" onClick={async () => {
-                      const newEmail = prompt('New internal/affiliate email:', (stu.internalEmail as string) || '');
-                      if (!newEmail) return;
-                      const token = getStoredToken();
-                      const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateInternalEmail', (stu.email as string), newEmail, token);
-                      alert(r.success ? 'Internal email updated!' : (r.error || 'Failed'));
-                    }}>Edit Internal Email</button>
+                    {isAdmin && (
+                      <>
+                        <button className="admin-action-btn" onClick={async () => {
+                          const newEmail = prompt('New login email:', (stu.email as string));
+                          if (!newEmail) return;
+                          const token = getStoredToken();
+                          const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateAliasEmail', (stu.email as string), newEmail, token);
+                          alert(r.success ? 'Email updated!' : (r.error || 'Failed'));
+                        }}>Edit Login Email</button>
+                        <button className="admin-action-btn" onClick={async () => {
+                          const newEmail = prompt('New internal/affiliate email:', (stu.internalEmail as string) || '');
+                          if (!newEmail) return;
+                          const token = getStoredToken();
+                          const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateInternalEmail', (stu.email as string), newEmail, token);
+                          alert(r.success ? 'Internal email updated!' : (r.error || 'Failed'));
+                        }}>Edit Internal Email</button>
+                      </>
+                    )}
                     <button className="admin-action-btn" onClick={async () => {
                       const newTeacher = prompt('New teacher email:', (stu.teacherEmail as string) || '');
                       if (!newTeacher) return;
@@ -697,19 +718,21 @@ function StudentContent() {
                       const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateStudentTeacher', (stu.email as string), newTeacher, token);
                       alert(r.success ? 'Teacher updated!' : (r.error || 'Failed'));
                     }}>Change Teacher</button>
-                    <button className="admin-action-btn" onClick={async () => {
-                      const token = getStoredToken();
-                      if (!token) return;
-                      const isSupervisor = !!(stu.isSupervisor);
-                      const r = await gs.adminSetSupervisor((stu.email as string), !isSupervisor, token);
-                      if (r.success) {
-                        setMsg({ text: !isSupervisor ? 'User set as supervisor.' : 'Supervisor role removed.', type: 'success' });
-                        const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', (stu.email as string), token);
-                        setAdminSelectedUser(dash);
-                      } else {
-                        setMsg({ text: r.error || 'Failed', type: 'error' });
-                      }
-                    }}>{(stu.isSupervisor) ? 'Remove supervisor' : 'Set as supervisor'}</button>
+                    {isAdmin && (
+                      <button className="admin-action-btn" onClick={async () => {
+                        const token = getStoredToken();
+                        if (!token) return;
+                        const isSupervisor = !!(stu.isSupervisor);
+                        const r = await gs.adminSetSupervisor((stu.email as string), !isSupervisor, token);
+                        if (r.success) {
+                          setMsg({ text: !isSupervisor ? 'User set as supervisor.' : 'Supervisor role removed.', type: 'success' });
+                          const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', (stu.email as string), token);
+                          setAdminSelectedUser(dash);
+                        } else {
+                          setMsg({ text: r.error || 'Failed', type: 'error' });
+                        }
+                      }}>{(stu.isSupervisor) ? 'Remove supervisor' : 'Set as supervisor'}</button>
+                    )}
                     <button className="admin-action-btn danger" onClick={async () => {
                       if (!confirm(`Delete all attendance for ${stu.email}? This cannot be undone!`)) return;
                       if (!confirm('Are you absolutely sure?')) return;

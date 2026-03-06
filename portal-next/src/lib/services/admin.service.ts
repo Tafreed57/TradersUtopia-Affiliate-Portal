@@ -366,13 +366,11 @@ export async function adminRejectAccount(
  */
 export async function getAllAttendanceUsers(): Promise<ApiResponse & { users?: Array<object> }> {
   try {
-    // Return all users, not just those with attendance profiles
     const users = await prisma.user.findMany({
       include: {
         attendanceProfile: { select: { currentTeacherEmail: true } },
       },
-      take: 100,
-      orderBy: { aliasEmail: 'asc' },
+      orderBy: [{ firstName: 'asc' }, { aliasEmail: 'asc' }],
     });
 
     const results = users.map((u) => ({
@@ -383,6 +381,7 @@ export async function getAllAttendanceUsers(): Promise<ApiResponse & { users?: A
       accountStatus: u.accountStatus,
       isTeacher: u.isTeacher,
       isAdmin: u.isAdmin,
+      isSupervisor: u.isSupervisor,
       teacherEmail: u.attendanceProfile?.currentTeacherEmail || undefined,
       createdAt: u.createdAt.toISOString(),
       hasPassword: !!u.passwordHash,
