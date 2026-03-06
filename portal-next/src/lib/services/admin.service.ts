@@ -712,16 +712,19 @@ export async function adminStopManageUser(
 // ============================================================================
 
 /**
- * Get full student dashboard for admin
+ * Get full student dashboard for admin or supervisor
  * Legacy: adminGetStudentDashboard(studentEmail, token)
+ * Supervisors get same data but without internal email, status, or role flags.
  */
 export async function adminGetStudentDashboard(
   studentEmail: string,
   token: string
 ): Promise<ApiResponse> {
-  const isAdmin = await validateAdminSession(token);
-  if (!isAdmin) {
-    return { success: false, error: 'Unauthorized - admin only' };
+  const { user: sessionUser } = await getSessionUser(token);
+  const isAdmin = !!sessionUser?.isAdmin;
+  const isSupervisor = !!sessionUser?.isSupervisor;
+  if (!isAdmin && !isSupervisor) {
+    return { success: false, error: 'Unauthorized' };
   }
 
   const normalizedEmail = normalizeEmail(studentEmail);
@@ -740,7 +743,7 @@ export async function adminGetStudentDashboard(
       return { success: false, error: 'User not found' };
     }
 
-    // Get referral data
+    // Get referral data (Rewardful)
     let leadsCount = 0;
     let conversionsCount = 0;
     try {
@@ -762,19 +765,31 @@ export async function adminGetStudentDashboard(
     const records = user.attendanceProfile?.records || [];
     const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.aliasEmail;
 
+    const studentPayload = isAdmin
+      ? {
+          email: user.aliasEmail,
+          aliasEmail: user.aliasEmail,
+          internalEmail: user.internalEmail,
+          name,
+          accountStatus: user.accountStatus,
+          isTeacher: user.isTeacher,
+          isAdmin: user.isAdmin,
+          isSupervisor: user.isSupervisor,
+          teacherEmail: user.attendanceProfile?.currentTeacherEmail,
+          createdAt: user.createdAt?.toISOString(),
+        }
+      : {
+          email: user.aliasEmail,
+          aliasEmail: user.aliasEmail,
+          name,
+          isTeacher: user.isTeacher,
+          teacherEmail: user.attendanceProfile?.currentTeacherEmail,
+          createdAt: user.createdAt?.toISOString(),
+        };
+
     return {
       success: true,
-      student: {
-        email: user.aliasEmail,
-        internalEmail: user.internalEmail,
-        name,
-        accountStatus: user.accountStatus,
-        isTeacher: user.isTeacher,
-        isAdmin: user.isAdmin,
-        isSupervisor: user.isSupervisor,
-        teacherEmail: user.attendanceProfile?.currentTeacherEmail,
-        createdAt: user.createdAt?.toISOString(),
-      },
+      student: studentPayload,
       attendance: {
         totalConfirmed: records.length,
         recentRecords: records.slice(0, 30).map(r => ({

@@ -383,6 +383,23 @@ function StudentContent() {
             }}>
               View
             </button>
+            {committedViewAsEmail && (
+              <button
+                type="button"
+                className="supervisor-bar-back"
+                onClick={() => {
+                  setSupervisorViewAsEmail('');
+                  setCommittedViewAsEmail('');
+                  setAdminSelectedUser(null);
+                  if (user?.email) {
+                    loadData(user.email);
+                    loadTeacherState();
+                  }
+                }}
+              >
+                Back to my dashboard
+              </button>
+            )}
           </div>
         )}
 
@@ -614,13 +631,21 @@ function StudentContent() {
             <div className="admin-results">
               {adminUsers.map((u, i) => (
                 <div key={i} className={`admin-user-card ${adminSelectedUser && ((adminSelectedUser.student || adminSelectedUser) as Record<string, unknown>).email === u.email ? 'selected' : ''}`} onClick={async () => {
+                  const email = (u.email ?? u.aliasEmail) as string;
+                  if (!email) return;
+                  setSupervisorViewAsEmail(email);
+                  setCommittedViewAsEmail(email);
+                  loadData(email);
+                  loadTeacherState(email);
                   setDashLoading(true);
                   try {
                     const token = getStoredToken();
-                    const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', (u.email as string), token);
+                    const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', email, token);
                     setAdminSelectedUser(dash);
+                    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
                   } catch {
                     setAdminSelectedUser(u);
+                    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
                   } finally { setDashLoading(false); }
                 }}>
                   <div className="admin-card-left">
@@ -661,7 +686,7 @@ function StudentContent() {
 
                   {/* Basic info */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, marginBottom: 16 }}>
-                    <div><strong>Email:</strong> {(stu.email as string) || '-'}</div>
+                    <div><strong>Login email (alias):</strong> {((stu.email ?? stu.aliasEmail) as string) || '-'}</div>
                     {isAdmin && <div><strong>Internal Email:</strong> {(stu.internalEmail as string) || '-'}</div>}
                     <div><strong>Teacher:</strong> {(stu.teacherEmail as string) || 'Not assigned'}</div>
                     {isAdmin && <div><strong>Status:</strong> {(stu.accountStatus as string) || '-'}</div>}
@@ -903,6 +928,18 @@ function StudentContent() {
         .supervisor-bar button {
           padding: 10px 20px; background: linear-gradient(135deg, #8b5cf6, #6d28d9);
           color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: inherit;
+        }
+        .supervisor-bar-back {
+          margin-left: auto !important;
+          background: transparent !important;
+          color: #6d28d9 !important;
+          font-weight: 500 !important;
+          font-size: 13px !important;
+          padding: 8px 14px !important;
+          border: 1px solid rgba(139,92,246,0.4) !important;
+        }
+        .supervisor-bar-back:hover {
+          background: rgba(139,92,246,0.12) !important;
         }
 
         /* Admin section */
