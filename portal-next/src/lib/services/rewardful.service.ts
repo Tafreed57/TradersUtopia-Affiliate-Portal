@@ -81,15 +81,15 @@ class RewardfulApiClient {
   }
 
   /**
-   * Make an authenticated request to Rewardful API
+   * Make an authenticated request to Rewardful API with per-request timeout
    */
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    timeoutMs: number = 8000
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
-    // Rewardful API uses HTTP Basic Auth with API key as username, empty password
     const basicAuth = Buffer.from(`${this.apiKey}:`).toString('base64');
     const headers = {
       Authorization: `Basic ${basicAuth}`,
@@ -103,10 +103,14 @@ class RewardfulApiClient {
       try {
         log.debug('API request', { url, attempt });
 
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+
         const response = await fetch(url, {
           ...options,
           headers,
-        });
+          signal: controller.signal,
+        }).finally(() => clearTimeout(timer));
 
         // Handle rate limiting
         if (response.status === 429) {

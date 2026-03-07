@@ -94,8 +94,33 @@ function prepareReferralRow(ref: RawReferral): ReferralRow {
  * Get referral data (basic)
  * Legacy: getReferralData(email, forceRefresh)
  */
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+/**
+ * Helper: parse cached referral data into a response.
+ */
+function cachedResponse(
+  cached: { lastKnownLeadCount: number; lastKnownConversionCount: number; previousLeadCount: number; cachedReferralData: string | null }
+): (ApiResponse & { totalLeads?: number; previousCount?: number; deltaSinceLastFetch?: number; leads?: ReferralRow[] }) | null {
+  if (!cached.cachedReferralData) return null;
+  try {
+    const leads: ReferralRow[] = JSON.parse(cached.cachedReferralData);
+    return {
+      success: true,
+      totalLeads: cached.lastKnownLeadCount + cached.lastKnownConversionCount,
+      previousCount: cached.previousLeadCount,
+      deltaSinceLastFetch: 0,
+      leads,
+    };
+  } catch { return null; }
+}
 
+const API_TIMEOUT_MS = 20_000; // Hard limit to stay under Vercel's 30s
+
+/**
+ * Fetch referral data with stale-while-revalidate caching.
+ * - If cached data exists, return it immediately (regardless of age).
+ * - Only fetch from Rewardful API on forceRefresh or cold start (no cache).
+ * - API fetches have a hard 20s timeout to avoid Vercel function timeouts.
+ */
 export async function getReferralData(
   email: string,
   forceRefresh?: boolean
@@ -107,7 +132,6 @@ export async function getReferralData(
 }> {
   const normalizedEmail = normalizeEmail(email);
 
-  // Lift cached outside try so it's available in catch
   let cached: Awaited<ReturnType<typeof prisma.referralCache.findUnique>> = null;
 
   try {
@@ -115,108 +139,97 @@ export async function getReferralData(
       where: { email: normalizedEmail },
     });
 
-    // Return cached data if fresh enough and not forcing refresh
-    if (!forceRefresh && cached?.cachedAt && cached.cachedReferralData) {
-      const age = Date.now() - cached.cachedAt.getTime();
-      if (age < CACHE_TTL_MS) {
-        try {
-          const leads: ReferralRow[] = JSON.parse(cached.cachedReferralData);
-          return {
-            success: true,
-            totalLeads: cached.lastKnownLeadCount,
-            previousCount: cached.previousLeadCount,
-            deltaSinceLastFetch: 0,
-            leads,
-          };
-        } catch { /* parse failed, refetch */ }
-      }
+    // If cache exists and we're NOT forcing a refresh, return cached data immediately
+    if (!forceRefresh && cached?.cachedReferralData) {
+      const resp = cachedResponse(cached);
+      if (resp) return resp;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { aliasEmail: normalizedEmail },
-    });
+    // Wrap the full API fetch in a race with a hard timeout
+    const fetchResult = await Promise.race([
+      fetchFromRewardful(normalizedEmail, cached),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), API_TIMEOUT_MS)),
+    ]);
 
-    const emailCandidates = [
-      user?.internalEmail || '',
-      normalizedEmail,
-      user?.aliasEmail || '',
-    ].filter(Boolean);
+    if (fetchResult) return fetchResult;
 
-    const affiliateResult = await rewardfulApi.findAffiliateByEmails(emailCandidates);
-    if (!affiliateResult.success || !affiliateResult.affiliate) {
-      return {
-        success: true,
-        totalLeads: 0,
-        previousCount: 0,
-        deltaSinceLastFetch: 0,
-        leads: [],
-      };
-    }
-
-    const referrals = await rewardfulApi.getAllReferrals(affiliateResult.affiliate.id);
-    const validReferrals = referrals.filter((r) => !isVisitor(r as RawReferral));
-
-    const leadsCount = validReferrals.filter((r) => isLead(r as RawReferral)).length;
-    const conversionsCount = validReferrals.filter((r) =>
-      isConversion(r as RawReferral)
-    ).length;
-
-    const totalCount = leadsCount + conversionsCount;
-    const previousCount = cached?.lastKnownLeadCount || 0;
-    const delta = totalCount - previousCount;
-
-    const leads = validReferrals.map((r) => prepareReferralRow(r as RawReferral));
-
-    // Cache the full result for fast subsequent loads
-    await prisma.referralCache.upsert({
-      where: { email: normalizedEmail },
-      create: {
-        email: normalizedEmail,
-        affiliateId: affiliateResult.affiliate.id,
-        lastKnownLeadCount: leadsCount,
-        lastKnownConversionCount: conversionsCount,
-        previousLeadCount: previousCount,
-        lastSuccessfulFetchAt: new Date(),
-        lastFetchedAt: new Date(),
-        cachedReferralData: JSON.stringify(leads),
-        cachedAt: new Date(),
-      },
-      update: {
-        affiliateId: affiliateResult.affiliate.id,
-        lastKnownLeadCount: leadsCount,
-        lastKnownConversionCount: conversionsCount,
-        previousLeadCount: previousCount,
-        lastSuccessfulFetchAt: new Date(),
-        lastFetchedAt: new Date(),
-        cachedReferralData: JSON.stringify(leads),
-        cachedAt: new Date(),
-      },
-    });
-
-    return {
-      success: true,
-      totalLeads: totalCount,
-      previousCount,
-      deltaSinceLastFetch: delta,
-      leads,
-    };
-  } catch (error) {
-    // On error, try returning cached data if available
+    // Timed out - fall back to any cached data
     if (cached?.cachedReferralData) {
-      try {
-        const leads: ReferralRow[] = JSON.parse(cached.cachedReferralData);
-        return {
-          success: true,
-          totalLeads: cached.lastKnownLeadCount,
-          previousCount: cached.previousLeadCount,
-          deltaSinceLastFetch: 0,
-          leads,
-        };
-      } catch { /* fall through */ }
+      const resp = cachedResponse(cached);
+      if (resp) return resp;
+    }
+
+    return { success: true, totalLeads: 0, previousCount: 0, deltaSinceLastFetch: 0, leads: [] };
+  } catch (error) {
+    if (cached?.cachedReferralData) {
+      const resp = cachedResponse(cached);
+      if (resp) return resp;
     }
     log.error('Get referral data error', { error, email: normalizedEmail });
     return { success: false, error: 'Failed to fetch referral data' };
   }
+}
+
+/**
+ * Internal: actually fetch from Rewardful API and update cache.
+ */
+async function fetchFromRewardful(
+  normalizedEmail: string,
+  cached: Awaited<ReturnType<typeof prisma.referralCache.findUnique>>
+): Promise<ApiResponse & { totalLeads?: number; previousCount?: number; deltaSinceLastFetch?: number; leads?: ReferralRow[] }> {
+  const user = await prisma.user.findUnique({
+    where: { aliasEmail: normalizedEmail },
+  });
+
+  const emailCandidates = [
+    user?.internalEmail || '',
+    normalizedEmail,
+    user?.aliasEmail || '',
+  ].filter(Boolean);
+
+  const affiliateResult = await rewardfulApi.findAffiliateByEmails(emailCandidates);
+  if (!affiliateResult.success || !affiliateResult.affiliate) {
+    return { success: true, totalLeads: 0, previousCount: 0, deltaSinceLastFetch: 0, leads: [] };
+  }
+
+  const referrals = await rewardfulApi.getAllReferrals(affiliateResult.affiliate.id);
+  const validReferrals = referrals.filter((r) => !isVisitor(r as RawReferral));
+
+  const leadsCount = validReferrals.filter((r) => isLead(r as RawReferral)).length;
+  const conversionsCount = validReferrals.filter((r) => isConversion(r as RawReferral)).length;
+  const totalCount = leadsCount + conversionsCount;
+  const previousCount = cached?.lastKnownLeadCount || 0;
+  const delta = totalCount - previousCount;
+
+  const leads = validReferrals.map((r) => prepareReferralRow(r as RawReferral));
+
+  // Update cache
+  await prisma.referralCache.upsert({
+    where: { email: normalizedEmail },
+    create: {
+      email: normalizedEmail,
+      affiliateId: affiliateResult.affiliate.id,
+      lastKnownLeadCount: leadsCount,
+      lastKnownConversionCount: conversionsCount,
+      previousLeadCount: previousCount,
+      lastSuccessfulFetchAt: new Date(),
+      lastFetchedAt: new Date(),
+      cachedReferralData: JSON.stringify(leads),
+      cachedAt: new Date(),
+    },
+    update: {
+      affiliateId: affiliateResult.affiliate.id,
+      lastKnownLeadCount: leadsCount,
+      lastKnownConversionCount: conversionsCount,
+      previousLeadCount: previousCount,
+      lastSuccessfulFetchAt: new Date(),
+      lastFetchedAt: new Date(),
+      cachedReferralData: JSON.stringify(leads),
+      cachedAt: new Date(),
+    },
+  });
+
+  return { success: true, totalLeads: totalCount, previousCount, deltaSinceLastFetch: delta, leads };
 }
 
 /**
