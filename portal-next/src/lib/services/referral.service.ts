@@ -111,15 +111,18 @@ export async function getReferralData(
       where: { email: normalizedEmail },
     });
 
-    // Fetch from API
-    // First get affiliate
+    // Fetch from API - try internal email, alias email, and % variants
     const user = await prisma.user.findUnique({
       where: { aliasEmail: normalizedEmail },
     });
 
-    const emailForApi = user?.internalEmail || normalizedEmail;
+    const emailCandidates = [
+      user?.internalEmail || '',
+      normalizedEmail,
+      user?.aliasEmail || '',
+    ].filter(Boolean);
 
-    const affiliateResult = await rewardfulApi.getAffiliateByEmail(emailForApi);
+    const affiliateResult = await rewardfulApi.findAffiliateByEmails(emailCandidates);
     if (!affiliateResult.success || !affiliateResult.affiliate) {
       return {
         success: true,

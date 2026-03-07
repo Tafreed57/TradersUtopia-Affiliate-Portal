@@ -147,17 +147,18 @@ class RewardfulApiClient {
         `/affiliates?email=${encodeURIComponent(email)}`
       );
 
-      // Handle both array and single object responses
       let affiliate: RewardfulAffiliate | undefined;
 
       if (Array.isArray(response)) {
         affiliate = response.find(
           (a) => a.email.toLowerCase() === email.toLowerCase()
         );
+        if (!affiliate && response.length > 0) affiliate = response[0];
       } else if (response.data && Array.isArray(response.data)) {
         affiliate = response.data.find(
           (a) => a.email.toLowerCase() === email.toLowerCase()
         );
+        if (!affiliate && response.data.length > 0) affiliate = response.data[0];
       } else if (response.id) {
         affiliate = response as unknown as RewardfulAffiliate;
       }
@@ -174,6 +175,36 @@ class RewardfulApiClient {
         error: error instanceof Error ? error.message : 'Failed to fetch affiliate',
       };
     }
+  }
+
+  /**
+   * Try multiple email variants to find an affiliate.
+   * Handles legacy % encoding in internal emails.
+   */
+  async findAffiliateByEmails(
+    emails: string[]
+  ): Promise<{ success: boolean; affiliate?: RewardfulAffiliate }> {
+    const tried = new Set<string>();
+    for (const raw of emails) {
+      if (!raw) continue;
+      const e = raw.toLowerCase().trim();
+      if (tried.has(e)) continue;
+      tried.add(e);
+
+      const result = await this.getAffiliateByEmail(e);
+      if (result.success && result.affiliate) return result;
+
+      // If email contains %, also try with % removed (legacy encoding artifact)
+      if (e.includes('%')) {
+        const cleaned = e.replace(/%/g, '');
+        if (!tried.has(cleaned)) {
+          tried.add(cleaned);
+          const r2 = await this.getAffiliateByEmail(cleaned);
+          if (r2.success && r2.affiliate) return r2;
+        }
+      }
+    }
+    return { success: false };
   }
 
   /**

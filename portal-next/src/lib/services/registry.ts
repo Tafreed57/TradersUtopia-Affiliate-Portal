@@ -134,6 +134,7 @@ export const functionRegistry: Record<string, AnyFunction> = {
   adminSetSupervisor: adminService.adminSetSupervisor,
   resetAllAttendance: adminService.resetAllAttendance,
   fetchAffiliateCampaigns: adminService.fetchAffiliateCampaigns,
+  adminDeleteUser: adminService.adminDeleteUser,
   adminDeleteOrphanedLegacy: adminService.adminDeleteOrphanedLegacy,
   adminCleanupAllOrphanedLegacy: adminService.adminCleanupAllOrphanedLegacy,
 };

@@ -695,8 +695,7 @@ function StudentContent() {
 
                   {/* Basic info */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, marginBottom: 16 }}>
-                    <div><strong>Login email (alias):</strong> {((stu.email ?? stu.aliasEmail) as string) || '-'}</div>
-                    {isAdmin && <div><strong>Internal Email:</strong> {(stu.internalEmail as string) || '-'}</div>}
+                    <div><strong>Login email:</strong> {((stu.email ?? stu.aliasEmail) as string) || '-'}</div>
                     <div><strong>Teacher:</strong> {(stu.teacherEmail as string) || 'Not assigned'}</div>
                     {isAdmin && <div><strong>Status:</strong> {(stu.accountStatus as string) || '-'}</div>}
                     {!!(stu.isTeacher) && <div><span className="admin-badge teacher">Teacher</span></div>}
@@ -728,22 +727,13 @@ function StudentContent() {
                   {/* Actions - admin gets full control, supervisor gets limited view */}
                   <div style={{ display: 'grid', gap: 8 }}>
                     {isAdmin && (
-                      <>
-                        <button className="admin-action-btn" onClick={async () => {
-                          const newEmail = prompt('New login email:', (stu.email as string));
-                          if (!newEmail) return;
-                          const token = getStoredToken();
-                          const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateAliasEmail', (stu.email as string), newEmail, token);
-                          alert(r.success ? 'Email updated!' : (r.error || 'Failed'));
-                        }}>Edit Login Email</button>
-                        <button className="admin-action-btn" onClick={async () => {
-                          const newEmail = prompt('New internal/affiliate email:', (stu.internalEmail as string) || '');
-                          if (!newEmail) return;
-                          const token = getStoredToken();
-                          const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateInternalEmail', (stu.email as string), newEmail, token);
-                          alert(r.success ? 'Internal email updated!' : (r.error || 'Failed'));
-                        }}>Edit Internal Email</button>
-                      </>
+                      <button className="admin-action-btn" onClick={async () => {
+                        const newEmail = prompt('New login email:', (stu.email as string));
+                        if (!newEmail) return;
+                        const token = getStoredToken();
+                        const r = await gsCall<{ success: boolean; error?: string }>('adminUpdateAliasEmail', (stu.email as string), newEmail, token);
+                        alert(r.success ? 'Email updated!' : (r.error || 'Failed'));
+                      }}>Edit Login Email</button>
                     )}
                     <button className="admin-action-btn" onClick={async () => {
                       const newTeacher = prompt('New teacher email:', (stu.teacherEmail as string) || '');
@@ -774,6 +764,25 @@ function StudentContent() {
                       const r = await gsCall<{ success: boolean; error?: string }>('resetAllAttendance', (stu.email as string), token);
                       alert(r.success ? 'Attendance reset!' : (r.error || 'Failed'));
                     }}>Reset All Attendance</button>
+                    {isAdmin && (
+                      <button className="admin-action-btn danger" style={{ background: '#7f1d1d', color: '#fecaca' }} onClick={async () => {
+                        if (!confirm(`Permanently delete ${stu.email} and ALL their data? This CANNOT be undone!`)) return;
+                        if (!confirm('This will remove the user, attendance, sessions, and all related records. Are you absolutely sure?')) return;
+                        const token = getStoredToken();
+                        const r = await gsCall<{ success: boolean; error?: string }>('adminDeleteUser', (stu.email as string), token);
+                        if (r.success) {
+                          setMsg({ text: 'User deleted successfully.', type: 'success' });
+                          setAdminSelectedUser(null);
+                          setSupervisorViewAsEmail('');
+                          setCommittedViewAsEmail('');
+                          if (user?.email) { loadData(user.email); loadTeacherState(); }
+                          setAllUsersLoaded(false);
+                          preloadAllUsers();
+                        } else {
+                          alert(r.error || 'Failed to delete user');
+                        }
+                      }}>Delete User</button>
+                    )}
                   </div>
                 </div>
               );

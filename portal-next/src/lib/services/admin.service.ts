@@ -376,7 +376,6 @@ export async function getAllAttendanceUsers(): Promise<ApiResponse & { users?: A
     const results = users.map((u) => ({
       email: u.aliasEmail,
       aliasEmail: u.aliasEmail,
-      internalEmail: u.internalEmail || undefined,
       name: [u.firstName, u.lastName].filter(Boolean).join(' ') || undefined,
       accountStatus: u.accountStatus,
       isTeacher: u.isTeacher,
@@ -431,7 +430,6 @@ export async function searchAttendanceUsers(
     const results = users.map((u) => ({
       email: u.aliasEmail,
       aliasEmail: u.aliasEmail,
-      internalEmail: u.internalEmail || undefined,
       name: [u.firstName, u.lastName].filter(Boolean).join(' ') || undefined,
       accountStatus: u.accountStatus,
       isTeacher: u.isTeacher,
@@ -743,12 +741,15 @@ export async function adminGetStudentDashboard(
       return { success: false, error: 'User not found' };
     }
 
-    // Get referral data (Rewardful)
+    // Get referral data (Rewardful) - try multiple email variants
     let leadsCount = 0;
     let conversionsCount = 0;
     try {
-      const emailForApi = user.internalEmail || user.aliasEmail;
-      const affResult = await rewardfulApi.getAffiliateByEmail(emailForApi);
+      const emailCandidates = [
+        user.internalEmail || '',
+        user.aliasEmail,
+      ].filter(Boolean);
+      const affResult = await rewardfulApi.findAffiliateByEmails(emailCandidates);
       if (affResult.success && affResult.affiliate) {
         const referrals = await rewardfulApi.getAllReferrals(affResult.affiliate.id);
         for (const ref of referrals) {
@@ -769,7 +770,6 @@ export async function adminGetStudentDashboard(
       ? {
           email: user.aliasEmail,
           aliasEmail: user.aliasEmail,
-          internalEmail: user.internalEmail,
           name,
           accountStatus: user.accountStatus,
           isTeacher: user.isTeacher,
@@ -1063,6 +1063,37 @@ export async function adminDeleteOrphanedLegacy(
   } catch (error) {
     log.error('Admin delete orphaned legacy error', { error });
     return { success: false, error: 'Failed to delete account' };
+  }
+}
+
+/**
+ * Permanently delete a user and all related data.
+ * Admin-only. Cascading deletes handle sessions, attendance, links, etc.
+ */
+export async function adminDeleteUser(
+  email: string,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  const normalized = normalizeEmail(email);
+
+  try {
+    const user = await prisma.user.findUnique({ where: { aliasEmail: normalized } });
+    if (!user) return { success: false, error: 'User not found' };
+
+    if (user.isAdmin) {
+      return { success: false, error: 'Cannot delete an admin account' };
+    }
+
+    await prisma.user.delete({ where: { id: user.id } });
+
+    log.info('Admin permanently deleted user', { email: normalized, userId: user.id });
+    return { success: true };
+  } catch (error) {
+    log.error('Admin delete user error', { error, email: normalized });
+    return { success: false, error: 'Failed to delete user' };
   }
 }
 
