@@ -110,6 +110,7 @@ export const functionRegistry: Record<string, AnyFunction> = {
   // REFERRALS / LEADS
   // ========================================================================
   getReferralsWithMode: referralService.getReferralsWithMode,
+  getReferralsWithModeRefresh: referralService.getReferralsWithModeRefresh,
   getStudentReferralsForTeacher: referralService.getStudentReferralsForTeacher,
   getReferralData: referralService.getReferralData,
 

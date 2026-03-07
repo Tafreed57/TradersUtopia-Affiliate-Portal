@@ -396,12 +396,17 @@ model ReferralCache {
   affiliateId String?
 
   // Counts
-  lastKnownLeadCount Int @default(0)
-  previousLeadCount  Int @default(0)
+  lastKnownLeadCount       Int @default(0)
+  lastKnownConversionCount Int @default(0)
+  previousLeadCount        Int @default(0)
 
   // Timestamps
   lastSuccessfulFetchAt DateTime?
   lastFetchedAt         DateTime?
+
+  // Cached referral rows (JSON) - avoids re-fetching from Rewardful API
+  cachedReferralData String? // JSON array of ReferralRow objects
+  cachedAt           DateTime?
 
   // Fetch history (JSON array)
   fetchHistory String? // JSON: [{ timestamp, count, delta }]

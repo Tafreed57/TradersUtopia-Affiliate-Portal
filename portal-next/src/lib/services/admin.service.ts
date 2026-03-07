@@ -10,6 +10,7 @@ import { normalizeEmail } from '@/lib/config';
 import { logger } from '@/lib/utils/logger';
 import { getSessionUser, validateAdminSession } from './session.service';
 import { rewardfulApi } from './rewardful.service';
+import { getCachedReferralCounts } from './referral.service';
 import type { ApiResponse, PendingAccount, ApprovalData, ApprovalResult, PreCheckResult } from '@/types';
 
 const log = logger.child({ service: 'admin' });
@@ -743,27 +744,8 @@ export async function adminGetStudentDashboard(
       return { success: false, error: 'User not found' };
     }
 
-    // Get referral data (Rewardful) - try multiple email variants
-    let leadsCount = 0;
-    let conversionsCount = 0;
-    try {
-      const emailCandidates = [
-        user.internalEmail || '',
-        user.aliasEmail,
-      ].filter(Boolean);
-      const affResult = await rewardfulApi.findAffiliateByEmails(emailCandidates);
-      if (affResult.success && affResult.affiliate) {
-        const referrals = await rewardfulApi.getAllReferrals(affResult.affiliate.id);
-        for (const ref of referrals) {
-          const state = (ref.conversion_state || '').toLowerCase();
-          if (state === 'conversion' || ref.became_conversion_at || ref.sale_occurred_at) {
-            conversionsCount++;
-          } else if (state !== 'visitor' && (state === 'lead' || ref.became_lead_at)) {
-            leadsCount++;
-          }
-        }
-      }
-    } catch { /* optional */ }
+    // Use cached referral counts (instant - no Rewardful API calls)
+    const { leadsCount, conversionsCount } = await getCachedReferralCounts(user.aliasEmail);
 
     const records = user.attendanceProfile?.records || [];
     const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.aliasEmail;

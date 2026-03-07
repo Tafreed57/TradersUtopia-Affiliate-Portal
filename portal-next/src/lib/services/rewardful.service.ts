@@ -362,21 +362,18 @@ class RewardfulApiClient {
   }
 
   /**
-   * Get all referrals for an affiliate
+   * Get referrals for a single page
    */
   async getReferrals(
     affiliateId: string,
     page: number = 1,
-    perPage: number = 100
+    perPage: number = 200
   ): Promise<{ success: boolean; referrals: RewardfulReferral[]; hasMore: boolean }> {
     try {
-      // CRITICAL: Rewardful uses 'limit', not 'per_page'
-      // (legacy code comment: "Rewardful uses 'limit', not 'per_page'")
       const response = await this.request<unknown>(
         `/referrals?affiliate_id=${affiliateId}&page=${page}&limit=${perPage}`
       );
 
-      // Rewardful may return array directly OR wrapped in { data: [...] }
       let referrals: RewardfulReferral[] = [];
       if (Array.isArray(response)) {
         referrals = response;
@@ -389,9 +386,7 @@ class RewardfulApiClient {
         }
       }
 
-      // If we got a full page, there might be more
       const hasMore = referrals.length >= perPage;
-
       return { success: true, referrals, hasMore };
     } catch (error) {
       log.error('Get referrals error', { error, affiliateId });
@@ -400,21 +395,38 @@ class RewardfulApiClient {
   }
 
   /**
-   * Get all referrals with pagination
+   * Get all referrals with parallel batch fetching for speed.
+   * First page is fetched to check count, then remaining pages in parallel.
    */
   async getAllReferrals(affiliateId: string): Promise<RewardfulReferral[]> {
-    const allReferrals: RewardfulReferral[] = [];
-    let page = 1;
-    let hasMore = true;
+    const perPage = 200;
+    const first = await this.getReferrals(affiliateId, 1, perPage);
+    const allReferrals = [...first.referrals];
 
-    while (hasMore) {
-      const result = await this.getReferrals(affiliateId, page);
-      allReferrals.push(...result.referrals);
-      hasMore = result.hasMore && result.referrals.length > 0;
-      page++;
+    if (!first.hasMore || first.referrals.length === 0) return allReferrals;
 
-      // Safety limit
-      if (page > 50) break;
+    // Fetch remaining pages in parallel batches of 5
+    let page = 2;
+    let keepGoing = true;
+    while (keepGoing && page <= 30) {
+      const batchSize = Math.min(5, 30 - page + 1);
+      const pages = Array.from({ length: batchSize }, (_, i) => page + i);
+      const results = await Promise.all(
+        pages.map((p) => this.getReferrals(affiliateId, p, perPage))
+      );
+
+      let gotAny = false;
+      for (const r of results) {
+        if (r.referrals.length > 0) {
+          allReferrals.push(...r.referrals);
+          gotAny = true;
+        }
+        if (!r.hasMore || r.referrals.length === 0) {
+          keepGoing = false;
+        }
+      }
+      if (!gotAny) break;
+      page += batchSize;
     }
 
     return allReferrals;

@@ -68,6 +68,9 @@ function ClipperContent() {
   const [refLoading, setRefLoading] = useState(false);
   const [refPage, setRefPage] = useState(1);
   const [refTotal, setRefTotal] = useState(0);
+  const [refLeadsCount, setRefLeadsCount] = useState(0);
+  const [refConversionsCount, setRefConversionsCount] = useState(0);
+  const [refInitialLoad, setRefInitialLoad] = useState(true);
 
   const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
   const [committedViewAsEmail, setCommittedViewAsEmail] = useState('');
@@ -124,20 +127,26 @@ function ClipperContent() {
     finally { setCommLoading(false); }
   }, [effectiveEmail]);
 
-  const loadReferrals = useCallback(async (mode: 'leads' | 'conversions', page: number) => {
+  const loadReferrals = useCallback(async (mode: 'leads' | 'conversions', page: number, forceRefresh?: boolean) => {
     const target = effectiveEmail;
     if (!target) return;
     setRefLoading(true);
     try {
-      const result = await gsCall<{ success: boolean; rows?: ReferralRow[]; totalCount?: number }>(
-        'getReferralsWithMode', { email: target, mode, page, pageSize: 25 }
+      const result = await gsCall<{
+        success: boolean; rows?: ReferralRow[]; totalCount?: number;
+        leadsCount?: number; conversionsCount?: number;
+      }>(
+        forceRefresh ? 'getReferralsWithModeRefresh' : 'getReferralsWithMode',
+        { email: target, mode, page, pageSize: 25 }
       );
       if (result.success) {
         setRefRows(result.rows || []);
         setRefTotal(result.totalCount || 0);
+        if (result.leadsCount !== undefined) setRefLeadsCount(result.leadsCount);
+        if (result.conversionsCount !== undefined) setRefConversionsCount(result.conversionsCount);
       }
     } catch { /* silent */ }
-    finally { setRefLoading(false); }
+    finally { setRefLoading(false); setRefInitialLoad(false); }
   }, [effectiveEmail]);
 
   useEffect(() => {
@@ -368,13 +377,46 @@ function ClipperContent() {
             <div className="section-card referrals">
               <div className="ref-header">
                 <h3>Referrals</h3>
-                <div className="ref-toggle">
-                  <button className={refMode === 'leads' ? 'active' : ''} onClick={() => { setRefMode('leads'); setRefPage(1); }}>Leads</button>
-                  <button className={refMode === 'conversions' ? 'active' : ''} onClick={() => { setRefMode('conversions'); setRefPage(1); }}>Conversions</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {(refLeadsCount > 0 || refConversionsCount > 0) && (
+                    <span style={{ fontSize: 12, color: '#94a3b8', marginRight: 4 }}>
+                      {refLeadsCount} leads · {refConversionsCount} conversions
+                    </span>
+                  )}
+                  <button
+                    title="Refresh from Rewardful"
+                    disabled={refLoading}
+                    onClick={() => loadReferrals(refMode, refPage, true)}
+                    style={{ background: 'none', border: 'none', cursor: refLoading ? 'not-allowed' : 'pointer', padding: 4, color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                  >
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style={{ animation: refLoading ? 'spin 1s linear infinite' : 'none' }}>
+                      <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                  </button>
+                  <div className="ref-toggle">
+                    <button className={refMode === 'leads' ? 'active' : ''} onClick={() => { setRefMode('leads'); setRefPage(1); }}>Leads</button>
+                    <button className={refMode === 'conversions' ? 'active' : ''} onClick={() => { setRefMode('conversions'); setRefPage(1); }}>Conversions</button>
+                  </div>
                 </div>
               </div>
-              {refLoading ? (
-                <p className="loading-text">Loading referrals...</p>
+              {refLoading && refInitialLoad ? (
+                <div style={{ padding: '24px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                    <div className="ref-skeleton-spinner" />
+                    <div>
+                      <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14, fontWeight: 500 }}>Loading referrals...</p>
+                      <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 12 }}>Fetching from Rewardful API - this may take a moment for large accounts</p>
+                    </div>
+                  </div>
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className="ref-skeleton-row" style={{ animationDelay: `${i * 0.1}s` }} />
+                  ))}
+                </div>
+              ) : refLoading ? (
+                <div style={{ padding: '12px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="ref-skeleton-spinner" />
+                  <span style={{ color: '#94a3b8', fontSize: 13 }}>Updating...</span>
+                </div>
               ) : refRows.length === 0 ? (
                 <p className="empty-msg">No {refMode} found</p>
               ) : (
@@ -545,6 +587,18 @@ function ClipperContent() {
         .ref-pagination button { padding: 6px 16px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; }
         .ref-pagination button:disabled { background: #cbd5e1; cursor: not-allowed; }
         .ref-pagination span { font-size: 13px; color: #64748b; }
+
+        .ref-skeleton-spinner {
+          width: 20px; height: 20px; border: 2px solid #e2e8f0; border-top-color: #6366f1;
+          border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0;
+        }
+        .ref-skeleton-row {
+          height: 36px; background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background-size: 200% 100%; border-radius: 8px; margin-bottom: 8px;
+          animation: shimmer 1.5s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
         @media (max-width: 768px) {
           .page-container { padding: 20px; }
