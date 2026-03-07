@@ -489,7 +489,7 @@ function ClipperContent() {
                   </table>
                   <div className="ref-pagination">
                     <button disabled={refPage <= 1} onClick={() => setRefPage(p => p - 1)}>Prev</button>
-                    <span>Page {refPage} ({refTotal} total)</span>
+                    <span>Page {refPage} of {Math.ceil(refTotal / 25) || 1} ({refTotal} {refMode})</span>
                     <button disabled={refPage * 25 >= refTotal} onClick={() => setRefPage(p => p + 1)}>Next</button>
                   </div>
                 </>
