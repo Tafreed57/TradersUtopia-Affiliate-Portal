@@ -220,11 +220,12 @@ function StudentContent() {
   };
 
   const loadReferrals = useCallback(async (mode: 'leads' | 'conversions', page: number) => {
-    if (!user?.email) return;
+    const email = effectiveEmail || user?.email;
+    if (!email) return;
     setRefLoading(true);
     try {
       const result = await gsCall<{ success: boolean; rows?: ReferralRow[]; totalCount?: number }>(
-        'getReferralsWithMode', { email: user.email, mode, page, pageSize: 25 }
+        'getReferralsWithMode', { email, mode, page, pageSize: 25 }
       );
       if (result.success) {
         setRefRows(result.rows || []);
@@ -232,7 +233,7 @@ function StudentContent() {
       }
     } catch { /* silent */ }
     finally { setRefLoading(false); }
-  }, [user]);
+  }, [user, effectiveEmail]);
 
   useEffect(() => {
     if (!sessionLoading && user) loadData();
@@ -243,8 +244,8 @@ function StudentContent() {
   }, [sessionLoading, user, loadTeacherState]);
 
   useEffect(() => {
-    if (data && !data.needsTeacherAssignment) loadReferrals(refMode, refPage);
-  }, [data, refMode, refPage, loadReferrals]);
+    if (data && (!data.needsTeacherAssignment || committedViewAsEmail)) loadReferrals(refMode, refPage);
+  }, [data, refMode, refPage, loadReferrals, committedViewAsEmail]);
 
   const handleConfirm = async () => {
     if (confirming || !effectiveEmail) return;
