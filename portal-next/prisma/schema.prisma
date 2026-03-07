@@ -79,6 +79,7 @@ model User {
   isAdmin      Boolean @default(false)
   isTeacher    Boolean @default(false)
   isSupervisor Boolean @default(false) // Only admin can set; supervisor can view-as by email
+  isHidden     Boolean @default(false) // Admin can hide shadow/legacy accounts from lookup
 
   // Relations
   sessions             Session[]

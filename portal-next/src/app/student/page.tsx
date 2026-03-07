@@ -331,15 +331,33 @@ function StudentContent() {
     }
   }, [sessionLoading, user, preloadAllUsers]);
 
+  const [showHidden, setShowHidden] = useState(false);
+
   const adminUsers = (() => {
     const q = adminSearch.toLowerCase().trim();
-    if (!q) return allUsers;
-    return allUsers.filter((u) => {
-      const name = ((u.name as string) || '').toLowerCase();
-      const email = ((u.email as string) || '').toLowerCase();
-      const teacher = ((u.teacherEmail as string) || '').toLowerCase();
-      return name.includes(q) || email.includes(q) || teacher.includes(q);
-    });
+    let filtered = allUsers.filter((u) => !u.isHidden);
+    if (q) {
+      filtered = filtered.filter((u) => {
+        const name = ((u.name as string) || '').toLowerCase();
+        const email = ((u.email as string) || '').toLowerCase();
+        const teacher = ((u.teacherEmail as string) || '').toLowerCase();
+        return name.includes(q) || email.includes(q) || teacher.includes(q);
+      });
+    }
+    return filtered;
+  })();
+
+  const hiddenUsers = (() => {
+    const q = adminSearch.toLowerCase().trim();
+    let filtered = allUsers.filter((u) => !!u.isHidden);
+    if (q) {
+      filtered = filtered.filter((u) => {
+        const name = ((u.name as string) || '').toLowerCase();
+        const email = ((u.email as string) || '').toLowerCase();
+        return name.includes(q) || email.includes(q);
+      });
+    }
+    return filtered;
   })();
 
   const [dashLoading, setDashLoading] = useState(false);
@@ -674,6 +692,52 @@ function StudentContent() {
               ))}
             </div>
 
+            {/* Hidden accounts section - admin only */}
+            {user?.isAdmin && hiddenUsers.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <button
+                  style={{ width: '100%', padding: '10px 16px', background: 'rgba(120,113,108,0.2)', border: '1px solid rgba(120,113,108,0.3)', borderRadius: 10, color: '#a8a29e', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  onClick={() => setShowHidden(!showHidden)}
+                >
+                  <span>Hidden Accounts ({hiddenUsers.length})</span>
+                  <span style={{ fontSize: 11 }}>{showHidden ? 'Hide ▲' : 'Show ▼'}</span>
+                </button>
+                {showHidden && (
+                  <div className="admin-results" style={{ marginTop: 8, opacity: 0.7 }}>
+                    {hiddenUsers.map((u, i) => (
+                      <div key={`h-${i}`} className={`admin-user-card ${adminSelectedUser && ((adminSelectedUser.student || adminSelectedUser) as Record<string, unknown>).email === u.email ? 'selected' : ''}`} style={{ borderColor: 'rgba(120,113,108,0.3)' }} onClick={async () => {
+                        const email = (u.email ?? u.aliasEmail) as string;
+                        if (!email) return;
+                        setSupervisorViewAsEmail(email);
+                        setCommittedViewAsEmail(email);
+                        loadData(email);
+                        loadTeacherState(email);
+                        setDashLoading(true);
+                        try {
+                          const token = getStoredToken();
+                          const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', email, token);
+                          setAdminSelectedUser(dash);
+                          if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } catch {
+                          setAdminSelectedUser(u);
+                          if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } finally { setDashLoading(false); }
+                      }}>
+                        <div className="admin-card-left">
+                          <div className="admin-avatar" style={{ background: '#78716c' }}>{((u.name as string) || (u.email as string)).charAt(0).toUpperCase()}</div>
+                          <div>
+                            <div className="admin-user-name">{(u.name as string) || (u.email as string)}</div>
+                            <div className="admin-user-email">{u.email as string}</div>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: 10, color: '#78716c', padding: '2px 8px', border: '1px solid rgba(120,113,108,0.3)', borderRadius: 6 }}>HIDDEN</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {dashLoading && (
               <div className="admin-dash-loading">
                 <div className="admin-search-spinner large" />
@@ -696,6 +760,7 @@ function StudentContent() {
                   {/* Basic info */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, marginBottom: 16 }}>
                     <div><strong>Login email:</strong> {((stu.email ?? stu.aliasEmail) as string) || '-'}</div>
+                    {isAdmin && <div><strong>Internal Email:</strong> {(stu.internalEmail as string) || '-'}</div>}
                     <div><strong>Teacher:</strong> {(stu.teacherEmail as string) || 'Not assigned'}</div>
                     {isAdmin && <div><strong>Status:</strong> {(stu.accountStatus as string) || '-'}</div>}
                     {!!(stu.isTeacher) && <div><span className="admin-badge teacher">Teacher</span></div>}
@@ -764,6 +829,19 @@ function StudentContent() {
                       const r = await gsCall<{ success: boolean; error?: string }>('resetAllAttendance', (stu.email as string), token);
                       alert(r.success ? 'Attendance reset!' : (r.error || 'Failed'));
                     }}>Reset All Attendance</button>
+                    {isAdmin && (
+                      <button className="admin-action-btn" style={{ background: stu.isHidden ? '#065f46' : '#44403c', color: stu.isHidden ? '#a7f3d0' : '#d6d3d1' }} onClick={async () => {
+                        const token = getStoredToken();
+                        const willHide = !stu.isHidden;
+                        const r = await gsCall<{ success: boolean; error?: string }>('adminToggleHideUser', (stu.email as string), willHide, token);
+                        if (r.success) {
+                          setMsg({ text: willHide ? 'Account hidden from lookup.' : 'Account restored to lookup.', type: 'success' });
+                          setAdminSelectedUser(null);
+                          setAllUsersLoaded(false);
+                          preloadAllUsers();
+                        } else { alert(r.error || 'Failed'); }
+                      }}>{stu.isHidden ? 'Unhide Account' : 'Hide Account'}</button>
+                    )}
                     {isAdmin && (
                       <button className="admin-action-btn danger" style={{ background: '#7f1d1d', color: '#fecaca' }} onClick={async () => {
                         if (!confirm(`Permanently delete ${stu.email} and ALL their data? This CANNOT be undone!`)) return;

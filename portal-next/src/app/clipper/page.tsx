@@ -324,43 +324,45 @@ function ClipperContent() {
               </div>
             </div>
 
-            {/* Commission Lookup */}
-            <div className="section-card commission-section">
-              <div className="commission-header">
-                <h3>Commission Lookup</h3>
-                <button className="btn-refresh-comm" onClick={() => fetchCommission()} disabled={commLoading}>
-                  {commLoading ? 'Loading...' : 'Refresh'}
-                </button>
-              </div>
-
-              <div className="commission-info-box">
-                <strong>Field Explanations:</strong>
-                <div style={{ marginLeft: 8 }}>
-                  <strong>Unpaid Amount:</strong> Total commissions not yet paid (includes pending + approved)<br />
-                  <strong>Due Now:</strong> Approved commissions ready for immediate payout (subset of unpaid)<br />
-                  <strong>Total Paid:</strong> Total amount already paid out historically
+            {/* Commission Lookup - hide from supervisors viewing other users */}
+            {!(user?.isSupervisor && !user?.isAdmin && committedViewAsEmail) && (
+              <div className="section-card commission-section">
+                <div className="commission-header">
+                  <h3>Commission Lookup</h3>
+                  <button className="btn-refresh-comm" onClick={() => fetchCommission()} disabled={commLoading}>
+                    {commLoading ? 'Loading...' : 'Refresh'}
+                  </button>
                 </div>
+
+                <div className="commission-info-box">
+                  <strong>Field Explanations:</strong>
+                  <div style={{ marginLeft: 8 }}>
+                    <strong>Unpaid Amount:</strong> Total commissions not yet paid (includes pending + approved)<br />
+                    <strong>Due Now:</strong> Approved commissions ready for immediate payout (subset of unpaid)<br />
+                    <strong>Total Paid:</strong> Total amount already paid out historically
+                  </div>
+                </div>
+
+                {commLoading && !commData && <p className="loading-text">Fetching commission data...</p>}
+
+                {commData && (
+                  <table className="commission-table">
+                    <tbody>
+                      <tr><td>Affiliate ID</td><td>{(commData.affiliateId as string) || '-'}</td></tr>
+                      <tr><td>Unpaid Amount</td><td>{formatMoney(commData.unpaidAmount as number)}</td></tr>
+                      <tr><td>Due Now</td><td>{formatMoney(commData.dueNowAmount as number)}</td></tr>
+                      <tr><td>Total Paid</td><td>{formatMoney(commData.totalPaidAmount as number)}</td></tr>
+                      <tr><td>Last Fetched</td><td>{commData.lastFetchedAt ? new Date(commData.lastFetchedAt as number).toLocaleDateString() : '-'}</td></tr>
+                      <tr><td>Status</td><td>{commData.percentageApplied ? `${commData.percentage}% applied` : 'Active'}</td></tr>
+                    </tbody>
+                  </table>
+                )}
+
+                {!commLoading && !commData && (
+                  <p className="empty-msg">No commission data available</p>
+                )}
               </div>
-
-              {commLoading && !commData && <p className="loading-text">Fetching commission data...</p>}
-
-              {commData && (
-                <table className="commission-table">
-                  <tbody>
-                    <tr><td>Affiliate ID</td><td>{(commData.affiliateId as string) || '-'}</td></tr>
-                    <tr><td>Unpaid Amount</td><td>{formatMoney(commData.unpaidAmount as number)}</td></tr>
-                    <tr><td>Due Now</td><td>{formatMoney(commData.dueNowAmount as number)}</td></tr>
-                    <tr><td>Total Paid</td><td>{formatMoney(commData.totalPaidAmount as number)}</td></tr>
-                    <tr><td>Last Fetched</td><td>{commData.lastFetchedAt ? new Date(commData.lastFetchedAt as number).toLocaleDateString() : '-'}</td></tr>
-                    <tr><td>Status</td><td>{commData.percentageApplied ? `${commData.percentage}% applied` : 'Active'}</td></tr>
-                  </tbody>
-                </table>
-              )}
-
-              {!commLoading && !commData && (
-                <p className="empty-msg">No commission data available</p>
-              )}
-            </div>
+            )}
 
             {/* Referrals */}
             <div className="section-card referrals">

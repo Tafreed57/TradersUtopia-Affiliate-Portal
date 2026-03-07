@@ -37,7 +37,7 @@ export function ProtectedRoute({
       return;
     }
 
-    if (requireTeacher && !user?.isTeacher && !user?.isAdmin && !user?.isSupervisor) {
+    if (requireTeacher && !user?.isTeacher && !user?.isAdmin) {
       router.push('/dashboard');
       return;
     }

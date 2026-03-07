@@ -381,6 +381,7 @@ export async function getAllAttendanceUsers(): Promise<ApiResponse & { users?: A
       isTeacher: u.isTeacher,
       isAdmin: u.isAdmin,
       isSupervisor: u.isSupervisor,
+      isHidden: u.isHidden,
       teacherEmail: u.attendanceProfile?.currentTeacherEmail || undefined,
       createdAt: u.createdAt.toISOString(),
       hasPassword: !!u.passwordHash,
@@ -435,6 +436,7 @@ export async function searchAttendanceUsers(
       isTeacher: u.isTeacher,
       isAdmin: u.isAdmin,
       isSupervisor: u.isSupervisor,
+      isHidden: u.isHidden,
       teacherEmail: u.attendanceProfile?.currentTeacherEmail || undefined,
       createdAt: u.createdAt.toISOString(),
       hasPassword: !!u.passwordHash,
@@ -770,11 +772,13 @@ export async function adminGetStudentDashboard(
       ? {
           email: user.aliasEmail,
           aliasEmail: user.aliasEmail,
+          internalEmail: user.internalEmail,
           name,
           accountStatus: user.accountStatus,
           isTeacher: user.isTeacher,
           isAdmin: user.isAdmin,
           isSupervisor: user.isSupervisor,
+          isHidden: user.isHidden,
           teacherEmail: user.attendanceProfile?.currentTeacherEmail,
           createdAt: user.createdAt?.toISOString(),
         }
@@ -1063,6 +1067,34 @@ export async function adminDeleteOrphanedLegacy(
   } catch (error) {
     log.error('Admin delete orphaned legacy error', { error });
     return { success: false, error: 'Failed to delete account' };
+  }
+}
+
+/**
+ * Toggle hidden status on a user account.
+ * Hidden accounts don't appear in supervisor lookup but show in admin's hidden section.
+ */
+export async function adminToggleHideUser(
+  email: string,
+  hidden: boolean,
+  token: string
+): Promise<ApiResponse> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) return { success: false, error: 'Unauthorized' };
+
+  const normalized = normalizeEmail(email);
+
+  try {
+    const user = await prisma.user.findUnique({ where: { aliasEmail: normalized } });
+    if (!user) return { success: false, error: 'User not found' };
+
+    await prisma.user.update({ where: { id: user.id }, data: { isHidden: hidden } });
+
+    log.info('Admin toggled user hidden status', { email: normalized, hidden });
+    return { success: true };
+  } catch (error) {
+    log.error('Admin toggle hide user error', { error, email: normalized });
+    return { success: false, error: 'Failed to update user' };
   }
 }
 

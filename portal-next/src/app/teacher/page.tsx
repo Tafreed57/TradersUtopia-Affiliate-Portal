@@ -405,8 +405,8 @@ function TeacherContent() {
       <div className="page-container">
         <Navigation title="Teacher Portal" variant="light-bg" />
 
-        {/* Supervisor/Admin: view as teacher by email */}
-        {(user?.isSupervisor || user?.isAdmin) && (
+        {/* Admin only: view as teacher by email */}
+        {user?.isAdmin && (
           <div className="supervisor-bar">
             <label>View as teacher:</label>
             <input

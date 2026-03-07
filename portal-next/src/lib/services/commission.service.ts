@@ -34,7 +34,7 @@ export async function lookupAffiliate(
 
   if (sessionToken) {
     const { user: sessionUser } = await getSessionUser(sessionToken);
-    if (sessionUser && sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
+    if (sessionUser && sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin) {
       return { success: false, error: 'Not authorized to view this affiliate\'s data' };
     }
   }
@@ -48,11 +48,15 @@ export async function lookupAffiliate(
       select: { internalEmail: true, aliasEmail: true },
     });
 
-    const emailForApi = user?.internalEmail || normalizedEmail;
     const displayEmail = user?.aliasEmail || normalizedEmail;
 
-    // Fetch from Rewardful API
-    const affiliateResult = await rewardfulApi.getAffiliateByEmail(emailForApi);
+    // Fetch from Rewardful API - try multiple email variants
+    const emailCandidates = [
+      user?.internalEmail || '',
+      normalizedEmail,
+      user?.aliasEmail || '',
+    ].filter(Boolean);
+    const affiliateResult = await rewardfulApi.findAffiliateByEmails(emailCandidates);
 
     if (!affiliateResult.success || !affiliateResult.affiliate) {
       return {
@@ -86,7 +90,8 @@ export async function lookupAffiliate(
     let percentageApplied = false;
 
     // Legacy pattern: digits immediately before %@ (e.g. user50%@gmail.com -> 50)
-    const percentMatch = emailForApi.match(/(\d{1,3})%@/);
+    const emailForPercent = user?.internalEmail || normalizedEmail;
+    const percentMatch = emailForPercent.match(/(\d{1,3})%@/);
     if (percentMatch) {
       percentage = Math.min(100, Math.max(1, parseInt(percentMatch[1], 10)));
       percentageApplied = true;

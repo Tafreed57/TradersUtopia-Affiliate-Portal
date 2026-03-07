@@ -128,7 +128,7 @@ export async function getTeacherDataWithContext(
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
   }
-  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin) {
     return { success: false, error: 'Not authorized to view this teacher\'s data' };
   }
 
@@ -215,7 +215,7 @@ export async function getStudentsCommissionData(
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
   }
-  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin && !sessionUser.isSupervisor) {
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin) {
     return { success: false, error: 'Not authorized to view this teacher\'s data' };
   }
 

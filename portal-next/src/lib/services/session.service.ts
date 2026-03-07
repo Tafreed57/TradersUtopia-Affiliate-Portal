@@ -315,9 +315,9 @@ export async function checkPortalAccess(
     return { hasAccess: true, user };
   }
 
-  // Teacher portal requires teacher role, admin, or supervisor
+  // Teacher portal requires teacher role or admin (not supervisor)
   if (portal === 'teacher') {
-    if (user.isTeacher || user.isAdmin || user.isSupervisor) {
+    if (user.isTeacher || user.isAdmin) {
       return { hasAccess: true, user };
     }
     // The session flag might be stale -- do a live check

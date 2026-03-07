@@ -286,8 +286,8 @@ function CommissionContent() {
       <div className="container">
         <h2>Affiliate Commission Lookup</h2>
 
-        {/* Supervisor/Admin: view as affiliate by email */}
-        {(user?.isSupervisor || user?.isAdmin) && (
+        {/* Admin only: view as affiliate by email */}
+        {user?.isAdmin && (
           <div className="supervisor-bar">
             <label>View as affiliate:</label>
             <input
