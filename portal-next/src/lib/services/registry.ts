@@ -111,6 +111,8 @@ export const functionRegistry: Record<string, AnyFunction> = {
   // ========================================================================
   getReferralsWithMode: referralService.getReferralsWithMode,
   getReferralsWithModeRefresh: referralService.getReferralsWithModeRefresh,
+  buildReferralCachePage: referralService.buildReferralCachePage,
+  resetReferralCache: referralService.resetReferralCache,
   getStudentReferralsForTeacher: referralService.getStudentReferralsForTeacher,
   getReferralData: referralService.getReferralData,
 

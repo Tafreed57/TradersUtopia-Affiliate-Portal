@@ -112,12 +112,9 @@ class RewardfulApiClient {
           signal: controller.signal,
         }).finally(() => clearTimeout(timer));
 
-        // Handle rate limiting
+        // On rate limit, throw immediately (do NOT retry - it wastes time and causes timeouts)
         if (response.status === 429) {
-          const delay = this.retryDelayMs * Math.pow(2, attempt);
-          log.warn('Rate limited, retrying', { delay, attempt });
-          await sleep(delay);
-          continue;
+          throw new Error('RATE_LIMITED');
         }
 
         if (!response.ok) {
@@ -128,11 +125,11 @@ class RewardfulApiClient {
         return await response.json();
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
+        if (lastError.message === 'RATE_LIMITED') throw lastError;
         log.error('API request failed', { error: lastError.message, attempt });
 
         if (attempt < this.maxRetries) {
-          const delay = this.retryDelayMs * Math.pow(2, attempt);
-          await sleep(delay);
+          await sleep(this.retryDelayMs * Math.pow(2, attempt));
         }
       }
     }
@@ -399,38 +396,40 @@ class RewardfulApiClient {
   }
 
   /**
-   * Get all referrals with parallel batch fetching for speed.
-   * First page is fetched to check count, then remaining pages in parallel.
+   * Fetch a single page of referrals. Returns empty on rate limit.
+   */
+  async getReferralPage(
+    affiliateId: string,
+    page: number
+  ): Promise<{ referrals: RewardfulReferral[]; hasMore: boolean; rateLimited: boolean }> {
+    try {
+      const result = await this.getReferrals(affiliateId, page, 100);
+      return { referrals: result.referrals, hasMore: result.hasMore, rateLimited: false };
+    } catch (e) {
+      if (e instanceof Error && e.message === 'RATE_LIMITED') {
+        return { referrals: [], hasMore: true, rateLimited: true };
+      }
+      return { referrals: [], hasMore: false, rateLimited: false };
+    }
+  }
+
+  /**
+   * Get all referrals sequentially, one page at a time.
+   * Stops on rate limit or timeout.
    */
   async getAllReferrals(affiliateId: string): Promise<RewardfulReferral[]> {
-    const perPage = 200;
-    const first = await this.getReferrals(affiliateId, 1, perPage);
-    const allReferrals = [...first.referrals];
+    const allReferrals: RewardfulReferral[] = [];
+    let page = 1;
+    const startTime = Date.now();
 
-    if (!first.hasMore || first.referrals.length === 0) return allReferrals;
+    while (page <= 100) {
+      if (Date.now() - startTime > 18_000) break; // 18s hard limit
 
-    // Fetch remaining pages in parallel batches of 5
-    let page = 2;
-    let keepGoing = true;
-    while (keepGoing && page <= 30) {
-      const batchSize = Math.min(5, 30 - page + 1);
-      const pages = Array.from({ length: batchSize }, (_, i) => page + i);
-      const results = await Promise.all(
-        pages.map((p) => this.getReferrals(affiliateId, p, perPage))
-      );
-
-      let gotAny = false;
-      for (const r of results) {
-        if (r.referrals.length > 0) {
-          allReferrals.push(...r.referrals);
-          gotAny = true;
-        }
-        if (!r.hasMore || r.referrals.length === 0) {
-          keepGoing = false;
-        }
-      }
-      if (!gotAny) break;
-      page += batchSize;
+      const result = await this.getReferralPage(affiliateId, page);
+      if (result.rateLimited) break;
+      allReferrals.push(...result.referrals);
+      if (!result.hasMore || result.referrals.length === 0) break;
+      page++;
     }
 
     return allReferrals;

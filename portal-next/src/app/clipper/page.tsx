@@ -11,7 +11,7 @@
  * Uses mode="clipper" for separate attendance records.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
@@ -127,27 +127,72 @@ function ClipperContent() {
     finally { setCommLoading(false); }
   }, [effectiveEmail]);
 
-  const loadReferrals = useCallback(async (mode: 'leads' | 'conversions', page: number, forceRefresh?: boolean) => {
-    const target = effectiveEmail;
-    if (!target) return;
-    setRefLoading(true);
+  const [refBuilding, setRefBuilding] = useState(false);
+  const [refBuildProgress, setRefBuildProgress] = useState('');
+  const refBuildingRef = useRef(false);
+
+  const displayCachedReferrals = useCallback(async (mode: 'leads' | 'conversions', page: number) => {
+    const email = effectiveEmail;
+    if (!email) return false;
     try {
       const result = await gsCall<{
         success: boolean; rows?: ReferralRow[]; totalCount?: number;
-        leadsCount?: number; conversionsCount?: number;
-      }>(
-        forceRefresh ? 'getReferralsWithModeRefresh' : 'getReferralsWithMode',
-        { email: target, mode, page, pageSize: 25 }
-      );
+        leadsCount?: number; conversionsCount?: number; complete?: boolean;
+      }>('getReferralsWithMode', { email, mode, page, pageSize: 25 });
       if (result.success) {
         setRefRows(result.rows || []);
         setRefTotal(result.totalCount || 0);
         if (result.leadsCount !== undefined) setRefLeadsCount(result.leadsCount);
         if (result.conversionsCount !== undefined) setRefConversionsCount(result.conversionsCount);
+        return result.complete ?? false;
+      }
+    } catch { /* silent */ }
+    return false;
+  }, [effectiveEmail]);
+
+  const buildCache = useCallback(async (email: string) => {
+    if (refBuildingRef.current) return;
+    refBuildingRef.current = true;
+    setRefBuilding(true);
+    try {
+      let complete = false;
+      let pageNum = 0;
+      while (!complete) {
+        const r = await gsCall<{
+          success: boolean; leadsCount?: number; conversionsCount?: number;
+          totalFetched?: number; complete?: boolean; page?: number;
+        }>('buildReferralCachePage', email);
+        if (!r.success) break;
+        pageNum = r.page || pageNum + 1;
+        complete = r.complete ?? false;
+        setRefLeadsCount(r.leadsCount || 0);
+        setRefConversionsCount(r.conversionsCount || 0);
+        setRefBuildProgress(`Loaded ${r.totalFetched || 0} referrals (page ${pageNum})...`);
+      }
+    } catch { /* silent */ }
+    finally { refBuildingRef.current = false; setRefBuilding(false); setRefBuildProgress(''); }
+  }, []);
+
+  const loadReferrals = useCallback(async (mode: 'leads' | 'conversions', page: number, forceRefresh?: boolean) => {
+    const email = effectiveEmail;
+    if (!email) return;
+    setRefLoading(true);
+    try {
+      if (forceRefresh) {
+        await gsCall('resetReferralCache', email);
+        setRefRows([]); setRefTotal(0); setRefLeadsCount(0); setRefConversionsCount(0);
+        setRefLoading(false); setRefInitialLoad(false);
+        await buildCache(email);
+        await displayCachedReferrals(mode, page);
+        return;
+      }
+      const complete = await displayCachedReferrals(mode, page);
+      if (!complete) {
+        buildCache(email).then(() => displayCachedReferrals(mode, page));
       }
     } catch { /* silent */ }
     finally { setRefLoading(false); setRefInitialLoad(false); }
-  }, [effectiveEmail]);
+  }, [effectiveEmail, displayCachedReferrals, buildCache]);
 
   useEffect(() => {
     if (!sessionLoading && user) loadData();
@@ -384,12 +429,12 @@ function ClipperContent() {
                     </span>
                   )}
                   <button
-                    title="Refresh from Rewardful"
-                    disabled={refLoading}
+                    title="Refresh from Rewardful (rebuilds cache)"
+                    disabled={refLoading || refBuilding}
                     onClick={() => loadReferrals(refMode, refPage, true)}
-                    style={{ background: 'none', border: 'none', cursor: refLoading ? 'not-allowed' : 'pointer', padding: 4, color: '#94a3b8', display: 'flex', alignItems: 'center' }}
+                    style={{ background: 'none', border: 'none', cursor: (refLoading || refBuilding) ? 'not-allowed' : 'pointer', padding: 4, color: '#94a3b8', display: 'flex', alignItems: 'center' }}
                   >
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style={{ animation: refLoading ? 'spin 1s linear infinite' : 'none' }}>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style={{ animation: (refLoading || refBuilding) ? 'spin 1s linear infinite' : 'none' }}>
                       <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
                     </svg>
                   </button>
@@ -399,25 +444,31 @@ function ClipperContent() {
                   </div>
                 </div>
               </div>
-              {refLoading && refInitialLoad ? (
+              {refBuilding && (
+                <div style={{ padding: '12px 16px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div className="ref-skeleton-spinner" />
+                  <div>
+                    <p style={{ margin: 0, fontSize: 13, color: '#0369a1', fontWeight: 500 }}>Building referral data...</p>
+                    <p style={{ margin: '2px 0 0', fontSize: 12, color: '#0284c7' }}>{refBuildProgress || 'Fetching pages from Rewardful...'}</p>
+                  </div>
+                </div>
+              )}
+              {refLoading && refInitialLoad && !refBuilding ? (
                 <div style={{ padding: '24px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                     <div className="ref-skeleton-spinner" />
-                    <div>
-                      <p style={{ margin: 0, color: '#e2e8f0', fontSize: 14, fontWeight: 500 }}>Loading referrals...</p>
-                      <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 12 }}>Fetching from Rewardful API - this may take a moment for large accounts</p>
-                    </div>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Loading referrals...</p>
                   </div>
                   {[1,2,3,4,5].map(i => (
                     <div key={i} className="ref-skeleton-row" style={{ animationDelay: `${i * 0.1}s` }} />
                   ))}
                 </div>
-              ) : refLoading ? (
+              ) : refLoading && !refBuilding ? (
                 <div style={{ padding: '12px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div className="ref-skeleton-spinner" />
                   <span style={{ color: '#94a3b8', fontSize: 13 }}>Updating...</span>
                 </div>
-              ) : refRows.length === 0 ? (
+              ) : refRows.length === 0 && !refBuilding ? (
                 <p className="empty-msg">No {refMode} found</p>
               ) : (
                 <>

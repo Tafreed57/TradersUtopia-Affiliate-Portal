@@ -404,9 +404,11 @@ model ReferralCache {
   lastSuccessfulFetchAt DateTime?
   lastFetchedAt         DateTime?
 
-  // Cached referral rows (JSON) - avoids re-fetching from Rewardful API
-  cachedReferralData String? // JSON array of ReferralRow objects
+  // Progressive cache - built one page at a time to avoid API rate limits
+  cachedReferralData String?  // JSON array of ReferralRow objects
   cachedAt           DateTime?
+  lastFetchedPage    Int      @default(0)
+  cacheComplete      Boolean  @default(false)
 
   // Fetch history (JSON array)
   fetchHistory String? // JSON: [{ timestamp, count, delta }]

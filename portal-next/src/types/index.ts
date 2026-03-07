@@ -334,6 +334,7 @@ export interface ReferralsResponse extends SuccessResponse {
   mode: 'leads' | 'conversions';
   leadsCount: number;
   conversionsCount: number;
+  complete?: boolean;
 }
 
 export interface ReferralsParams {
