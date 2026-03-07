@@ -660,19 +660,13 @@ function StudentContent() {
                 <div key={i} className={`admin-user-card ${adminSelectedUser && ((adminSelectedUser.student || adminSelectedUser) as Record<string, unknown>).email === u.email ? 'selected' : ''}`} onClick={async () => {
                   const email = (u.email ?? u.aliasEmail) as string;
                   if (!email) return;
-                  setSupervisorViewAsEmail(email);
-                  setCommittedViewAsEmail(email);
-                  loadData(email);
-                  loadTeacherState(email);
                   setDashLoading(true);
                   try {
                     const token = getStoredToken();
                     const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', email, token);
                     setAdminSelectedUser(dash);
-                    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
                   } catch {
                     setAdminSelectedUser(u);
-                    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
                   } finally { setDashLoading(false); }
                 }}>
                   <div className="admin-card-left">
@@ -708,19 +702,13 @@ function StudentContent() {
                       <div key={`h-${i}`} className={`admin-user-card ${adminSelectedUser && ((adminSelectedUser.student || adminSelectedUser) as Record<string, unknown>).email === u.email ? 'selected' : ''}`} style={{ borderColor: 'rgba(120,113,108,0.3)' }} onClick={async () => {
                         const email = (u.email ?? u.aliasEmail) as string;
                         if (!email) return;
-                        setSupervisorViewAsEmail(email);
-                        setCommittedViewAsEmail(email);
-                        loadData(email);
-                        loadTeacherState(email);
                         setDashLoading(true);
                         try {
                           const token = getStoredToken();
                           const dash = await gsCall<Record<string, unknown>>('adminGetStudentDashboard', email, token);
                           setAdminSelectedUser(dash);
-                          if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
                         } catch {
                           setAdminSelectedUser(u);
-                          if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
                         } finally { setDashLoading(false); }
                       }}>
                         <div className="admin-card-left">
@@ -788,6 +776,17 @@ function StudentContent() {
                       </div>
                     </div>
                   )}
+
+                  {/* View full dashboard */}
+                  <button className="admin-action-btn" style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', color: '#fff', fontWeight: 600, marginBottom: 8 }} onClick={() => {
+                    const email = ((stu.email ?? stu.aliasEmail) as string);
+                    if (!email) return;
+                    setSupervisorViewAsEmail(email);
+                    setCommittedViewAsEmail(email);
+                    loadData(email);
+                    loadTeacherState(email);
+                    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}>View Full Dashboard</button>
 
                   {/* Actions - admin gets full control, supervisor gets limited view */}
                   <div style={{ display: 'grid', gap: 8 }}>
