@@ -639,7 +639,7 @@ function StudentContent() {
                     </span>
                   )}
                   <button
-                    title="Refresh from Rewardful (rebuilds cache)"
+                    title="Refresh referral data (rebuilds cache)"
                     disabled={refLoading || refBuilding}
                     onClick={() => loadReferrals(refMode, refPage, true)}
                     style={{ background: 'none', border: 'none', cursor: (refLoading || refBuilding) ? 'not-allowed' : 'pointer', padding: 4, color: '#94a3b8', display: 'flex', alignItems: 'center' }}
@@ -659,7 +659,7 @@ function StudentContent() {
                   <div className="ref-skeleton-spinner" />
                   <div>
                     <p style={{ margin: 0, fontSize: 13, color: '#0369a1', fontWeight: 500 }}>Building referral data...</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 12, color: '#0284c7' }}>{refBuildProgress || 'Fetching pages from Rewardful...'}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: 12, color: '#0284c7' }}>{refBuildProgress || 'Fetching referral data...'}</p>
                   </div>
                 </div>
               )}

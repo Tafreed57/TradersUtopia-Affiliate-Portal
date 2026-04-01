@@ -71,17 +71,6 @@ interface StudentCommission {
   teacherCut30Days?: number;
 }
 
-interface LedgerEntry {
-  id: string;
-  type: 'CREDIT' | 'DEBIT';
-  amount: number;
-  currency: string;
-  createdAt: string;
-  studentEmail?: string;
-  percentageApplied?: number;
-  paidBy?: string;
-  note?: string;
-}
 
 function TeacherContent() {
   const { user, isLoading: sessionLoading } = useSession();
@@ -121,11 +110,6 @@ function TeacherContent() {
   const [removeConfirmStudent, setRemoveConfirmStudent] = useState<StudentItem | null>(null);
   const [removeLoading, setRemoveLoading] = useState(false);
   const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
-
-  // Ledger
-  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
-  const [showLedger, setShowLedger] = useState(false);
-  const [ledgerLoading, setLedgerLoading] = useState(false);
 
   // Estimate
   const [estimateData, setEstimateData] = useState<{ unpaid: number; dueNow: number; total: number } | null>(null);
@@ -175,19 +159,6 @@ function TeacherContent() {
     } catch { /* silent */ }
   }, []);
 
-  const loadLedger = useCallback(async (email: string) => {
-    setLedgerLoading(true);
-    try {
-      const token = getStoredToken();
-      const result = await gsCall<{
-        success: boolean; entries?: LedgerEntry[];
-      }>('getTeacherLedger', email, token, 1, 20);
-      if (result.success && result.entries) {
-        setLedgerEntries(result.entries);
-      }
-    } catch { /* silent */ }
-    finally { setLedgerLoading(false); }
-  }, []);
 
   useEffect(() => {
     if (sessionLoading || !user) return;
@@ -523,10 +494,10 @@ function TeacherContent() {
             <div className="locked-section">
               <h3>Your Teacher Earnings</h3>
 
-              {/* Live Estimate (from Rewardful API) */}
+              {/* Estimated Earnings */}
               <div style={{ marginBottom: 16, padding: 16, background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: 12, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#166534', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Estimated Teacher Cut (Live from Rewardful)
+                  Estimated Teacher Cut
                 </div>
                 {estimateData ? (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
@@ -545,14 +516,14 @@ function TeacherContent() {
                   </div>
                 ) : (
                   <div style={{ textAlign: 'center', color: '#166534', fontSize: 13 }}>
-                    Click &quot;Refresh Estimate&quot; to calculate your teacher cut from live Rewardful data
+                    Click &quot;Refresh Estimate&quot; to calculate your estimated teacher cut
                   </div>
                 )}
               </div>
 
-              {/* Confirmed Earnings (ledger-driven, from webhooks) */}
+              {/* Confirmed Earnings */}
               <div style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Confirmed Earnings (from Rewardful Payouts)
+                Confirmed Earnings
               </div>
               <div className="locked-grid">
                 <div className="locked-card highlight">
@@ -570,60 +541,14 @@ function TeacherContent() {
               </div>
               <p style={{ fontSize: 11, color: '#64748b', textAlign: 'center', margin: '0 0 12px' }}>
                 {data.earnings.totalOwed === 0 && data.earnings.totalCredited === 0
-                  ? 'These values update automatically when Charose marks affiliates as paid on Rewardful'
+                  ? 'These values update automatically when affiliates are marked as paid'
                   : data.earnings.lastUpdatedAt
                     ? `Last updated: ${new Date(data.earnings.lastUpdatedAt).toLocaleString()}`
                     : ''}
               </p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn-update-earnings" onClick={handleRefreshEstimate} disabled={estimateLoading}>
-                  {estimateLoading ? 'Calculating...' : 'Refresh Estimate'}
-                </button>
-                <button
-                  className="btn-update-earnings"
-                  style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}
-                  onClick={() => { setShowLedger(!showLedger); if (!showLedger) loadLedger(targetEmail); }}
-                >
-                  {showLedger ? 'Hide History' : 'View Transaction History'}
-                </button>
-              </div>
-
-              {/* Transaction History */}
-              {showLedger && (
-                <div style={{ marginTop: 16, padding: 16, background: 'white', borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                  <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#1e293b' }}>Transaction History</h4>
-                  {ledgerLoading ? (
-                    <p style={{ fontSize: 13, color: '#64748b', textAlign: 'center' }}>Loading...</p>
-                  ) : ledgerEntries.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center' }}>No transactions yet. Earnings will appear when students are paid on Rewardful.</p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {ledgerEntries.map((entry) => (
-                        <div key={entry.id} style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '10px 14px', borderRadius: 10,
-                          background: entry.type === 'CREDIT' ? '#f0fdf4' : '#fef2f2',
-                          border: `1px solid ${entry.type === 'CREDIT' ? '#bbf7d0' : '#fecaca'}`,
-                        }}>
-                          <div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: entry.type === 'CREDIT' ? '#16a34a' : '#dc2626' }}>
-                              {entry.type === 'CREDIT' ? '+' : '-'}{formatMoney(entry.amount)}
-                            </div>
-                            <div style={{ fontSize: 11, color: '#64748b' }}>
-                              {entry.type === 'CREDIT'
-                                ? `Student: ${entry.studentEmail || 'Unknown'} (${entry.percentageApplied || 0}%)`
-                                : `Paid by: ${entry.paidBy || 'Admin'}`}
-                            </div>
-                          </div>
-                          <div style={{ fontSize: 11, color: '#94a3b8' }}>
-                            {new Date(entry.createdAt).toLocaleDateString()}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <button className="btn-update-earnings" onClick={handleRefreshEstimate} disabled={estimateLoading}>
+                {estimateLoading ? 'Calculating...' : 'Refresh Estimate'}
+              </button>
             </div>
 
             {/* Tabs: Students | Requests */}
