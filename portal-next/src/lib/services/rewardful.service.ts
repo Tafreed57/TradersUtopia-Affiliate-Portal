@@ -315,8 +315,8 @@ class RewardfulApiClient {
 
         allCommissions.push(...pageItems);
 
-        // If fewer than 200, we reached the end
-        if (pageItems.length < 200) break;
+        // Rewardful API caps at ~100 per page regardless of limit param
+        if (pageItems.length < 50) break;
         page++;
       }
 
