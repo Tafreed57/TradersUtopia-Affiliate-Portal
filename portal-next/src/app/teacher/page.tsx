@@ -72,6 +72,7 @@ interface StudentCommission {
   teacherPercentage?: number;
   teacherCutUnpaid?: number;
   teacherCutDueNow?: number;
+  teacherCutPaid?: number;
   teacherCut30Days?: number;
 }
 
@@ -505,7 +506,7 @@ function TeacherContent() {
               </div>
 
               <div className="estimate-card">
-                <div className="estimate-section-label">Your Total Cut</div>
+                <div className="estimate-section-label">Your Total Cut (Unpaid)</div>
                 <div className="estimate-main">
                   {formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.teacherCutUnpaid || 0), 0))}
                 </div>
@@ -515,6 +516,13 @@ function TeacherContent() {
                       {formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.teacherCutDueNow || 0), 0))}
                     </span>
                     <span className="estimate-item-label">Due Now</span>
+                  </div>
+                  <div className="estimate-divider" />
+                  <div className="estimate-item">
+                    <span className="estimate-item-value estimate-paid">
+                      {formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.teacherCutPaid || 0), 0))}
+                    </span>
+                    <span className="estimate-item-label">Total Paid</span>
                   </div>
                 </div>
               </div>
@@ -643,7 +651,8 @@ function TeacherContent() {
                         <div className="student-amounts">
                           <span className="amount-label">Unpaid: <strong>{formatMoney(cd.totalUnpaid)}</strong></span>
                           <span className="amount-label">Due Now: <strong>{formatMoney(cd.totalDueNow)}</strong></span>
-                          <span className="amount-label">Your Cut ({cd.teacherPercentage || student.percentageOverride}%): <strong>{formatMoney(cd.teacherCutUnpaid)}</strong></span>
+                          <span className="amount-label">Paid: <strong className="paid-amount">{formatMoney(cd.totalPaid)}</strong></span>
+                          <span className="amount-label">Your Cut ({cd.teacherPercentage || student.percentageOverride}%): <strong>{formatMoney(cd.teacherCutUnpaid)}</strong> <span className="paid-cut">(Paid: {formatMoney(cd.teacherCutPaid)})</span></span>
                         </div>
                       </div>
                       <div className="student-controls">
@@ -1026,8 +1035,11 @@ function TeacherContent() {
         }
         .attendance-badge.attended { background: #dcfce7; color: #16a34a; }
         .attendance-badge.absent { background: #fef2f2; color: #dc2626; }
-        .student-amounts { display: flex; gap: 16px; font-size: 13px; color: #475569; }
+        .student-amounts { display: flex; gap: 16px; font-size: 13px; color: #475569; flex-wrap: wrap; }
         .amount-label strong { color: #1e293b; }
+        .paid-amount { color: #16a34a !important; }
+        .paid-cut { color: #16a34a; font-weight: 500; font-size: 12px; }
+        .estimate-paid { color: #16a34a; }
 
         .student-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         .pct-control { display: flex; gap: 6px; align-items: center; }

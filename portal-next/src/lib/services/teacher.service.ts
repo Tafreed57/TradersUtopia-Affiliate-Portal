@@ -246,7 +246,7 @@ export async function getStudentsCommissionData(
           totalUnpaid: 0, totalDueNow: 0, totalPaid: 0,
           unpaid30Days: 0, dueNow30Days: 0,
           teacherPercentage: pct,
-          teacherCutUnpaid: 0, teacherCutDueNow: 0, teacherCut30Days: 0,
+          teacherCutUnpaid: 0, teacherCutDueNow: 0, teacherCutPaid: 0, teacherCut30Days: 0,
         });
         continue;
       }
@@ -266,6 +266,7 @@ export async function getStudentsCommissionData(
         teacherPercentage: pct,
         teacherCutUnpaid: Math.round(totals.unpaid * multiplier * 100) / 100,
         teacherCutDueNow: Math.round(totals.dueNow * multiplier * 100) / 100,
+        teacherCutPaid: Math.round(totals.paid * multiplier * 100) / 100,
         teacherCut30Days: Math.round(thirtyDay.unpaid * multiplier * 100) / 100,
       });
     }

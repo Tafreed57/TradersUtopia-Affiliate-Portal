@@ -247,6 +247,7 @@ export interface StudentCommissionData {
   // Teacher's cut amounts
   teacherCutUnpaid: number;
   teacherCutDueNow: number;
+  teacherCutPaid: number;
   teacherCut30Days: number;
 }
 
