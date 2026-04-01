@@ -19,8 +19,9 @@ async function main() {
   await prisma.auditLog.deleteMany();
   await prisma.apiCache.deleteMany();
   await prisma.referralCache.deleteMany();
-  await prisma.teacherPayment.deleteMany();
+  await prisma.teacherLedgerEntry.deleteMany();
   await prisma.teacherEarnings.deleteMany();
+  await prisma.rewardfulWebhookLog.deleteMany();
   await prisma.commissionTracking.deleteMany();
   await prisma.commissionOverride.deleteMany();
   await prisma.attendanceRecord.deleteMany();
@@ -71,10 +72,10 @@ async function main() {
   await prisma.teacherEarnings.create({
     data: {
       userId: teacher.id,
-      lockedEarnings: 250.00,
-      totalEarnedAllTime: 1500.00,
-      totalPaidAllTime: 1250.00,
-      lockedAt: new Date(),
+      totalOwed: 250.00,
+      totalCredited: 1500.00,
+      totalPaid: 1250.00,
+      lastUpdatedAt: new Date(),
     },
   });
 
@@ -107,6 +108,7 @@ async function main() {
       data: {
         teacherId: teacher.id,
         studentId: affiliate.id,
+        percentageOverride: 10,
         status: 'ACTIVE',
         createdBy: 'seed',
       },

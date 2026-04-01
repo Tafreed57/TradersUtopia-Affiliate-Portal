@@ -36,14 +36,10 @@ interface TeacherPaymentInfo {
   email: string;
   name: string;
   studentCount: number;
-  totalUnpaid: number;
-  totalDueNow: number;
+  totalOwed: number;
+  totalCredited: number;
   totalPaid: number;
-  lockedUnpaid: number;
-  lockedDueNow: number;
-  totalLockedEarnings: number;
-  accumulatedAmount: number;
-  lastPayment: { amount: number; date: string } | null;
+  lastUpdatedAt?: string;
 }
 
 function CommissionContent() {
@@ -514,44 +510,43 @@ function CommissionContent() {
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 8px', fontWeight: 600 }}>Current Student Totals (100% raw values)</p>
                     <div className="stat-grid-3">
                       <div className="stat-mini">
                         <div className="stat-mini-val">{t.studentCount}</div>
                         <div className="stat-mini-label">Total Students</div>
                       </div>
-                      <div className="stat-mini">
-                        <div className="stat-mini-val">{formatMoney(t.totalUnpaid)}</div>
-                        <div className="stat-mini-label">Total Unpaid</div>
+                      <div className="stat-mini-blue">
+                        <div className="stat-mini-val" style={{ color: '#2563eb' }}>{formatMoney(t.totalOwed)}</div>
+                        <div className="stat-mini-label">Amount Owed</div>
                       </div>
                       <div className="stat-mini">
-                        <div className="stat-mini-val">{formatMoney(t.totalDueNow)}</div>
-                        <div className="stat-mini-label">Total Due Now</div>
+                        <div className="stat-mini-val">{formatMoney(t.totalPaid)}</div>
+                        <div className="stat-mini-label">Total Paid</div>
                       </div>
                     </div>
                   </div>
 
                   <div className="locked-earnings-box">
-                    <p style={{ fontSize: 12, color: '#047857', margin: '0 0 10px', fontWeight: 600 }}>Locked Earnings (cumulative)</p>
+                    <p style={{ fontSize: 12, color: '#047857', margin: '0 0 10px', fontWeight: 600 }}>Ledger Summary</p>
                     <div className="stat-grid-3">
                       <div className="stat-mini-white">
-                        <div className="stat-mini-val" style={{ color: '#16a34a' }}>{formatMoney(t.lockedUnpaid)}</div>
-                        <div className="stat-mini-label">Locked Unpaid</div>
+                        <div className="stat-mini-val" style={{ color: '#16a34a' }}>{formatMoney(t.totalCredited)}</div>
+                        <div className="stat-mini-label">Total Credited</div>
                       </div>
                       <div className="stat-mini-white">
-                        <div className="stat-mini-val" style={{ color: '#16a34a' }}>{formatMoney(t.lockedDueNow)}</div>
-                        <div className="stat-mini-label">Locked Due Now</div>
+                        <div className="stat-mini-val" style={{ color: '#dc2626' }}>{formatMoney(t.totalPaid)}</div>
+                        <div className="stat-mini-label">Total Paid</div>
                       </div>
                       <div className="stat-mini-blue">
-                        <div className="stat-mini-val" style={{ color: '#2563eb' }}>{formatMoney(t.totalLockedEarnings)}</div>
-                        <div className="stat-mini-label">Total Locked</div>
+                        <div className="stat-mini-val" style={{ color: '#2563eb' }}>{formatMoney(t.totalOwed)}</div>
+                        <div className="stat-mini-label">Balance Owed</div>
                       </div>
                     </div>
                   </div>
 
-                  {t.lastPayment && (
-                    <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8, marginBottom: 12, fontSize: 12, color: '#64748b' }}>
-                      <strong style={{ color: '#475569' }}>Last Payment:</strong> {formatMoney(t.lastPayment.amount)} on {new Date(t.lastPayment.date).toLocaleDateString()}
+                  {t.lastUpdatedAt && (
+                    <div style={{ padding: 8, fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>
+                      Last updated: {new Date(t.lastUpdatedAt).toLocaleString()}
                     </div>
                   )}
 
@@ -572,10 +567,10 @@ function CommissionContent() {
                     style={{ width: '100%', fontSize: 16, fontWeight: 600 }}
                     onClick={() => {
                       const input = document.getElementById(`customAmount_${i}`) as HTMLInputElement;
-                      handlePayTeacher(t.email, t.accumulatedAmount, input?.value);
+                      handlePayTeacher(t.email, t.totalOwed, input?.value);
                     }}
                   >
-                    Pay Now - {formatMoney(t.accumulatedAmount)}
+                    Pay Now - {formatMoney(t.totalOwed)}
                   </button>
                 </div>
               ))}

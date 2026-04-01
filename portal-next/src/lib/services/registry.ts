@@ -76,10 +76,12 @@ export const functionRegistry: Record<string, AnyFunction> = {
   removeStudentFromTeacher: teacherService.removeStudentFromTeacher,
   setStudentPercentageOverride: teacherService.setStudentPercentageOverride,
   updateTeacherEarnings: teacherService.updateTeacherEarnings,
+  refreshTeacherEstimate: teacherService.refreshTeacherEstimate,
   getTeacherEarningsHistory: teacherService.getTeacherEarningsHistory,
-  recordTeacherPayout: teacherService.recordTeacherPayout,
-  recordTeacherPayment: teacherService.recordTeacherPayout, // GAS alias
+  recordTeacherPayout: teacherService.recordTeacherPayment,
+  recordTeacherPayment: teacherService.recordTeacherPayment,
   getAllTeachersPaymentData: teacherService.getAllTeachersPaymentData,
+  getTeacherLedger: teacherService.getTeacherLedger,
 
   // ========================================================================
   // TEACHER–STUDENT ASSIGNMENT (request + approval workflow)

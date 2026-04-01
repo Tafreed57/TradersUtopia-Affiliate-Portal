@@ -247,6 +247,7 @@ export async function createTeacherChangeRequest(
             studentId,
             status: 'ACTIVE',
             createdBy: 'first_assignment',
+            percentageOverride: 10, // Default; teacher can adjust later
           },
         });
       }
@@ -458,6 +459,7 @@ export async function acceptTeacherChangeRequest(
             studentId,
             status: 'ACTIVE',
             createdBy: 'request_accept',
+            percentageOverride: 10, // Default; teacher can adjust later
           },
         });
       }

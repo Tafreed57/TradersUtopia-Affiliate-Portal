@@ -194,15 +194,31 @@ export interface StudentData {
   internalEmail?: string;
   name: string;
   affiliateId?: string;
-  percentageOverride?: number;
+  percentageOverride: number; // Required: 1-100
   addedDate?: string;
 }
 
 export interface TeacherEarningsData {
-  lockedEarnings: number;
-  totalEarnedAllTime: number;
-  totalPaidAllTime: number;
-  lockedAt?: string;
+  totalOwed: number;     // Current balance owed to teacher (from ledger)
+  totalCredited: number; // Lifetime credits from student payouts
+  totalPaid: number;     // Lifetime admin payments to teacher
+  lastUpdatedAt?: string;
+}
+
+export interface LedgerEntryData {
+  id: string;
+  type: 'CREDIT' | 'DEBIT';
+  amount: number;
+  currency: string;
+  createdAt: string;
+  // CREDIT fields
+  studentEmail?: string;
+  percentageApplied?: number;
+  payoutAmountCents?: number;
+  payoutCurrency?: string;
+  // DEBIT fields
+  paidBy?: string;
+  note?: string;
 }
 
 export interface TeacherData {
@@ -226,16 +242,49 @@ export interface StudentCommissionData {
   // 30-day filtered amounts (RAW 100%)
   unpaid30Days: number;
   dueNow30Days: number;
-  // Teacher's percentage override for this student
-  teacherPercentage: number | null;
-  // Email-encoded percentage (e.g. 50 from "user50%@gmail.com")
-  emailPercentage: number | null;
-  // Legacy compat fields
-  rawDueNow: number;
-  adjustedDueNow: number;
-  percentage: number;
-  last30DaysRaw: number;
-  last30DaysAdjusted: number;
+  // Teacher's percentage for this student (required)
+  teacherPercentage: number;
+  // Teacher's cut amounts
+  teacherCutUnpaid: number;
+  teacherCutDueNow: number;
+  teacherCut30Days: number;
+}
+
+// ============================================================================
+// REWARDFUL WEBHOOK TYPES
+// ============================================================================
+
+export interface RewardfulPayoutWebhook {
+  event: string;
+  data: {
+    id: string;
+    currency: string;
+    amount: number; // in cents
+    state: string;
+    paid_at: string;
+    affiliate: {
+      id: string;
+      email: string;
+      first_name?: string;
+      last_name?: string;
+    };
+    commissions?: Array<{
+      id: string;
+      amount: number;
+      currency: string;
+    }>;
+  };
+}
+
+export interface TeacherPaymentInfo {
+  email: string;
+  name: string;
+  studentCount: number;
+  totalOwed: number;
+  totalCredited: number;
+  totalPaid: number;
+  lastUpdatedAt?: string;
+  recentLedgerEntries: LedgerEntryData[];
 }
 
 // ============================================================================

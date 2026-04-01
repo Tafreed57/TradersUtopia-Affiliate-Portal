@@ -27,7 +27,7 @@ interface StudentItem {
   name?: string;
   internalEmail?: string;
   affiliateId?: string;
-  percentageOverride?: number;
+  percentageOverride: number;
   addedDate?: string;
 }
 
@@ -50,10 +50,10 @@ interface TeacherPageData {
   };
   students: StudentItem[];
   earnings: {
-    lockedEarnings: number;
-    totalEarnedAllTime: number;
-    totalPaidAllTime: number;
-    lockedAt?: string;
+    totalOwed: number;
+    totalCredited: number;
+    totalPaid: number;
+    lastUpdatedAt?: string;
   };
 }
 
@@ -65,13 +65,22 @@ interface StudentCommission {
   totalPaid?: number;
   unpaid30Days?: number;
   dueNow30Days?: number;
-  teacherPercentage?: number | null;
-  emailPercentage?: number | null;
-  rawDueNow?: number;
-  adjustedDueNow?: number;
-  percentage?: number;
-  last30DaysRaw?: number;
-  last30DaysAdjusted?: number;
+  teacherPercentage?: number;
+  teacherCutUnpaid?: number;
+  teacherCutDueNow?: number;
+  teacherCut30Days?: number;
+}
+
+interface LedgerEntry {
+  id: string;
+  type: 'CREDIT' | 'DEBIT';
+  amount: number;
+  currency: string;
+  createdAt: string;
+  studentEmail?: string;
+  percentageApplied?: number;
+  paidBy?: string;
+  note?: string;
 }
 
 function TeacherContent() {
@@ -86,6 +95,7 @@ function TeacherContent() {
 
   // Add student
   const [newStudentEmail, setNewStudentEmail] = useState('');
+  const [newStudentPercentage, setNewStudentPercentage] = useState('');
   const [addingStudent, setAddingStudent] = useState(false);
 
   // Student stats
@@ -112,10 +122,10 @@ function TeacherContent() {
   const [removeLoading, setRemoveLoading] = useState(false);
   const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
 
-  // Earnings history (from getTeacherEarningsHistory)
-  const [earningsHistory, setEarningsHistory] = useState<{
-    totalUnpaidEarned: number; totalDueNowEarned: number; totalEarned: number;
-  }>({ totalUnpaidEarned: 0, totalDueNowEarned: 0, totalEarned: 0 });
+  // Ledger
+  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
+  const [showLedger, setShowLedger] = useState(false);
+  const [ledgerLoading, setLedgerLoading] = useState(false);
 
   const formatMoney = (amount: number | undefined | null) => {
     if (amount == null) return '$0.00 CAD';
@@ -161,19 +171,18 @@ function TeacherContent() {
     } catch { /* silent */ }
   }, []);
 
-  const loadEarningsHistory = useCallback(async (email: string) => {
+  const loadLedger = useCallback(async (email: string) => {
+    setLedgerLoading(true);
     try {
+      const token = getStoredToken();
       const result = await gsCall<{
-        success: boolean; totalUnpaidEarned?: number; totalDueNowEarned?: number; totalEarned?: number;
-      }>('getTeacherEarningsHistory', email);
-      if (result.success) {
-        setEarningsHistory({
-          totalUnpaidEarned: result.totalUnpaidEarned || 0,
-          totalDueNowEarned: result.totalDueNowEarned || 0,
-          totalEarned: result.totalEarned || 0,
-        });
+        success: boolean; entries?: LedgerEntry[];
+      }>('getTeacherLedger', email, token, 1, 20);
+      if (result.success && result.entries) {
+        setLedgerEntries(result.entries);
       }
     } catch { /* silent */ }
+    finally { setLedgerLoading(false); }
   }, []);
 
   useEffect(() => {
@@ -187,20 +196,25 @@ function TeacherContent() {
     setTargetEmail(email);
     loadTeacherData(email);
     loadCommissionData(email);
-    loadEarningsHistory(email);
-  }, [sessionLoading, user, loadTeacherData, loadCommissionData, loadEarningsHistory]);
+  }, [sessionLoading, user, loadTeacherData, loadCommissionData]);
 
   const handleAddStudent = async () => {
     if (!newStudentEmail.trim()) return;
+    const pctNum = Number(newStudentPercentage);
+    if (!newStudentPercentage || isNaN(pctNum) || pctNum < 1 || pctNum > 100) {
+      setMsg({ text: 'Please enter a percentage between 1 and 100', type: 'error' });
+      return;
+    }
     setAddingStudent(true);
     try {
       const token = getStoredToken();
       const result = await gsCall<{ success: boolean; error?: string }>(
-        'addStudentToTeacherWithContext', targetEmail, newStudentEmail.trim(), token
+        'addStudentToTeacherWithContext', targetEmail, newStudentEmail.trim(), token, pctNum
       );
       if (result.success) {
         setMsg({ text: 'Student added!', type: 'success' });
         setNewStudentEmail('');
+        setNewStudentPercentage('');
         loadTeacherData(targetEmail);
         loadCommissionData(targetEmail);
       } else {
@@ -312,23 +326,34 @@ function TeacherContent() {
 
   const handleSetPercentage = async (studentEmail: string) => {
     const pct = percentageInputs[studentEmail];
+    const pctNum = Number(pct);
+    if (!pct || isNaN(pctNum) || pctNum < 1 || pctNum > 100) {
+      setMsg({ text: 'Percentage must be between 1 and 100', type: 'error' });
+      return;
+    }
     try {
-      // Default to 10 if empty (matches legacy behavior)
-      await gsCall('setStudentPercentageOverride', targetEmail, studentEmail, pct ? Number(pct) : 10);
+      await gsCall('setStudentPercentageOverride', targetEmail, studentEmail, pctNum);
       setMsg({ text: `Percentage updated for ${studentEmail}`, type: 'success' });
       loadTeacherData(targetEmail);
+      loadCommissionData(targetEmail);
     } catch (err) {
       setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
     }
   };
 
-  const handleUpdateEarnings = async () => {
+  const handleRefreshEstimate = async () => {
     try {
       const token = getStoredToken();
-      await gsCall('updateTeacherEarnings', targetEmail, token);
-      setMsg({ text: 'Earnings updated!', type: 'success' });
+      const result = await gsCall<{ success: boolean; totalEstimate?: number; error?: string }>(
+        'refreshTeacherEstimate', targetEmail, token
+      );
+      if (result.success) {
+        setMsg({ text: `Estimate refreshed: ${formatMoney(result.totalEstimate)}`, type: 'success' });
+      } else {
+        setMsg({ text: result.error || 'Failed', type: 'error' });
+      }
       loadTeacherData(targetEmail);
-      loadEarningsHistory(targetEmail);
+      loadCommissionData(targetEmail);
     } catch (err) {
       setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
     }
@@ -375,17 +400,14 @@ function TeacherContent() {
   const handleAdminSearch = async () => {
     if (!managedEmail.trim() || !managedEmail.includes('@')) return;
     const target = managedEmail.trim().toLowerCase();
-    // Audit log: admin started managing (matches GAS adminStartManageUser)
     try { await gsCall('adminStartManageUser', user?.email || '', target); } catch { /* ok */ }
     setIsManaging(true);
     setTargetEmail(target);
     loadTeacherData(target);
     loadCommissionData(target);
-    loadEarningsHistory(target);
   };
 
   const handleExitManage = async () => {
-    // Audit log: admin stopped managing (matches GAS adminStopManageUser)
     try { await gsCall('adminStopManageUser', user?.email || '', targetEmail); } catch { /* ok */ }
     setIsManaging(false);
     setManagedEmail('');
@@ -393,7 +415,6 @@ function TeacherContent() {
     setTargetEmail(email);
     loadTeacherData(email);
     loadCommissionData(email);
-    loadEarningsHistory(email);
   };
 
   if (sessionLoading || loading) {
@@ -421,7 +442,6 @@ function TeacherContent() {
                   setTargetEmail(email);
                   loadTeacherData(email);
                   loadCommissionData(email);
-                  loadEarningsHistory(email);
                   loadOpenRequests();
                 }
               }}
@@ -435,7 +455,6 @@ function TeacherContent() {
                 setTargetEmail(email);
                 loadTeacherData(email);
                 loadCommissionData(email);
-                loadEarningsHistory(email);
                 loadOpenRequests();
               }}
             >
@@ -489,24 +508,75 @@ function TeacherContent() {
               </div>
             </div>
 
-            {/* Locked earnings - matches GAS: Locked Unpaid Earned, Locked Due Now Earned, Total Locked */}
+            {/* Teacher Earnings (ledger-driven) */}
             <div className="locked-section">
-              <h3>Your Locked Earnings</h3>
+              <h3>Your Teacher Earnings</h3>
               <div className="locked-grid">
-                <div className="locked-card">
-                  <div className="locked-value">{formatMoney(earningsHistory.totalUnpaidEarned)}</div>
-                  <div className="locked-label">Locked Unpaid Earned</div>
-                </div>
-                <div className="locked-card">
-                  <div className="locked-value">{formatMoney(earningsHistory.totalDueNowEarned)}</div>
-                  <div className="locked-label">Locked Due Now Earned</div>
-                </div>
                 <div className="locked-card highlight">
-                  <div className="locked-value">{formatMoney(earningsHistory.totalEarned)}</div>
-                  <div className="locked-label">Total Locked Earnings</div>
+                  <div className="locked-value">{formatMoney(data.earnings.totalOwed)}</div>
+                  <div className="locked-label">Amount Owed</div>
+                </div>
+                <div className="locked-card">
+                  <div className="locked-value">{formatMoney(data.earnings.totalCredited)}</div>
+                  <div className="locked-label">Total Earned (Lifetime)</div>
+                </div>
+                <div className="locked-card">
+                  <div className="locked-value">{formatMoney(data.earnings.totalPaid)}</div>
+                  <div className="locked-label">Total Paid (Lifetime)</div>
                 </div>
               </div>
-              <button className="btn-update-earnings" onClick={handleUpdateEarnings}>Update My Earnings</button>
+              {data.earnings.lastUpdatedAt && (
+                <p style={{ fontSize: 11, color: '#64748b', textAlign: 'center', margin: '0 0 12px' }}>
+                  Last updated: {new Date(data.earnings.lastUpdatedAt).toLocaleString()}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn-update-earnings" onClick={handleRefreshEstimate}>Refresh Estimate</button>
+                <button
+                  className="btn-update-earnings"
+                  style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}
+                  onClick={() => { setShowLedger(!showLedger); if (!showLedger) loadLedger(targetEmail); }}
+                >
+                  {showLedger ? 'Hide History' : 'View Transaction History'}
+                </button>
+              </div>
+
+              {/* Transaction History */}
+              {showLedger && (
+                <div style={{ marginTop: 16, padding: 16, background: 'white', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#1e293b' }}>Transaction History</h4>
+                  {ledgerLoading ? (
+                    <p style={{ fontSize: 13, color: '#64748b', textAlign: 'center' }}>Loading...</p>
+                  ) : ledgerEntries.length === 0 ? (
+                    <p style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center' }}>No transactions yet. Earnings will appear when students are paid on Rewardful.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {ledgerEntries.map((entry) => (
+                        <div key={entry.id} style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          padding: '10px 14px', borderRadius: 10,
+                          background: entry.type === 'CREDIT' ? '#f0fdf4' : '#fef2f2',
+                          border: `1px solid ${entry.type === 'CREDIT' ? '#bbf7d0' : '#fecaca'}`,
+                        }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: entry.type === 'CREDIT' ? '#16a34a' : '#dc2626' }}>
+                              {entry.type === 'CREDIT' ? '+' : '-'}{formatMoney(entry.amount)}
+                            </div>
+                            <div style={{ fontSize: 11, color: '#64748b' }}>
+                              {entry.type === 'CREDIT'
+                                ? `Student: ${entry.studentEmail || 'Unknown'} (${entry.percentageApplied || 0}%)`
+                                : `Paid by: ${entry.paidBy || 'Admin'}`}
+                            </div>
+                          </div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                            {new Date(entry.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Tabs: Students | Requests */}
@@ -585,6 +655,17 @@ function TeacherContent() {
                   onChange={(e) => setNewStudentEmail(e.target.value)}
                   placeholder="Enter student email..."
                   onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
+                  style={{ flex: 2 }}
+                />
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={newStudentPercentage}
+                  onChange={(e) => setNewStudentPercentage(e.target.value)}
+                  placeholder="% (1-100)"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddStudent()}
+                  style={{ flex: 0, width: 100, minWidth: 100, textAlign: 'center' }}
                 />
                 <button onClick={handleAddStudent} disabled={addingStudent}>
                   {addingStudent ? 'Adding...' : 'Add'}
@@ -605,20 +686,18 @@ function TeacherContent() {
                       <div className="student-header">
                         <div className="student-info">
                           <span className="student-email">{student.name || student.email}</span>
-                          {student.percentageOverride != null && (
-                            <span className="pct-badge">{student.percentageOverride}%</span>
-                          )}
+                          <span className="pct-badge">{student.percentageOverride}%</span>
                         </div>
                         <div className="student-amounts">
                           <span className="amount-label">30d Unpaid: <strong>{formatMoney(cd.unpaid30Days)}</strong></span>
-                          <span className="amount-label">30d Due: <strong>{formatMoney(cd.dueNow30Days)}</strong></span>
+                          <span className="amount-label">Your Cut ({cd.teacherPercentage || student.percentageOverride}%): <strong>{formatMoney(cd.teacherCut30Days)}</strong></span>
                         </div>
                       </div>
                       <div className="student-controls">
                         <div className="pct-control">
                           <input
                             type="number"
-                            min={0}
+                            min={1}
                             max={100}
                             value={percentageInputs[student.email] || ''}
                             onChange={(e) => setPercentageInputs(prev => ({ ...prev, [student.email]: e.target.value }))}
@@ -767,7 +846,6 @@ function TeacherContent() {
                 try { await gsCall('clearAllCaches'); } catch { /* ok */ }
                 loadTeacherData(targetEmail);
                 loadCommissionData(targetEmail);
-                loadEarningsHistory(targetEmail);
                 if (activeTab === 'requests') loadOpenRequests();
               }}>
                 Refresh Data

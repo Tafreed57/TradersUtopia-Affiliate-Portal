@@ -43,6 +43,7 @@ const serverEnvSchema = z.object({
   MAX_FAILED_LOGIN_ATTEMPTS: z.string().transform(Number).default('5'),
   LOCKOUT_DURATION_MINUTES: z.string().transform(Number).default('15'),
   USD_TO_CAD_RATE: z.string().transform(Number).default('1.4'),
+  REWARDFUL_WEBHOOK_SECRET: z.string().optional(),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   LOG_JSON: z.string().transform((v) => v === 'true').default('false'),
 

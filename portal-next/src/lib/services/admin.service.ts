@@ -922,7 +922,7 @@ export async function adminUpdateStudentTeacher(
       // Create new link
       await prisma.teacherStudentLink.upsert({
         where: { teacherId_studentId: { teacherId: teacher.id, studentId: student.id } },
-        create: { teacherId: teacher.id, studentId: student.id, status: 'ACTIVE', createdBy: 'admin' },
+        create: { teacherId: teacher.id, studentId: student.id, status: 'ACTIVE', createdBy: 'admin', percentageOverride: 10 },
         update: { status: 'ACTIVE', removedAt: null, removedBy: null },
       });
     }

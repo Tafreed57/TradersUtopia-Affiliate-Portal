@@ -72,6 +72,7 @@ describe('assignment.service', () => {
           internalEmail: null,
           isAdmin: false,
           isTeacher: false,
+          isSupervisor: false,
         },
         isAdmin: false,
       });
@@ -85,14 +86,14 @@ describe('assignment.service', () => {
         createdBy: null,
         removedAt: null,
         removedBy: null,
-        percentageOverride: null,
+        percentageOverride: 10,
         teacher: {
           id: 'teacher-1',
           aliasEmail: 'teacher@test.com',
           firstName: 'Test',
           lastName: 'Teacher',
-        } as never,
-      });
+        },
+      } as never);
       vi.mocked(prisma.teacherChangeRequest.findFirst).mockResolvedValue(null);
       const result = await getStudentCurrentTeacher('token');
       expect(result.success).toBe(true);
@@ -104,7 +105,7 @@ describe('assignment.service', () => {
   describe('createTeacherChangeRequest', () => {
     it('blocks second OPEN request when one already exists', async () => {
       vi.mocked(getSessionUser).mockResolvedValue({
-        user: { id: 'student-1', aliasEmail: 's@t.com', internalEmail: null, isAdmin: false, isTeacher: false },
+        user: { id: 'student-1', aliasEmail: 's@t.com', internalEmail: null, isAdmin: false, isTeacher: false, isSupervisor: false },
         isAdmin: false,
       });
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -130,7 +131,7 @@ describe('assignment.service', () => {
 
     it('auto-accepts when student has no current teacher (first assignment)', async () => {
       vi.mocked(getSessionUser).mockResolvedValue({
-        user: { id: 'student-new', aliasEmail: 'new@t.com', internalEmail: null, isAdmin: false, isTeacher: false },
+        user: { id: 'student-new', aliasEmail: 'new@t.com', internalEmail: null, isAdmin: false, isTeacher: false, isSupervisor: false },
         isAdmin: false,
       });
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -171,7 +172,7 @@ describe('assignment.service', () => {
 
     it('creates OPEN request when student already has a teacher (change)', async () => {
       vi.mocked(getSessionUser).mockResolvedValue({
-        user: { id: 'student-1', aliasEmail: 's@t.com', internalEmail: null, isAdmin: false, isTeacher: false },
+        user: { id: 'student-1', aliasEmail: 's@t.com', internalEmail: null, isAdmin: false, isTeacher: false, isSupervisor: false },
         isAdmin: false,
       });
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -215,7 +216,7 @@ describe('assignment.service', () => {
   describe('acceptTeacherChangeRequest', () => {
     it('returns success without duplicating when request already ACCEPTED (idempotent)', async () => {
       vi.mocked(getSessionUser).mockResolvedValue({
-        user: { id: 'teacher-1', aliasEmail: 't@test.com', internalEmail: null, isAdmin: false, isTeacher: true },
+        user: { id: 'teacher-1', aliasEmail: 't@test.com', internalEmail: null, isAdmin: false, isTeacher: true, isSupervisor: false },
         isAdmin: false,
       });
       vi.mocked(prisma.teacherChangeRequest.findUnique).mockResolvedValue({
@@ -236,7 +237,7 @@ describe('assignment.service', () => {
   describe('removeStudentFromTeacherByTeacherSession', () => {
     it('returns success when student already REMOVED (idempotent)', async () => {
       vi.mocked(getSessionUser).mockResolvedValue({
-        user: { id: 'teacher-1', aliasEmail: 't@test.com', internalEmail: null, isAdmin: false, isTeacher: true },
+        user: { id: 'teacher-1', aliasEmail: 't@test.com', internalEmail: null, isAdmin: false, isTeacher: true, isSupervisor: false },
         isAdmin: false,
       });
       vi.mocked(prisma.teacherStudentLink.findUnique).mockResolvedValue({

@@ -2,7 +2,11 @@
  * Teacher Service
  *
  * Handles teacher portal functionality including student management,
- * commission viewing, and earnings tracking.
+ * commission viewing, and ledger-based earnings tracking.
+ *
+ * Earnings are driven by Rewardful webhooks (payout.paid events).
+ * When a student gets paid on Rewardful, the teacher's cut is
+ * automatically credited via the webhook → processPayoutWebhook().
  */
 
 import { prisma } from '@/lib/db';
@@ -10,13 +14,19 @@ import { config, normalizeEmail, isAdminEmail, isTeacherOverrideEmail } from '@/
 import { logger } from '@/lib/utils/logger';
 import { getSessionUser, validateAdminSession } from './session.service';
 import { rewardfulApi } from './rewardful.service';
-import type { ApiResponse, TeacherData, StudentCommissionData } from '@/types';
+import type {
+  ApiResponse,
+  TeacherData,
+  TeacherEarningsData,
+  StudentCommissionData,
+  LedgerEntryData,
+  TeacherPaymentInfo,
+} from '@/types';
 
 const log = logger.child({ service: 'teacher' });
 
 /**
  * Extract percentage from email address pattern like "user50%@gmail.com" -> 50
- * Legacy: extractEmailPercentage_(email)
  */
 function extractEmailPercentage(email: string): number | null {
   if (!email) return null;
@@ -35,7 +45,6 @@ function extractEmailPercentage(email: string): number | null {
 
 /**
  * Verify teacher access
- * Legacy: verifyTeacherAccess(email)
  */
 export async function verifyTeacherAccess(
   email: string
@@ -45,13 +54,11 @@ export async function verifyTeacherAccess(
 
   // Check admin
   if (isAdminEmail(normalizedEmail)) {
-    log.info('Teacher access: admin email', { email: normalizedEmail });
     return { hasAccess: true, isAdmin: true, isTeacher: true };
   }
 
   // Check override list
   if (isTeacherOverrideEmail(normalizedEmail)) {
-    log.info('Teacher access: override list', { email: normalizedEmail });
     return { hasAccess: true, isAdmin: false, isTeacher: true };
   }
 
@@ -60,36 +67,17 @@ export async function verifyTeacherAccess(
     where: { aliasEmail: normalizedEmail },
   });
 
-  log.info('Teacher access: DB user lookup', {
-    email: normalizedEmail,
-    found: !!user,
-    internalEmail: user?.internalEmail || 'NULL',
-    isTeacherInDB: user?.isTeacher,
-  });
-
   if (user?.isTeacher) {
     return { hasAccess: true, isAdmin: user.isAdmin, isTeacher: true };
   }
 
   // Check Rewardful for "teacher" in name
   const lookupEmail = user?.internalEmail || normalizedEmail;
-  log.info('Teacher access: querying Rewardful API', { lookupEmail });
-
   const affiliateResult = await rewardfulApi.getAffiliateByEmail(lookupEmail);
-
-  log.info('Teacher access: Rewardful API result', {
-    lookupEmail,
-    success: affiliateResult.success,
-    affiliateFound: !!affiliateResult.affiliate,
-    firstName: affiliateResult.affiliate?.first_name || 'N/A',
-    error: affiliateResult.error,
-  });
 
   if (affiliateResult.success && affiliateResult.affiliate) {
     const firstName = affiliateResult.affiliate.first_name || '';
     if (firstName.toLowerCase().includes('teacher')) {
-      log.info('Teacher access: GRANTED via Rewardful first_name', { email: normalizedEmail, firstName });
-      // Update user record
       if (user) {
         await prisma.user.update({
           where: { id: user.id },
@@ -100,13 +88,7 @@ export async function verifyTeacherAccess(
     }
   }
 
-  log.warn('Teacher access: DENIED', { email: normalizedEmail, lookupEmail });
-  return {
-    hasAccess: false,
-    isAdmin: false,
-    isTeacher: false,
-    reason: 'not_teacher',
-  };
+  return { hasAccess: false, isAdmin: false, isTeacher: false, reason: 'not_teacher' };
 }
 
 // ============================================================================
@@ -114,8 +96,7 @@ export async function verifyTeacherAccess(
 // ============================================================================
 
 /**
- * Get teacher data with context
- * Legacy: getTeacherDataWithContext(email, token)
+ * Get teacher data with context (dashboard load)
  */
 export async function getTeacherDataWithContext(
   email: string,
@@ -123,7 +104,6 @@ export async function getTeacherDataWithContext(
 ): Promise<ApiResponse & { data?: TeacherData }> {
   const normalizedEmail = normalizeEmail(email);
 
-  // Validate session
   const { user: sessionUser } = await getSessionUser(token);
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
@@ -132,14 +112,12 @@ export async function getTeacherDataWithContext(
     return { success: false, error: 'Not authorized to view this teacher\'s data' };
   }
 
-  // Verify teacher access (the target user must be a teacher)
   const access = await verifyTeacherAccess(normalizedEmail);
   if (!access.hasAccess) {
     return { success: false, error: 'Not authorized as teacher' };
   }
 
   try {
-    // Find teacher user
     const teacher = await prisma.user.findUnique({
       where: { aliasEmail: normalizedEmail },
     });
@@ -150,13 +128,8 @@ export async function getTeacherDataWithContext(
 
     // Get linked students
     const links = await prisma.teacherStudentLink.findMany({
-      where: {
-        teacherId: teacher.id,
-        status: 'ACTIVE',
-      },
-      include: {
-        student: true,
-      },
+      where: { teacherId: teacher.id, status: 'ACTIVE' },
+      include: { student: true },
     });
 
     const students = links.map((link) => ({
@@ -167,14 +140,21 @@ export async function getTeacherDataWithContext(
         [link.student.firstName, link.student.lastName].filter(Boolean).join(' ') ||
         link.student.aliasEmail,
       affiliateId: link.student.rewardfulAffiliateId || undefined,
-      percentageOverride: link.percentageOverride || undefined,
+      percentageOverride: link.percentageOverride,
       addedDate: link.createdAt.toISOString(),
     }));
 
-    // Get earnings
+    // Get earnings from ledger
     const earnings = await prisma.teacherEarnings.findUnique({
       where: { userId: teacher.id },
     });
+
+    const earningsData: TeacherEarningsData = {
+      totalOwed: earnings?.totalOwed || 0,
+      totalCredited: earnings?.totalCredited || 0,
+      totalPaid: earnings?.totalPaid || 0,
+      lastUpdatedAt: earnings?.lastUpdatedAt?.toISOString(),
+    };
 
     const data: TeacherData = {
       teacher: {
@@ -185,12 +165,7 @@ export async function getTeacherDataWithContext(
         isAdmin: teacher.isAdmin,
       },
       students,
-      earnings: {
-        lockedEarnings: earnings?.lockedEarnings || 0,
-        totalEarnedAllTime: earnings?.totalEarnedAllTime || 0,
-        totalPaidAllTime: earnings?.totalPaidAllTime || 0,
-        lockedAt: earnings?.lockedAt?.toISOString(),
-      },
+      earnings: earningsData,
     };
 
     return { success: true, data };
@@ -202,7 +177,6 @@ export async function getTeacherDataWithContext(
 
 /**
  * Get students commission data for teacher
- * Legacy: getStudentsCommissionData(teacher, token)
  */
 export async function getStudentsCommissionData(
   teacherEmail: string,
@@ -210,7 +184,6 @@ export async function getStudentsCommissionData(
 ): Promise<ApiResponse & { students?: StudentCommissionData[] }> {
   const normalizedEmail = normalizeEmail(teacherEmail);
 
-  // Validate session
   const { user: sessionUser } = await getSessionUser(token);
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
@@ -220,7 +193,6 @@ export async function getStudentsCommissionData(
   }
 
   try {
-    // Get teacher and students
     const teacher = await prisma.user.findUnique({
       where: { aliasEmail: normalizedEmail },
     });
@@ -230,13 +202,8 @@ export async function getStudentsCommissionData(
     }
 
     const links = await prisma.teacherStudentLink.findMany({
-      where: {
-        teacherId: teacher.id,
-        status: 'ACTIVE',
-      },
-      include: {
-        student: true,
-      },
+      where: { teacherId: teacher.id, status: 'ACTIVE' },
+      include: { student: true },
     });
 
     const students: StudentCommissionData[] = [];
@@ -244,35 +211,26 @@ export async function getStudentsCommissionData(
     for (const link of links) {
       const studentInternalEmail = link.student.internalEmail || link.student.aliasEmail;
       const studentAliasEmail = link.student.aliasEmail;
+      const pct = link.percentageOverride;
+      const multiplier = pct / 100;
 
-      // Fetch affiliate from Rewardful using internal email
       const affiliateResult = await rewardfulApi.getAffiliateByEmail(studentInternalEmail);
 
       if (!affiliateResult.success || !affiliateResult.affiliate) {
-        // Student not found — push a zeroed-out row (matches GAS behavior)
         students.push({
           email: studentAliasEmail,
           name: [link.student.firstName, link.student.lastName].filter(Boolean).join(' ') || studentAliasEmail,
           totalUnpaid: 0, totalDueNow: 0, totalPaid: 0,
           unpaid30Days: 0, dueNow30Days: 0,
-          teacherPercentage: link.percentageOverride || null,
-          emailPercentage: extractEmailPercentage(studentInternalEmail),
-          rawDueNow: 0, adjustedDueNow: 0, percentage: link.percentageOverride || 100,
-          last30DaysRaw: 0, last30DaysAdjusted: 0,
+          teacherPercentage: pct,
+          teacherCutUnpaid: 0, teacherCutDueNow: 0, teacherCut30Days: 0,
         });
         continue;
       }
 
       const affId = affiliateResult.affiliate.id;
-
-      // All-time totals from commission_stats (uses ?expand=true)
       const totals = await rewardfulApi.getCommissionTotals(affId);
-
-      // 30-day filtered amounts from /commissions endpoint
       const thirtyDay = await rewardfulApi.getCommissions30Day(affId);
-
-      const teacherPct = link.percentageOverride || null;
-      const emailPct = extractEmailPercentage(studentInternalEmail);
 
       students.push({
         email: studentAliasEmail,
@@ -282,14 +240,10 @@ export async function getStudentsCommissionData(
         totalPaid: totals.paid,
         unpaid30Days: thirtyDay.unpaid,
         dueNow30Days: thirtyDay.dueNow,
-        teacherPercentage: teacherPct,
-        emailPercentage: emailPct,
-        // Legacy compat fields
-        rawDueNow: totals.dueNow,
-        adjustedDueNow: totals.dueNow * ((teacherPct || 100) / 100),
-        percentage: teacherPct || 100,
-        last30DaysRaw: thirtyDay.unpaid,
-        last30DaysAdjusted: thirtyDay.unpaid * ((teacherPct || 100) / 100),
+        teacherPercentage: pct,
+        teacherCutUnpaid: Math.round(totals.unpaid * multiplier * 100) / 100,
+        teacherCutDueNow: Math.round(totals.dueNow * multiplier * 100) / 100,
+        teacherCut30Days: Math.round(thirtyDay.unpaid * multiplier * 100) / 100,
       });
     }
 
@@ -305,25 +259,27 @@ export async function getStudentsCommissionData(
 // ============================================================================
 
 /**
- * Add student to teacher
- * Legacy: addStudentToTeacherWithContext(teacher, student, token)
+ * Add student to teacher with required percentage
  */
 export async function addStudentToTeacherWithContext(
   teacherEmail: string,
   studentEmail: string,
-  token: string
+  token: string,
+  percentage?: number
 ): Promise<ApiResponse> {
-  // Validate session
   const { user: sessionUser } = await getSessionUser(token);
   if (!sessionUser) {
     return { success: false, error: 'Invalid session' };
+  }
+
+  if (percentage == null || percentage < 1 || percentage > 100) {
+    return { success: false, error: 'Percentage is required and must be between 1 and 100' };
   }
 
   const normalizedTeacher = normalizeEmail(teacherEmail);
   const normalizedStudent = normalizeEmail(studentEmail);
 
   try {
-    // Find teacher
     const teacher = await prisma.user.findUnique({
       where: { aliasEmail: normalizedTeacher },
     });
@@ -332,13 +288,13 @@ export async function addStudentToTeacherWithContext(
       return { success: false, error: 'Teacher not found' };
     }
 
-    // Find student - check DB first, then try internal email lookup
+    // Find student - check DB first
     let student = await prisma.user.findUnique({
       where: { aliasEmail: normalizedStudent },
     });
 
     if (!student) {
-      // Verify student exists in Rewardful before creating (matches GAS resolveStudentByEmail_)
+      // Verify student exists in Rewardful before creating
       const affiliateResult = await rewardfulApi.getAffiliateByEmail(normalizedStudent);
       if (!affiliateResult.success || !affiliateResult.affiliate) {
         return {
@@ -363,10 +319,7 @@ export async function addStudentToTeacherWithContext(
     // Check if link already exists
     const existingLink = await prisma.teacherStudentLink.findUnique({
       where: {
-        teacherId_studentId: {
-          teacherId: teacher.id,
-          studentId: student.id,
-        },
+        teacherId_studentId: { teacherId: teacher.id, studentId: student.id },
       },
     });
 
@@ -375,24 +328,25 @@ export async function addStudentToTeacherWithContext(
         return { success: false, error: 'Student already linked to this teacher' };
       }
 
-      // Reactivate removed link
+      // Reactivate removed link with new percentage
       await prisma.teacherStudentLink.update({
         where: { id: existingLink.id },
         data: {
           status: 'ACTIVE',
+          percentageOverride: percentage,
           removedAt: null,
           removedBy: null,
           updatedAt: new Date(),
         },
       });
     } else {
-      // Create new link
       await prisma.teacherStudentLink.create({
         data: {
           teacherId: teacher.id,
           studentId: student.id,
           status: 'ACTIVE',
           createdBy: 'teacher',
+          percentageOverride: percentage,
         },
       });
     }
@@ -400,6 +354,7 @@ export async function addStudentToTeacherWithContext(
     log.info('Student added to teacher', {
       teacher: normalizedTeacher,
       student: normalizedStudent,
+      percentage,
     });
 
     return { success: true, message: 'Student added successfully' };
@@ -410,8 +365,7 @@ export async function addStudentToTeacherWithContext(
 }
 
 /**
- * Remove student from teacher
- * Legacy: removeStudentFromTeacher(teacher, student)
+ * Remove student from teacher (soft delete)
  */
 export async function removeStudentFromTeacher(
   teacherEmail: string,
@@ -433,17 +387,9 @@ export async function removeStudentFromTeacher(
       return { success: false, error: 'Teacher or student not found' };
     }
 
-    // Soft delete - set status to REMOVED
     await prisma.teacherStudentLink.updateMany({
-      where: {
-        teacherId: teacher.id,
-        studentId: student.id,
-      },
-      data: {
-        status: 'REMOVED',
-        removedAt: new Date(),
-        removedBy: 'teacher',
-      },
+      where: { teacherId: teacher.id, studentId: student.id },
+      data: { status: 'REMOVED', removedAt: new Date(), removedBy: 'teacher' },
     });
 
     log.info('Student removed from teacher', {
@@ -459,8 +405,7 @@ export async function removeStudentFromTeacher(
 }
 
 /**
- * Set student percentage override
- * Legacy: setStudentPercentageOverride(teacher, student, pct)
+ * Set student percentage override (1-100)
  */
 export async function setStudentPercentageOverride(
   teacherEmail: string,
@@ -470,8 +415,8 @@ export async function setStudentPercentageOverride(
   const normalizedTeacher = normalizeEmail(teacherEmail);
   const normalizedStudent = normalizeEmail(studentEmail);
 
-  if (percentage < 0 || percentage > 100) {
-    return { success: false, error: 'Percentage must be between 0 and 100' };
+  if (percentage < 1 || percentage > 100) {
+    return { success: false, error: 'Percentage must be between 1 and 100' };
   }
 
   try {
@@ -488,14 +433,8 @@ export async function setStudentPercentageOverride(
     }
 
     await prisma.teacherStudentLink.updateMany({
-      where: {
-        teacherId: teacher.id,
-        studentId: student.id,
-        status: 'ACTIVE',
-      },
-      data: {
-        percentageOverride: percentage,
-      },
+      where: { teacherId: teacher.id, studentId: student.id, status: 'ACTIVE' },
+      data: { percentageOverride: percentage },
     });
 
     return { success: true, percentage };
@@ -506,17 +445,11 @@ export async function setStudentPercentageOverride(
 }
 
 // ============================================================================
-// EARNINGS
+// EARNINGS (Ledger-based)
 // ============================================================================
 
 /**
- * Update teacher earnings (lock current values)
- * Legacy: updateTeacherEarnings(teacher, token)
- */
-/**
- * Get teacher earnings history
- * Legacy: getTeacherEarningsHistory(teacherEmail)
- * Returns: { totalEarned, totalUnpaidEarned, totalDueNowEarned, lastUpdated }
+ * Get teacher earnings from ledger
  */
 export async function getTeacherEarningsHistory(
   teacherEmail: string
@@ -531,10 +464,10 @@ export async function getTeacherEarningsHistory(
     if (!teacher) {
       return {
         success: true,
-        totalEarned: 0,
-        totalUnpaidEarned: 0,
-        totalDueNowEarned: 0,
-        lastUpdated: new Date().toISOString(),
+        totalOwed: 0,
+        totalCredited: 0,
+        totalPaid: 0,
+        lastUpdatedAt: null,
       };
     }
 
@@ -544,30 +477,23 @@ export async function getTeacherEarningsHistory(
 
     return {
       success: true,
-      totalEarned: earnings?.totalEarnedAllTime || 0,
-      totalUnpaidEarned: earnings?.lockedEarnings || 0,
-      totalDueNowEarned: earnings?.lockedEarnings || 0,
-      totalPaidAllTime: earnings?.totalPaidAllTime || 0,
-      lastUpdated: earnings?.lockedAt?.toISOString() || new Date().toISOString(),
+      totalOwed: earnings?.totalOwed || 0,
+      totalCredited: earnings?.totalCredited || 0,
+      totalPaid: earnings?.totalPaid || 0,
+      lastUpdatedAt: earnings?.lastUpdatedAt?.toISOString() || null,
     } as ApiResponse;
   } catch (error) {
-    log.error('Get teacher earnings history error', { error });
-    return {
-      success: true,
-      totalEarned: 0,
-      totalUnpaidEarned: 0,
-      totalDueNowEarned: 0,
-      lastUpdated: new Date().toISOString(),
-    };
+    log.error('Get teacher earnings error', { error });
+    return { success: true, totalOwed: 0, totalCredited: 0, totalPaid: 0, lastUpdatedAt: null };
   }
 }
 
 /**
- * Update teacher earnings (calculate from students and lock)
- * Legacy: updateTeacherEarnings(teacher)
- * Sums student commissions, applies teacher percentage, calculates deltas
+ * Refresh teacher's estimated earnings from live Rewardful data.
+ * Display only — does NOT modify totalOwed (that's driven by webhooks).
+ * Updates lastUpdatedAt timestamp.
  */
-export async function updateTeacherEarnings(
+export async function refreshTeacherEstimate(
   teacherEmail: string,
   token: string
 ): Promise<ApiResponse> {
@@ -587,78 +513,55 @@ export async function updateTeacherEarnings(
       return { success: false, error: 'Teacher not found' };
     }
 
-    // Get students commission data (full data with totals)
+    // Fetch live commission data for all students
     const studentsResult = await getStudentsCommissionData(normalizedEmail, token);
     const students = studentsResult.students || [];
 
-    // Get or create earnings record
-    let earnings = await prisma.teacherEarnings.findUnique({
-      where: { userId: teacher.id },
-    });
-
-    // Calculate new earnings from student increases
-    // Uses incremental tracking: only adds NEW increases since last check
-    const defaultPercentage = earnings?.percentageCut || 10;
-    let newEarningsUnpaid = 0;
-    let newEarningsDueNow = 0;
+    let estimatedUnpaid = 0;
+    let estimatedDueNow = 0;
 
     for (const student of students) {
-      const currentUnpaid = student.totalUnpaid || 0;
-      const currentDueNow = student.totalDueNow || 0;
-
-      // Use teacher percentage override for this student, or default
-      const studentPct = student.teacherPercentage || defaultPercentage;
-      const multiplier = studentPct / 100;
-
-      // For simplicity, add the full teacher's share of current amounts
-      // (GAS tracks deltas per-student; we'll add the teacher's cut of totals)
-      newEarningsUnpaid += currentUnpaid * multiplier;
-      newEarningsDueNow += currentDueNow * multiplier;
+      estimatedUnpaid += student.teacherCutUnpaid;
+      estimatedDueNow += student.teacherCutDueNow;
     }
 
-    const totalLocked = Math.round((newEarningsUnpaid + newEarningsDueNow) * 100) / 100;
-
-    // Upsert earnings
+    // Update lastUpdatedAt only
     await prisma.teacherEarnings.upsert({
       where: { userId: teacher.id },
-      create: {
-        userId: teacher.id,
-        lockedEarnings: totalLocked,
-        totalEarnedAllTime: totalLocked,
-        percentageCut: defaultPercentage,
-        lockedAt: new Date(),
-      },
-      update: {
-        lockedEarnings: totalLocked,
-        totalEarnedAllTime: { increment: 0 }, // Keep existing total
-        lockedAt: new Date(),
-      },
+      create: { userId: teacher.id, lastUpdatedAt: new Date() },
+      update: { lastUpdatedAt: new Date() },
     });
 
-    log.info('Teacher earnings updated', {
+    const totalEstimate = Math.round((estimatedUnpaid + estimatedDueNow) * 100) / 100;
+
+    log.info('Teacher estimate refreshed', {
       teacher: normalizedEmail,
       students: students.length,
-      locked: totalLocked,
+      estimatedUnpaid,
+      estimatedDueNow,
+      totalEstimate,
     });
 
     return {
       success: true,
-      message: 'Earnings updated',
-      totalUnpaidEarned: Math.round(newEarningsUnpaid * 100) / 100,
-      totalDueNowEarned: Math.round(newEarningsDueNow * 100) / 100,
-      totalEarned: totalLocked,
+      message: 'Estimate refreshed',
+      estimatedUnpaid: Math.round(estimatedUnpaid * 100) / 100,
+      estimatedDueNow: Math.round(estimatedDueNow * 100) / 100,
+      totalEstimate,
     };
   } catch (error) {
-    log.error('Update earnings error', { error });
-    return { success: false, error: 'Failed to update earnings' };
+    log.error('Refresh estimate error', { error });
+    return { success: false, error: 'Failed to refresh estimate' };
   }
 }
 
+// Keep backward-compatible alias
+export const updateTeacherEarnings = refreshTeacherEstimate;
+
 /**
- * Record teacher payout
- * Legacy: recordTeacherPayout(teacher, amount, token)
+ * Record admin payment to teacher (DEBIT ledger entry)
  */
-export async function recordTeacherPayout(
+export async function recordTeacherPayment(
   teacherEmail: string,
   amount: number,
   token: string
@@ -692,48 +595,292 @@ export async function recordTeacherPayout(
 
     if (!earnings) {
       earnings = await prisma.teacherEarnings.create({
-        data: {
-          userId: teacher.id,
-          lockedEarnings: 0,
-        },
+        data: { userId: teacher.id },
       });
     }
 
-    // Create payment record
-    await prisma.teacherPayment.create({
+    // Create DEBIT ledger entry
+    await prisma.teacherLedgerEntry.create({
       data: {
         earningsId: earnings.id,
+        type: 'DEBIT',
         amount,
         paidBy: adminUser?.aliasEmail,
-        lockedEarningsBeforePayment: earnings.lockedEarnings,
+        note: `Admin payment by ${adminUser?.aliasEmail}`,
       },
     });
 
-    // Update earnings totals
-    const newLockedEarnings = Math.max(0, earnings.lockedEarnings - amount);
-
+    // Update running totals
+    const newOwed = Math.max(0, earnings.totalOwed - amount);
     await prisma.teacherEarnings.update({
       where: { id: earnings.id },
       data: {
-        lockedEarnings: newLockedEarnings,
-        totalPaidAllTime: { increment: amount },
+        totalOwed: newOwed,
+        totalPaid: { increment: amount },
+        lastUpdatedAt: new Date(),
       },
     });
 
-    log.info('Teacher payout recorded', {
+    log.info('Teacher payment recorded', {
       teacher: normalizedEmail,
       amount,
       admin: adminUser?.aliasEmail,
+      remainingOwed: newOwed,
     });
+
+    return { success: true, message: 'Payment recorded', remainingOwed: newOwed };
+  } catch (error) {
+    log.error('Record payment error', { error });
+    return { success: false, error: 'Failed to record payment' };
+  }
+}
+
+// Keep backward-compatible alias
+export const recordTeacherPayout = recordTeacherPayment;
+
+// ============================================================================
+// WEBHOOK PROCESSING
+// ============================================================================
+
+interface PayoutWebhookData {
+  payoutId: string;
+  affiliateEmail: string;
+  affiliateId?: string;
+  amountCents: number;
+  currency: string;
+  paidAt: string;
+}
+
+/**
+ * Process a Rewardful payout.paid webhook event.
+ * Finds all teachers who have this affiliate as a student,
+ * creates idempotent CREDIT ledger entries for each.
+ */
+export async function processPayoutWebhook(
+  data: PayoutWebhookData
+): Promise<{ processed: boolean; message: string; creditsCreated?: number }> {
+  const { payoutId, affiliateEmail, affiliateId, amountCents, currency, paidAt } = data;
+
+  if (!payoutId || !affiliateEmail) {
+    return { processed: false, message: 'Missing payoutId or affiliateEmail' };
+  }
+
+  log.info('Processing payout webhook', { payoutId, affiliateEmail, amountCents, currency });
+
+  // Convert cents to dollars
+  const amountDollars = amountCents / 100;
+
+  // Convert to CAD if needed
+  const isUsd = currency?.toUpperCase() === 'USD';
+  const amountCad = isUsd
+    ? Math.round(amountDollars * config.currency.usdToCadRate * 100) / 100
+    : Math.round(amountDollars * 100) / 100;
+
+  // Match affiliate to portal user
+  const user = await findUserByRewardfulIdentity(affiliateEmail, affiliateId);
+
+  if (!user) {
+    log.warn('Webhook: no matching portal user', { affiliateEmail, affiliateId });
+    return { processed: false, message: `No portal user found for ${affiliateEmail}` };
+  }
+
+  // Find all teachers who have this user as a student
+  const teacherLinks = await prisma.teacherStudentLink.findMany({
+    where: { studentId: user.id, status: 'ACTIVE' },
+    include: { teacher: true },
+  });
+
+  if (teacherLinks.length === 0) {
+    log.info('Webhook: affiliate has no teachers', { affiliateEmail, userId: user.id });
+    return { processed: false, message: 'Affiliate has no teacher links' };
+  }
+
+  let creditsCreated = 0;
+
+  for (const link of teacherLinks) {
+    const teacherCut = Math.round(amountCad * (link.percentageOverride / 100) * 100) / 100;
+
+    if (teacherCut <= 0) continue;
+
+    // Get or create teacher earnings
+    let earnings = await prisma.teacherEarnings.findUnique({
+      where: { userId: link.teacherId },
+    });
+
+    if (!earnings) {
+      earnings = await prisma.teacherEarnings.create({
+        data: { userId: link.teacherId },
+      });
+    }
+
+    // Create idempotent CREDIT entry (unique on [rewardfulPayoutId, studentUserId])
+    try {
+      await prisma.teacherLedgerEntry.create({
+        data: {
+          earningsId: earnings.id,
+          type: 'CREDIT',
+          amount: teacherCut,
+          currency: 'CAD',
+          rewardfulPayoutId: payoutId,
+          studentUserId: user.id,
+          studentEmail: user.aliasEmail,
+          percentageApplied: link.percentageOverride,
+          payoutAmountCents: amountCents,
+          payoutCurrency: currency,
+        },
+      });
+
+      // Update running totals
+      await prisma.teacherEarnings.update({
+        where: { id: earnings.id },
+        data: {
+          totalOwed: { increment: teacherCut },
+          totalCredited: { increment: teacherCut },
+          lastUpdatedAt: new Date(),
+        },
+      });
+
+      creditsCreated++;
+
+      log.info('Webhook: credit created', {
+        teacher: link.teacher.aliasEmail,
+        student: user.aliasEmail,
+        teacherCut,
+        percentage: link.percentageOverride,
+        payoutId,
+      });
+    } catch (error: unknown) {
+      // Unique constraint violation = already processed (idempotent)
+      const prismaError = error as { code?: string };
+      if (prismaError.code === 'P2002') {
+        log.info('Webhook: duplicate credit skipped', { payoutId, studentId: user.id, teacherId: link.teacherId });
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  return {
+    processed: true,
+    message: `Created ${creditsCreated} credit(s) for ${teacherLinks.length} teacher(s)`,
+    creditsCreated,
+  };
+}
+
+/**
+ * Find a portal user by Rewardful identity (affiliateId, internalEmail, aliasEmail, email)
+ */
+async function findUserByRewardfulIdentity(
+  affiliateEmail: string,
+  affiliateId?: string
+): Promise<{ id: string; aliasEmail: string } | null> {
+  const normalized = normalizeEmail(affiliateEmail);
+
+  // Try by Rewardful affiliate ID first
+  if (affiliateId) {
+    const user = await prisma.user.findFirst({
+      where: { rewardfulAffiliateId: affiliateId },
+      select: { id: true, aliasEmail: true },
+    });
+    if (user) return user;
+  }
+
+  // Try by internalEmail (Rewardful email)
+  const byInternal = await prisma.user.findFirst({
+    where: { internalEmail: normalized },
+    select: { id: true, aliasEmail: true },
+  });
+  if (byInternal) return byInternal;
+
+  // Try by aliasEmail
+  const byAlias = await prisma.user.findFirst({
+    where: { aliasEmail: normalized },
+    select: { id: true, aliasEmail: true },
+  });
+  if (byAlias) return byAlias;
+
+  // Try by canonical email
+  const byEmail = await prisma.user.findFirst({
+    where: { email: normalized },
+    select: { id: true, aliasEmail: true },
+  });
+  return byEmail;
+}
+
+// ============================================================================
+// TEACHER LEDGER
+// ============================================================================
+
+/**
+ * Get paginated transaction history for a teacher
+ */
+export async function getTeacherLedger(
+  teacherEmail: string,
+  token: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<ApiResponse & { entries?: LedgerEntryData[]; totalCount?: number; totalPages?: number }> {
+  const { user: sessionUser } = await getSessionUser(token);
+  if (!sessionUser) {
+    return { success: false, error: 'Invalid session' };
+  }
+
+  const normalizedEmail = normalizeEmail(teacherEmail);
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin) {
+    return { success: false, error: 'Not authorized' };
+  }
+
+  try {
+    const teacher = await prisma.user.findUnique({
+      where: { aliasEmail: normalizedEmail },
+    });
+
+    if (!teacher) {
+      return { success: true, entries: [], totalCount: 0, totalPages: 0 };
+    }
+
+    const earnings = await prisma.teacherEarnings.findUnique({
+      where: { userId: teacher.id },
+    });
+
+    if (!earnings) {
+      return { success: true, entries: [], totalCount: 0, totalPages: 0 };
+    }
+
+    const totalCount = await prisma.teacherLedgerEntry.count({
+      where: { earningsId: earnings.id },
+    });
+
+    const entries = await prisma.teacherLedgerEntry.findMany({
+      where: { earningsId: earnings.id },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+
+    const mapped: LedgerEntryData[] = entries.map((e) => ({
+      id: e.id,
+      type: e.type as 'CREDIT' | 'DEBIT',
+      amount: e.amount,
+      currency: e.currency,
+      createdAt: e.createdAt.toISOString(),
+      studentEmail: e.studentEmail || undefined,
+      percentageApplied: e.percentageApplied || undefined,
+      payoutAmountCents: e.payoutAmountCents || undefined,
+      payoutCurrency: e.payoutCurrency || undefined,
+      paidBy: e.paidBy || undefined,
+      note: e.note || undefined,
+    }));
 
     return {
       success: true,
-      message: 'Payment recorded',
-      remainingLocked: newLockedEarnings,
+      entries: mapped,
+      totalCount,
+      totalPages: Math.ceil(totalCount / pageSize),
     };
   } catch (error) {
-    log.error('Record payout error', { error });
-    return { success: false, error: 'Failed to record payout' };
+    log.error('Get teacher ledger error', { error });
+    return { success: false, error: 'Failed to fetch ledger' };
   }
 }
 
@@ -743,7 +890,6 @@ export async function recordTeacherPayout(
 
 /**
  * Get payment data for all teachers (admin only)
- * Legacy: getAllTeachersPaymentData(adminEmail)
  */
 export async function getAllTeachersPaymentData(
   token: string
@@ -754,81 +900,58 @@ export async function getAllTeachersPaymentData(
   }
 
   try {
-    // Get all teachers from DB
     const teachers = await prisma.user.findMany({
       where: { isTeacher: true },
       select: {
         id: true,
         aliasEmail: true,
-        internalEmail: true,
         firstName: true,
         lastName: true,
       },
     });
 
-    log.info('Loading teacher payment data', { teacherCount: teachers.length });
-
     const results: TeacherPaymentInfo[] = [];
 
     for (const teacher of teachers) {
-      // Skip admins from teacher list (legacy behavior)
       if (isAdminEmail(teacher.aliasEmail)) continue;
 
-      // Get students
-      const studentLinks = await prisma.teacherStudentLink.findMany({
+      const studentCount = await prisma.teacherStudentLink.count({
         where: { teacherId: teacher.id, status: 'ACTIVE' },
-        include: { student: { select: { aliasEmail: true, internalEmail: true } } },
       });
 
-      // Get commission data for each student via Rewardful API
-      let totalUnpaid = 0;
-      let totalDueNow = 0;
-      let totalPaid = 0;
-
-      for (const link of studentLinks) {
-        const studentEmail = link.student.internalEmail || link.student.aliasEmail;
-        try {
-          const affResult = await rewardfulApi.getAffiliateByEmail(studentEmail);
-          if (affResult.success && affResult.affiliate) {
-            const commResult = await rewardfulApi.getCommissionTotals(affResult.affiliate.id);
-            totalUnpaid += commResult.unpaid;
-            totalDueNow += commResult.dueNow;
-            totalPaid += commResult.paid;
-          }
-        } catch {
-          // Skip students we can't get data for
-        }
-      }
-
-      // Get teacher's earnings record
       const earnings = await prisma.teacherEarnings.findUnique({
         where: { userId: teacher.id },
+        include: {
+          ledgerEntries: {
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+          },
+        },
       });
 
-      // Get last payment
-      const lastPayment = earnings
-        ? await prisma.teacherPayment.findFirst({
-            where: { earningsId: earnings.id },
-            orderBy: { paidAt: 'desc' },
-          })
-        : null;
-
       const name = `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || teacher.aliasEmail;
+
+      const recentEntries: LedgerEntryData[] = (earnings?.ledgerEntries || []).map((e) => ({
+        id: e.id,
+        type: e.type as 'CREDIT' | 'DEBIT',
+        amount: e.amount,
+        currency: e.currency,
+        createdAt: e.createdAt.toISOString(),
+        studentEmail: e.studentEmail || undefined,
+        percentageApplied: e.percentageApplied || undefined,
+        paidBy: e.paidBy || undefined,
+        note: e.note || undefined,
+      }));
 
       results.push({
         email: teacher.aliasEmail,
         name,
-        studentCount: studentLinks.length,
-        totalUnpaid: Math.round(totalUnpaid * 100) / 100,
-        totalDueNow: Math.round(totalDueNow * 100) / 100,
-        totalPaid: Math.round(totalPaid * 100) / 100,
-        lockedUnpaid: earnings?.lockedEarnings || 0,
-        lockedDueNow: earnings?.lockedEarnings || 0,
-        totalLockedEarnings: earnings?.totalEarnedAllTime || 0,
-        accumulatedAmount: earnings?.lockedEarnings || 0,
-        lastPayment: lastPayment
-          ? { amount: lastPayment.amount, date: lastPayment.paidAt.toISOString() }
-          : null,
+        studentCount,
+        totalOwed: earnings?.totalOwed || 0,
+        totalCredited: earnings?.totalCredited || 0,
+        totalPaid: earnings?.totalPaid || 0,
+        lastUpdatedAt: earnings?.lastUpdatedAt?.toISOString(),
+        recentLedgerEntries: recentEntries,
       });
     }
 
@@ -837,18 +960,4 @@ export async function getAllTeachersPaymentData(
     log.error('Get all teachers payment data error', { error });
     return { success: false, error: 'Failed to load teacher data' };
   }
-}
-
-interface TeacherPaymentInfo {
-  email: string;
-  name: string;
-  studentCount: number;
-  totalUnpaid: number;
-  totalDueNow: number;
-  totalPaid: number;
-  lockedUnpaid: number;
-  lockedDueNow: number;
-  totalLockedEarnings: number;
-  accumulatedAmount: number;
-  lastPayment: { amount: number; date: string } | null;
 }

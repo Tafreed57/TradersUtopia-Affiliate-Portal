@@ -639,6 +639,7 @@ export async function setTeacherForAttendanceUser(
             studentId: student.id,
             status: 'ACTIVE',
             createdBy: 'student',
+            percentageOverride: 10, // Default; teacher can adjust later
           },
           update: {
             status: 'ACTIVE',

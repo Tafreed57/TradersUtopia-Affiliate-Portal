@@ -110,6 +110,10 @@ export const config = {
     // Rate limiting settings
     maxRetries: 3,
     retryDelayMs: 2000, // Base delay, doubles on each retry
+    // Webhook signature verification
+    get webhookSecret(): string {
+      return process.env.REWARDFUL_WEBHOOK_SECRET || '';
+    },
   },
 
   // Admin configuration

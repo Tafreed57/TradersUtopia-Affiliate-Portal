@@ -183,8 +183,8 @@ model TeacherStudentLink {
   removedAt DateTime?
   removedBy String?
 
-  // Student percentage override (set by teacher)
-  percentageOverride Float?
+  // Teacher's commission percentage for this student (required, 1-100)
+  percentageOverride Float
 
   @@unique([teacherId, studentId])
   @@index([teacherId])
@@ -332,10 +332,10 @@ model CommissionTracking {
 }
 
 // ============================================================================
-// TEACHER EARNINGS
+// TEACHER EARNINGS (Ledger-based system)
 // ============================================================================
 
-/// Teacher earnings - maps to legacy TEACHER_EARNINGS_* records
+/// Teacher earnings - running balance driven by webhook events and admin payments
 model TeacherEarnings {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -345,23 +345,20 @@ model TeacherEarnings {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Current locked earnings
-  lockedEarnings Float     @default(0)
-  lockedAt       DateTime?
+  // Running balance: totalCredited - totalPaid
+  totalOwed     Float @default(0) // Current amount owed to teacher
+  totalCredited Float @default(0) // Lifetime credits from student payouts
+  totalPaid     Float @default(0) // Lifetime admin payments to teacher
 
-  // Totals
-  totalEarnedAllTime Float @default(0)
-  totalPaidAllTime   Float @default(0)
+  // Last time earnings were refreshed (manual or webhook)
+  lastUpdatedAt DateTime?
 
-  // Teacher's percentage cut
-  percentageCut Float @default(0)
-
-  // Payment history
-  payments TeacherPayment[]
+  // Ledger entries (immutable audit trail)
+  ledgerEntries TeacherLedgerEntry[]
 }
 
-/// Teacher payment record
-model TeacherPayment {
+/// Immutable ledger entry for teacher earnings (credits from student payouts, debits from admin payments)
+model TeacherLedgerEntry {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 
@@ -369,17 +366,54 @@ model TeacherPayment {
   earningsId String
   earnings   TeacherEarnings @relation(fields: [earningsId], references: [id], onDelete: Cascade)
 
-  // Payment data
-  amount    Float
-  paidAt    DateTime @default(now())
-  paidBy    String?  // Admin who processed payment
-  note      String?
+  // Entry type and amount
+  type   LedgerEntryType // CREDIT (student paid → teacher earns cut) or DEBIT (admin paid teacher)
+  amount Float           // Always positive; type determines direction
+  currency String @default("CAD")
 
-  // Earnings snapshot at time of payment
-  lockedEarningsBeforePayment Float?
+  // Source tracking for CREDIT entries (webhook-driven)
+  rewardfulPayoutId String? // Rewardful payout ID (for idempotency)
+  studentUserId     String? // Which student triggered this credit
+  studentEmail      String? // Denormalized for display
+  percentageApplied Float?  // Snapshot of % applied at time of event
+  payoutAmountCents Int?    // Original payout amount in cents from Rewardful
+  payoutCurrency    String? // Original currency from Rewardful (USD/CAD)
 
+  // Source tracking for DEBIT entries (admin payment to teacher)
+  paidBy String? // Admin email who processed
+  note   String?
+
+  @@unique([rewardfulPayoutId, studentUserId]) // Idempotency: one credit per payout per student
   @@index([earningsId])
-  @@index([paidAt])
+  @@index([rewardfulPayoutId])
+  @@index([createdAt])
+}
+
+enum LedgerEntryType {
+  CREDIT // Teacher earned money (student got paid on Rewardful)
+  DEBIT  // Teacher was paid by admin
+}
+
+// ============================================================================
+// REWARDFUL WEBHOOK LOG
+// ============================================================================
+
+/// Log of all incoming Rewardful webhook events for debugging and audit
+model RewardfulWebhookLog {
+  id         String   @id @default(cuid())
+  receivedAt DateTime @default(now())
+
+  eventType         String  // e.g., "payout.paid"
+  rewardfulPayoutId String?
+  affiliateEmail    String?
+  payload           String  // Full JSON payload for debugging
+  status            String  @default("pending") // pending, processed, skipped, error
+  errorMessage      String?
+  processedAt       DateTime?
+
+  @@index([rewardfulPayoutId])
+  @@index([eventType])
+  @@index([receivedAt])
 }
 
 // ============================================================================
