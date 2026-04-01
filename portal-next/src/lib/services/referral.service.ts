@@ -445,6 +445,12 @@ export async function getStudentReferralsForTeacher(
     return { success: false, error: 'You are not authorized to view this student\'s data' };
   }
 
+  // Ensure cache exists — build if empty (mirrors student dashboard behavior)
+  const cached = await prisma.referralCache.findUnique({ where: { email: normalizedStudent } });
+  if (!cached?.cachedReferralData) {
+    await buildReferralCachePage(normalizedStudent);
+  }
+
   // Authorized - fetch referrals
   return getReferralsWithMode({
     email: normalizedStudent,

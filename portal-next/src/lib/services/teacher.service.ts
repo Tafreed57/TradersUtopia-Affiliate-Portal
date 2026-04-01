@@ -126,23 +126,46 @@ export async function getTeacherDataWithContext(
       return { success: false, error: 'Teacher not found' };
     }
 
-    // Get linked students
+    // Get linked students with today's attendance
+    const todayStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
     const links = await prisma.teacherStudentLink.findMany({
       where: { teacherId: teacher.id, status: 'ACTIVE' },
-      include: { student: true },
+      include: {
+        student: {
+          include: {
+            attendanceProfile: {
+              include: {
+                records: {
+                  where: {
+                    date: { startsWith: todayStr },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
-    const students = links.map((link) => ({
-      id: link.student.id,
-      email: link.student.aliasEmail,
-      internalEmail: link.student.internalEmail || undefined,
-      name:
-        [link.student.firstName, link.student.lastName].filter(Boolean).join(' ') ||
-        link.student.aliasEmail,
-      affiliateId: link.student.rewardfulAffiliateId || undefined,
-      percentageOverride: link.percentageOverride,
-      addedDate: link.createdAt.toISOString(),
-    }));
+    const students = links.map((link) => {
+      const todayRecords = link.student.attendanceProfile?.records || [];
+      return {
+        id: link.student.id,
+        email: link.student.aliasEmail,
+        internalEmail: link.student.internalEmail || undefined,
+        name:
+          [link.student.firstName, link.student.lastName].filter(Boolean).join(' ') ||
+          link.student.aliasEmail,
+        affiliateId: link.student.rewardfulAffiliateId || undefined,
+        percentageOverride: link.percentageOverride,
+        addedDate: link.createdAt.toISOString(),
+        todayAttendance: {
+          attended: todayRecords.length > 0,
+          count: todayRecords.length,
+        },
+      };
+    });
 
     // Get earnings from ledger
     const earnings = await prisma.teacherEarnings.findUnique({

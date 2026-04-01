@@ -29,6 +29,10 @@ interface StudentItem {
   affiliateId?: string;
   percentageOverride: number;
   addedDate?: string;
+  todayAttendance?: {
+    attended: boolean;
+    count: number;
+  };
 }
 
 interface OpenRequestRow {
@@ -722,6 +726,17 @@ function TeacherContent() {
                         <div className="student-info">
                           <span className="student-email">{student.name || student.email}</span>
                           <span className="pct-badge">{student.percentageOverride}%</span>
+                          {student.todayAttendance ? (
+                            student.todayAttendance.attended ? (
+                              <span className="attendance-badge attended" title={`Attended ${student.todayAttendance.count} time${student.todayAttendance.count > 1 ? 's' : ''} today`}>
+                                {student.todayAttendance.count > 1
+                                  ? `${'✓'.repeat(Math.min(student.todayAttendance.count, 3))} ${student.todayAttendance.count}`
+                                  : '✓'}
+                              </span>
+                            ) : (
+                              <span className="attendance-badge absent" title="Not attended today">✗</span>
+                            )
+                          ) : null}
                         </div>
                         <div className="student-amounts">
                           <span className="amount-label">30d Unpaid: <strong>{formatMoney(cd.unpaid30Days)}</strong></span>
@@ -759,6 +774,7 @@ function TeacherContent() {
                             const recentRecs = ((statsData as Record<string, unknown>).recentRecords || []) as Record<string, unknown>[];
                             const clipperStats = (statsData as Record<string, unknown>).clipperStats as Record<string, unknown> || {};
                             const clipperRecentRecs = ((statsData as Record<string, unknown>).clipperRecentRecords || []) as Record<string, unknown>[];
+                            const referralCounts = (statsData as Record<string, unknown>).referrals as Record<string, unknown> || {};
                             return (
                               <div className="stats-detail">
                                 {/* Student info */}
@@ -820,6 +836,18 @@ function TeacherContent() {
                                     <p style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>No clipper attendance records</p>
                                   )}
                                 </div>
+
+                                {/* Referral summary */}
+                                {(Number(referralCounts.leadsCount) > 0 || Number(referralCounts.conversionsCount) > 0) && (
+                                  <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
+                                    <div className="mini-stat" style={{ flex: 1 }}>
+                                      <strong>{Number(referralCounts.leadsCount) || 0}</strong><span>Leads</span>
+                                    </div>
+                                    <div className="mini-stat" style={{ flex: 1 }}>
+                                      <strong>{Number(referralCounts.conversionsCount) || 0}</strong><span>Conversions</span>
+                                    </div>
+                                  </div>
+                                )}
 
                                 {/* Referrals table with Leads/Conversions toggle */}
                                 <div style={{ marginTop: 16 }}>
@@ -1107,6 +1135,11 @@ function TeacherContent() {
           background: linear-gradient(135deg, #f59e0b, #d97706); color: white;
           padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;
         }
+        .attendance-badge {
+          padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+        }
+        .attendance-badge.attended { background: #dcfce7; color: #16a34a; }
+        .attendance-badge.absent { background: #fef2f2; color: #dc2626; }
         .student-amounts { display: flex; gap: 16px; font-size: 13px; color: #475569; }
         .amount-label strong { color: #1e293b; }
 

@@ -233,9 +233,9 @@ class RewardfulApiClient {
     affiliateId: string
   ): Promise<{ unpaid: number; dueNow: number; paid: number }> {
     try {
-      // CRITICAL: Must use ?expand=true to get commission_stats in the response
+      // Must expand commission_stats explicitly
       const affiliate = await this.request<RewardfulAffiliate>(
-        `/affiliates/${affiliateId}?expand=true`
+        `/affiliates/${affiliateId}?expand[]=commission_stats`
       );
 
       const stats = affiliate.commission_stats?.currencies;
@@ -320,7 +320,8 @@ class RewardfulApiClient {
         page++;
       }
 
-      // Filter to last 30 days and sum approved/confirmed
+      // Filter to last 30 days and sum by state
+      // Rewardful states: "pending" (in pipeline), "due" (ready to pay), "paid", "voided"
       let unpaid30 = 0;
       let dueNow30 = 0;
 
@@ -331,16 +332,12 @@ class RewardfulApiClient {
         const commDate = new Date(createdAt);
         if (commDate < thirtyDaysAgo) continue;
 
-        // Only count approved/confirmed commissions (not pending)
         const status = ((c.state || c.status || '') as string).toLowerCase();
-        if (status !== 'approved' && status !== 'confirmed') continue;
+        // Skip paid and voided — only count active commissions
+        if (status === 'paid' || status === 'voided') continue;
 
-        let amount = Number(c.amount || c.commission_amount || 0);
-
-        // Convert from cents if needed (large integers)
-        if (Number.isInteger(amount) && Math.abs(amount) >= 100) {
-          amount = amount / 100;
-        }
+        // Rewardful returns amounts in cents (e.g., 14999 = $149.99)
+        let amount = Number(c.amount || c.commission_amount || 0) / 100;
 
         // Convert USD to CAD if needed
         const currIso = ((c.currency || c.currency_iso || 'USD') as string).toUpperCase();
@@ -348,8 +345,13 @@ class RewardfulApiClient {
           amount = amount * conversionRate;
         }
 
-        unpaid30 += amount;
-        dueNow30 += amount; // Approved/confirmed are both unpaid AND due now
+        // "pending" = in pipeline (unpaid), "due" = ready to pay (also unpaid)
+        if (status === 'pending' || status === 'due') {
+          unpaid30 += amount;
+        }
+        if (status === 'due') {
+          dueNow30 += amount;
+        }
       }
 
       return {
