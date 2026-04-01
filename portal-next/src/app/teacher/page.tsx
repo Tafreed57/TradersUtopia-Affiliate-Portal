@@ -114,6 +114,7 @@ function TeacherContent() {
   // Estimate
   const [estimateData, setEstimateData] = useState<{ unpaid: number; dueNow: number; total: number } | null>(null);
   const [estimateLoading, setEstimateLoading] = useState(false);
+  const [estimateAutoLoaded, setEstimateAutoLoaded] = useState(false);
 
   const formatMoney = (amount: number | undefined | null) => {
     if (amount == null) return '$0.00 CAD';
@@ -159,6 +160,21 @@ function TeacherContent() {
     } catch { /* silent */ }
   }, []);
 
+  // Silently refresh just earnings data (no loading overlay)
+  const refreshEarningsSilently = useCallback(async (email?: string) => {
+    const effectiveEmail = email || targetEmail;
+    if (!effectiveEmail) return;
+    try {
+      const token = getStoredToken();
+      const result = await gsCall<{ success: boolean; data?: TeacherPageData }>(
+        'getTeacherDataWithContext', effectiveEmail, token
+      );
+      if (result.success && result.data) {
+        setData(prev => prev ? { ...prev, earnings: result.data!.earnings } : prev);
+      }
+    } catch { /* silent */ }
+  }, [targetEmail]);
+
 
   useEffect(() => {
     if (sessionLoading || !user) return;
@@ -172,6 +188,39 @@ function TeacherContent() {
     loadTeacherData(email);
     loadCommissionData(email);
   }, [sessionLoading, user, loadTeacherData, loadCommissionData]);
+
+  // Auto-load estimate when teacher data first loads
+  useEffect(() => {
+    if (!data || !targetEmail || estimateAutoLoaded) return;
+    setEstimateAutoLoaded(true);
+    const loadEstimate = async () => {
+      setEstimateLoading(true);
+      try {
+        const token = getStoredToken();
+        const result = await gsCall<{ success: boolean; totalEstimate?: number; estimatedUnpaid?: number; estimatedDueNow?: number }>(
+          'refreshTeacherEstimate', targetEmail, token
+        );
+        if (result.success) {
+          setEstimateData({
+            unpaid: result.estimatedUnpaid || 0,
+            dueNow: result.estimatedDueNow || 0,
+            total: result.totalEstimate || 0,
+          });
+        }
+      } catch { /* silent on auto-load */ }
+      finally { setEstimateLoading(false); }
+    };
+    loadEstimate();
+  }, [data, targetEmail, estimateAutoLoaded]);
+
+  // Silent polling — picks up webhook-driven earnings changes every 60s
+  useEffect(() => {
+    if (!targetEmail || !data) return;
+    const interval = setInterval(() => {
+      refreshEarningsSilently();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [targetEmail, data, refreshEarningsSilently]);
 
   const handleAddStudent = async () => {
     if (!newStudentEmail.trim()) return;
@@ -329,11 +378,11 @@ function TeacherContent() {
           dueNow: result.estimatedDueNow || 0,
           total: result.totalEstimate || 0,
         });
+        // Silently refresh confirmed earnings without full page reload
+        refreshEarningsSilently();
       } else {
         setMsg({ text: result.error || 'Failed', type: 'error' });
       }
-      loadTeacherData(targetEmail);
-      loadCommissionData(targetEmail);
     } catch (err) {
       setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
     } finally {
@@ -385,6 +434,8 @@ function TeacherContent() {
     try { await gsCall('adminStartManageUser', user?.email || '', target); } catch { /* ok */ }
     setIsManaging(true);
     setTargetEmail(target);
+    setEstimateAutoLoaded(false);
+    setEstimateData(null);
     loadTeacherData(target);
     loadCommissionData(target);
   };
@@ -393,6 +444,8 @@ function TeacherContent() {
     try { await gsCall('adminStopManageUser', user?.email || '', targetEmail); } catch { /* ok */ }
     setIsManaging(false);
     setManagedEmail('');
+    setEstimateAutoLoaded(false);
+    setEstimateData(null);
     const email = user?.email || '';
     setTargetEmail(email);
     loadTeacherData(email);
@@ -422,6 +475,8 @@ function TeacherContent() {
                   const email = supervisorViewAsEmail.trim();
                   setMsg(null);
                   setTargetEmail(email);
+                  setEstimateAutoLoaded(false);
+                  setEstimateData(null);
                   loadTeacherData(email);
                   loadCommissionData(email);
                   loadOpenRequests();
@@ -435,6 +490,8 @@ function TeacherContent() {
                 if (!email) return;
                 setMsg(null);
                 setTargetEmail(email);
+                setEstimateAutoLoaded(false);
+                setEstimateData(null);
                 loadTeacherData(email);
                 loadCommissionData(email);
                 loadOpenRequests();
@@ -491,64 +548,70 @@ function TeacherContent() {
             </div>
 
             {/* Teacher Earnings */}
-            <div className="locked-section">
-              <h3>Your Teacher Earnings</h3>
+            <div className="earnings-section">
+              <div className="earnings-header">
+                <h3>Your Teacher Earnings</h3>
+                <button
+                  className={`btn-refresh-inline${estimateLoading ? ' spinning' : ''}`}
+                  onClick={handleRefreshEstimate}
+                  disabled={estimateLoading}
+                  title="Refresh estimates"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                    <path d="M21 21v-5h-5" />
+                  </svg>
+                </button>
+              </div>
 
               {/* Estimated Earnings */}
-              <div style={{ marginBottom: 16, padding: 16, background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: 12, border: '1px solid #bbf7d0' }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#166534', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Estimated Teacher Cut
-                </div>
+              <div className="estimate-card">
+                <div className="estimate-section-label">Estimated Earnings</div>
                 {estimateData ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 22, fontWeight: 700, color: '#15803d' }}>{formatMoney(estimateData.total)}</div>
-                      <div style={{ fontSize: 11, color: '#166534' }}>Total Estimate</div>
+                  <>
+                    <div className="estimate-main">{formatMoney(estimateData.total)}</div>
+                    <div className="estimate-breakdown">
+                      <div className="estimate-item">
+                        <span className="estimate-item-value">{formatMoney(estimateData.unpaid)}</span>
+                        <span className="estimate-item-label">Pending</span>
+                      </div>
+                      <div className="estimate-divider" />
+                      <div className="estimate-item">
+                        <span className="estimate-item-value">{formatMoney(estimateData.dueNow)}</span>
+                        <span className="estimate-item-label">Due Now</span>
+                      </div>
                     </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: '#166534' }}>{formatMoney(estimateData.unpaid)}</div>
-                      <div style={{ fontSize: 11, color: '#166534' }}>Unpaid Cut</div>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: '#166534' }}>{formatMoney(estimateData.dueNow)}</div>
-                      <div style={{ fontSize: 11, color: '#166534' }}>Due Now Cut</div>
-                    </div>
-                  </div>
+                  </>
                 ) : (
-                  <div style={{ textAlign: 'center', color: '#166534', fontSize: 13 }}>
-                    Click &quot;Refresh Estimate&quot; to calculate your estimated teacher cut
+                  <div className="estimate-placeholder">
+                    {estimateLoading ? 'Calculating estimates...' : 'Loading estimates...'}
                   </div>
                 )}
               </div>
 
               {/* Confirmed Earnings */}
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Confirmed Earnings
-              </div>
-              <div className="locked-grid">
-                <div className="locked-card highlight">
-                  <div className="locked-value">{formatMoney(data.earnings.totalOwed)}</div>
-                  <div className="locked-label">Amount Owed</div>
+              <div className="confirmed-section-label">Confirmed Earnings</div>
+              <div className="confirmed-grid">
+                <div className="confirmed-card primary">
+                  <div className="confirmed-value">{formatMoney(data.earnings.totalOwed)}</div>
+                  <div className="confirmed-sublabel">Balance Due</div>
                 </div>
-                <div className="locked-card">
-                  <div className="locked-value">{formatMoney(data.earnings.totalCredited)}</div>
-                  <div className="locked-label">Total Earned (Lifetime)</div>
+                <div className="confirmed-card">
+                  <div className="confirmed-value">{formatMoney(data.earnings.totalCredited)}</div>
+                  <div className="confirmed-sublabel">Total Earned</div>
                 </div>
-                <div className="locked-card">
-                  <div className="locked-value">{formatMoney(data.earnings.totalPaid)}</div>
-                  <div className="locked-label">Total Paid (Lifetime)</div>
+                <div className="confirmed-card">
+                  <div className="confirmed-value">{formatMoney(data.earnings.totalPaid)}</div>
+                  <div className="confirmed-sublabel">Total Paid</div>
                 </div>
               </div>
-              <p style={{ fontSize: 11, color: '#64748b', textAlign: 'center', margin: '0 0 12px' }}>
-                {data.earnings.totalOwed === 0 && data.earnings.totalCredited === 0
-                  ? 'These values update automatically when affiliates are marked as paid'
-                  : data.earnings.lastUpdatedAt
-                    ? `Last updated: ${new Date(data.earnings.lastUpdatedAt).toLocaleString()}`
-                    : ''}
-              </p>
-              <button className="btn-update-earnings" onClick={handleRefreshEstimate} disabled={estimateLoading}>
-                {estimateLoading ? 'Calculating...' : 'Refresh Estimate'}
-              </button>
+              {data.earnings.lastUpdatedAt && (
+                <p className="earnings-timestamp">
+                  Last updated: {new Date(data.earnings.lastUpdatedAt).toLocaleString()}
+                </p>
+              )}
             </div>
 
             {/* Tabs: Students | Requests */}
@@ -907,29 +970,61 @@ function TeacherContent() {
         .stat-value { font-size: 24px; font-weight: 700; color: #475569; }
         .stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
 
-        .locked-section {
-          margin-bottom: 24px; padding: 20px;
+        .earnings-section {
+          margin-bottom: 24px; padding: 24px;
           background: linear-gradient(135deg, #ecfdf5, #d1fae5);
           border-radius: 16px; border: 1px solid #a7f3d0;
         }
-        .locked-section h3 { color: #047857; font-size: 16px; margin: 0 0 16px; }
-        .locked-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-        .locked-card {
-          padding: 16px; background: white; border-radius: 12px; text-align: center;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        .earnings-header {
+          display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
         }
-        .locked-card.highlight { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
-        .locked-value { font-size: 20px; font-weight: 700; color: #16a34a; }
-        .locked-card.highlight .locked-value { color: #2563eb; }
-        .locked-label { font-size: 11px; color: #047857; margin-top: 4px; }
+        .earnings-header h3 { color: #047857; font-size: 16px; margin: 0; }
+        .btn-refresh-inline {
+          width: 36px; height: 36px; border-radius: 10px; border: 1px solid #a7f3d0;
+          background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+          color: #047857; transition: all 0.2s;
+        }
+        .btn-refresh-inline:hover { background: #d1fae5; border-color: #6ee7b7; }
+        .btn-refresh-inline:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-refresh-inline.spinning svg { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .btn-update-earnings {
-          width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981, #059669);
-          color: white; border: none; border-radius: 12px; cursor: pointer;
-          font-size: 15px; font-weight: 600; font-family: inherit;
-          box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+        .estimate-card {
+          padding: 20px; background: white; border-radius: 14px;
+          border: 1px solid #bbf7d0; margin-bottom: 20px;
         }
-        .btn-update-earnings:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+        .estimate-section-label {
+          font-size: 11px; font-weight: 700; color: #059669; text-transform: uppercase;
+          letter-spacing: 0.8px; margin-bottom: 8px;
+        }
+        .estimate-main {
+          font-size: 28px; font-weight: 800; color: #047857; margin-bottom: 12px;
+        }
+        .estimate-breakdown { display: flex; align-items: center; gap: 16px; }
+        .estimate-item { display: flex; flex-direction: column; }
+        .estimate-item-value { font-size: 16px; font-weight: 600; color: #166534; }
+        .estimate-item-label { font-size: 11px; color: #6b7280; margin-top: 2px; }
+        .estimate-divider { width: 1px; height: 32px; background: #d1fae5; }
+        .estimate-placeholder {
+          text-align: center; color: #6b7280; font-size: 13px; padding: 12px 0;
+        }
+
+        .confirmed-section-label {
+          font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;
+          letter-spacing: 0.8px; margin-bottom: 10px;
+        }
+        .confirmed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .confirmed-card {
+          padding: 16px; background: white; border-radius: 12px; text-align: center;
+          border: 1px solid #e2e8f0;
+        }
+        .confirmed-card.primary { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #93c5fd; }
+        .confirmed-value { font-size: 20px; font-weight: 700; color: #16a34a; }
+        .confirmed-card.primary .confirmed-value { color: #2563eb; }
+        .confirmed-sublabel { font-size: 11px; color: #6b7280; margin-top: 4px; }
+        .earnings-timestamp {
+          font-size: 11px; color: #64748b; text-align: center; margin: 12px 0 0;
+        }
 
         .add-section {
           margin-bottom: 24px; padding: 20px;
@@ -1081,7 +1176,7 @@ function TeacherContent() {
         @media (max-width: 768px) {
           .page-container { padding: 20px; }
           .stats-grid { grid-template-columns: 1fr; }
-          .locked-grid { grid-template-columns: 1fr; }
+          .confirmed-grid { grid-template-columns: 1fr; }
           .student-header { flex-direction: column; align-items: flex-start; }
           .student-controls { flex-direction: column; align-items: flex-start; }
           .mini-stats-grid { grid-template-columns: repeat(2, 1fr); }
