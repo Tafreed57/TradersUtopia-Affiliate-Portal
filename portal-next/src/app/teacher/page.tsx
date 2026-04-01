@@ -127,6 +127,10 @@ function TeacherContent() {
   const [showLedger, setShowLedger] = useState(false);
   const [ledgerLoading, setLedgerLoading] = useState(false);
 
+  // Estimate
+  const [estimateData, setEstimateData] = useState<{ unpaid: number; dueNow: number; total: number } | null>(null);
+  const [estimateLoading, setEstimateLoading] = useState(false);
+
   const formatMoney = (amount: number | undefined | null) => {
     if (amount == null) return '$0.00 CAD';
     return '$' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' CAD';
@@ -342,13 +346,18 @@ function TeacherContent() {
   };
 
   const handleRefreshEstimate = async () => {
+    setEstimateLoading(true);
     try {
       const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; totalEstimate?: number; error?: string }>(
+      const result = await gsCall<{ success: boolean; totalEstimate?: number; estimatedUnpaid?: number; estimatedDueNow?: number; error?: string }>(
         'refreshTeacherEstimate', targetEmail, token
       );
       if (result.success) {
-        setMsg({ text: `Estimate refreshed: ${formatMoney(result.totalEstimate)}`, type: 'success' });
+        setEstimateData({
+          unpaid: result.estimatedUnpaid || 0,
+          dueNow: result.estimatedDueNow || 0,
+          total: result.totalEstimate || 0,
+        });
       } else {
         setMsg({ text: result.error || 'Failed', type: 'error' });
       }
@@ -356,6 +365,8 @@ function TeacherContent() {
       loadCommissionData(targetEmail);
     } catch (err) {
       setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+    } finally {
+      setEstimateLoading(false);
     }
   };
 
@@ -508,9 +519,41 @@ function TeacherContent() {
               </div>
             </div>
 
-            {/* Teacher Earnings (ledger-driven) */}
+            {/* Teacher Earnings */}
             <div className="locked-section">
               <h3>Your Teacher Earnings</h3>
+
+              {/* Live Estimate (from Rewardful API) */}
+              <div style={{ marginBottom: 16, padding: 16, background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: 12, border: '1px solid #bbf7d0' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#166534', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Estimated Teacher Cut (Live from Rewardful)
+                </div>
+                {estimateData ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: '#15803d' }}>{formatMoney(estimateData.total)}</div>
+                      <div style={{ fontSize: 11, color: '#166534' }}>Total Estimate</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: '#166534' }}>{formatMoney(estimateData.unpaid)}</div>
+                      <div style={{ fontSize: 11, color: '#166534' }}>Unpaid Cut</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: '#166534' }}>{formatMoney(estimateData.dueNow)}</div>
+                      <div style={{ fontSize: 11, color: '#166534' }}>Due Now Cut</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', color: '#166534', fontSize: 13 }}>
+                    Click &quot;Refresh Estimate&quot; to calculate your teacher cut from live Rewardful data
+                  </div>
+                )}
+              </div>
+
+              {/* Confirmed Earnings (ledger-driven, from webhooks) */}
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Confirmed Earnings (from Rewardful Payouts)
+              </div>
               <div className="locked-grid">
                 <div className="locked-card highlight">
                   <div className="locked-value">{formatMoney(data.earnings.totalOwed)}</div>
@@ -525,13 +568,17 @@ function TeacherContent() {
                   <div className="locked-label">Total Paid (Lifetime)</div>
                 </div>
               </div>
-              {data.earnings.lastUpdatedAt && (
-                <p style={{ fontSize: 11, color: '#64748b', textAlign: 'center', margin: '0 0 12px' }}>
-                  Last updated: {new Date(data.earnings.lastUpdatedAt).toLocaleString()}
-                </p>
-              )}
+              <p style={{ fontSize: 11, color: '#64748b', textAlign: 'center', margin: '0 0 12px' }}>
+                {data.earnings.totalOwed === 0 && data.earnings.totalCredited === 0
+                  ? 'These values update automatically when Charose marks affiliates as paid on Rewardful'
+                  : data.earnings.lastUpdatedAt
+                    ? `Last updated: ${new Date(data.earnings.lastUpdatedAt).toLocaleString()}`
+                    : ''}
+              </p>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn-update-earnings" onClick={handleRefreshEstimate}>Refresh Estimate</button>
+                <button className="btn-update-earnings" onClick={handleRefreshEstimate} disabled={estimateLoading}>
+                  {estimateLoading ? 'Calculating...' : 'Refresh Estimate'}
+                </button>
                 <button
                   className="btn-update-earnings"
                   style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}
