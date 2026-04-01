@@ -14,7 +14,7 @@
  * - Admin manage-user search bar
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
@@ -114,11 +114,17 @@ function TeacherContent() {
   // Tabs: Students | Requests | Analytics
   const [activeTab, setActiveTab] = useState<'students' | 'requests' | 'analytics'>('students');
 
-  // Analytics
+  // Analytics — raw events cached, grouping done client-side
+  interface RawAnalyticsEvents {
+    earnings: { date: string; amount: number }[];
+    leads: { date: string }[];
+    attendance: { date: string }[];
+  }
   const [analyticsTimeframe, setAnalyticsTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('month');
-  const [analyticsData, setAnalyticsData] = useState<{ period: string; earnings: number; leads: number; attendance: number }[]>([]);
+  const [analyticsRaw, setAnalyticsRaw] = useState<RawAnalyticsEvents | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsChart, setAnalyticsChart] = useState<'earnings' | 'leads' | 'attendance'>('earnings');
+  const [analyticsLastRefresh, setAnalyticsLastRefresh] = useState<Date | null>(null);
   const [openRequests, setOpenRequests] = useState<OpenRequestRow[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [acceptRejectLoading, setAcceptRejectLoading] = useState<string | null>(null);
@@ -195,26 +201,115 @@ function TeacherContent() {
     return () => clearInterval(interval);
   }, [targetEmail, data, loadCommissionData]);
 
-  const loadAnalytics = useCallback(async (tf: 'day' | 'week' | 'month' | 'year') => {
+  const loadAnalyticsRaw = useCallback(async () => {
     if (!targetEmail) return;
     setAnalyticsLoading(true);
     try {
       const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; data?: { period: string; earnings: number; leads: number; attendance: number }[] }>(
-        'getTeacherAnalytics', targetEmail, token, tf
+      const result = await gsCall<{ success: boolean; rawEvents?: RawAnalyticsEvents }>(
+        'getTeacherAnalytics', targetEmail, token
       );
-      if (result.success && result.data) {
-        setAnalyticsData(result.data);
+      if (result.success && result.rawEvents) {
+        setAnalyticsRaw(result.rawEvents);
+        setAnalyticsLastRefresh(new Date());
       }
     } catch { /* silent */ }
     finally { setAnalyticsLoading(false); }
   }, [targetEmail]);
 
+  // Only fetch raw events once when entering analytics tab (or on explicit refresh)
   useEffect(() => {
-    if (activeTab === 'analytics' && targetEmail) {
-      loadAnalytics(analyticsTimeframe);
+    if (activeTab === 'analytics' && targetEmail && !analyticsRaw && !analyticsLoading) {
+      loadAnalyticsRaw();
     }
-  }, [activeTab, analyticsTimeframe, targetEmail, loadAnalytics]);
+  }, [activeTab, targetEmail, analyticsRaw, analyticsLoading, loadAnalyticsRaw]);
+
+  // Client-side period grouping — instant on timeframe switch
+  const analyticsData = useMemo(() => {
+    if (!analyticsRaw) return [];
+
+    const tf = analyticsTimeframe;
+
+    // Convert date to period key
+    const dateToPeriod = (dateStr: string): string => {
+      const date = new Date(dateStr);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+
+      switch (tf) {
+        case 'day': return `${y}-${m}-${d}`;
+        case 'week': {
+          const dow = date.getDay();
+          const diff = date.getDate() - dow + (dow === 0 ? -6 : 1);
+          const monday = new Date(date);
+          monday.setDate(diff);
+          const wy = monday.getFullYear();
+          const wm = String(monday.getMonth() + 1).padStart(2, '0');
+          const wd = String(monday.getDate()).padStart(2, '0');
+          return `${wy}-${wm}-${wd}`;
+        }
+        case 'month': return `${y}-${m}`;
+        case 'year': return `${y}`;
+      }
+    };
+
+    // Build period labels
+    const periods: string[] = [];
+    const now = new Date();
+    switch (tf) {
+      case 'day':
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date(now); d.setDate(d.getDate() - i);
+          periods.push(dateToPeriod(d.toISOString()));
+        }
+        break;
+      case 'week':
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(now); d.setDate(d.getDate() - i * 7);
+          periods.push(dateToPeriod(d.toISOString()));
+        }
+        break;
+      case 'month':
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          periods.push(dateToPeriod(d.toISOString()));
+        }
+        break;
+      case 'year': {
+        const startYear = now.getFullYear() - 4;
+        for (let y = startYear; y <= now.getFullYear(); y++) {
+          periods.push(`${y}`);
+        }
+        break;
+      }
+    }
+
+    // Initialize buckets
+    const dataMap = new Map<string, { period: string; earnings: number; leads: number; attendance: number }>();
+    for (const p of periods) {
+      dataMap.set(p, { period: p, earnings: 0, leads: 0, attendance: 0 });
+    }
+
+    // Bucket events
+    for (const e of analyticsRaw.earnings) {
+      const key = dateToPeriod(e.date);
+      const dp = dataMap.get(key);
+      if (dp) dp.earnings = Math.round((dp.earnings + e.amount) * 100) / 100;
+    }
+    for (const l of analyticsRaw.leads) {
+      const key = dateToPeriod(l.date);
+      const dp = dataMap.get(key);
+      if (dp) dp.leads++;
+    }
+    for (const a of analyticsRaw.attendance) {
+      const key = dateToPeriod(a.date);
+      const dp = dataMap.get(key);
+      if (dp) dp.attendance++;
+    }
+
+    return periods.map(p => dataMap.get(p)!);
+  }, [analyticsRaw, analyticsTimeframe]);
 
   const handleAddStudent = async () => {
     if (!newStudentEmail.trim()) return;
@@ -632,6 +727,27 @@ function TeacherContent() {
 
             {activeTab === 'analytics' && (
               <div className="analytics-section">
+                {/* Header with refresh */}
+                <div className="analytics-header">
+                  <div className="analytics-header-left">
+                    {analyticsLastRefresh && (
+                      <span className="analytics-refresh-time">
+                        Updated {analyticsLastRefresh.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="analytics-refresh-btn"
+                    onClick={() => { setAnalyticsRaw(null); loadAnalyticsRaw(); }}
+                    disabled={analyticsLoading}
+                    title="Refresh analytics data"
+                  >
+                    <span className={analyticsLoading ? 'spin' : ''}>&#8635;</span>
+                    {analyticsLoading ? ' Loading...' : ' Refresh'}
+                  </button>
+                </div>
+
                 {/* Metric selector */}
                 <div className="analytics-metric-toggle">
                   {(['earnings', 'leads', 'attendance'] as const).map(metric => (
@@ -1288,6 +1404,23 @@ function TeacherContent() {
 
         /* Analytics */
         .analytics-section { margin-bottom: 24px; }
+        .analytics-header {
+          display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        .analytics-header-left { display: flex; align-items: center; gap: 8px; }
+        .analytics-refresh-time { font-size: 12px; color: #94a3b8; }
+        .analytics-refresh-btn {
+          display: flex; align-items: center; gap: 2px;
+          padding: 6px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+          background: white; cursor: pointer; font-size: 12px; font-weight: 600;
+          font-family: inherit; color: #64748b; transition: all 0.15s;
+        }
+        .analytics-refresh-btn:hover { background: #f1f5f9; }
+        .analytics-refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .analytics-refresh-btn .spin {
+          display: inline-block; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .analytics-metric-toggle {
           display: flex; gap: 6px; margin-bottom: 12px;
         }
