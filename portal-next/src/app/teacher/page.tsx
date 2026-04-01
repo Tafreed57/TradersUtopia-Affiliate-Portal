@@ -18,6 +18,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navigation } from '@/components/Navigation';
 import { LoadingOverlay } from '@/components/LoadingSkeleton';
+import {
+  ResponsiveContainer, XAxis, YAxis, CartesianGrid,
+  Tooltip, Area, AreaChart,
+} from 'recharts';
 import { useSession } from '@/hooks/useSession';
 import { gs, gsCall, getStoredToken } from '@/lib/client/gs-compat';
 
@@ -107,8 +111,14 @@ function TeacherContent() {
   // Per-student percentage
   const [percentageInputs, setPercentageInputs] = useState<Record<string, string>>({});
 
-  // Tabs: Students | Requests (assignment workflow)
-  const [activeTab, setActiveTab] = useState<'students' | 'requests'>('students');
+  // Tabs: Students | Requests | Analytics
+  const [activeTab, setActiveTab] = useState<'students' | 'requests' | 'analytics'>('students');
+
+  // Analytics
+  const [analyticsTimeframe, setAnalyticsTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('month');
+  const [analyticsData, setAnalyticsData] = useState<{ period: string; earnings: number; leads: number; attendance: number }[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsChart, setAnalyticsChart] = useState<'earnings' | 'leads' | 'attendance'>('earnings');
   const [openRequests, setOpenRequests] = useState<OpenRequestRow[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [acceptRejectLoading, setAcceptRejectLoading] = useState<string | null>(null);
@@ -184,6 +194,27 @@ function TeacherContent() {
     }, 60000);
     return () => clearInterval(interval);
   }, [targetEmail, data, loadCommissionData]);
+
+  const loadAnalytics = useCallback(async (tf: 'day' | 'week' | 'month' | 'year') => {
+    if (!targetEmail) return;
+    setAnalyticsLoading(true);
+    try {
+      const token = getStoredToken();
+      const result = await gsCall<{ success: boolean; data?: { period: string; earnings: number; leads: number; attendance: number }[] }>(
+        'getTeacherAnalytics', targetEmail, token, tf
+      );
+      if (result.success && result.data) {
+        setAnalyticsData(result.data);
+      }
+    } catch { /* silent */ }
+    finally { setAnalyticsLoading(false); }
+  }, [targetEmail]);
+
+  useEffect(() => {
+    if (activeTab === 'analytics' && targetEmail) {
+      loadAnalytics(analyticsTimeframe);
+    }
+  }, [activeTab, analyticsTimeframe, targetEmail, loadAnalytics]);
 
   const handleAddStudent = async () => {
     if (!newStudentEmail.trim()) return;
@@ -544,6 +575,13 @@ function TeacherContent() {
               >
                 Requests ({openRequests.length})
               </button>
+              <button
+                type="button"
+                className={activeTab === 'analytics' ? 'active' : ''}
+                onClick={() => setActiveTab('analytics')}
+              >
+                Analytics
+              </button>
             </div>
 
             {activeTab === 'requests' && (
@@ -587,6 +625,159 @@ function TeacherContent() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'analytics' && (
+              <div className="analytics-section">
+                {/* Metric selector */}
+                <div className="analytics-metric-toggle">
+                  {(['earnings', 'leads', 'attendance'] as const).map(metric => (
+                    <button
+                      key={metric}
+                      type="button"
+                      className={analyticsChart === metric ? 'active' : ''}
+                      onClick={() => setAnalyticsChart(metric)}
+                    >
+                      {metric === 'earnings' ? 'Earnings' : metric === 'leads' ? 'Leads' : 'Attendance'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Timeframe selector */}
+                <div className="analytics-timeframe">
+                  {(['day', 'week', 'month', 'year'] as const).map(tf => (
+                    <button
+                      key={tf}
+                      type="button"
+                      className={analyticsTimeframe === tf ? 'active' : ''}
+                      onClick={() => setAnalyticsTimeframe(tf)}
+                    >
+                      {tf === 'day' ? 'Daily' : tf === 'week' ? 'Weekly' : tf === 'month' ? 'Monthly' : 'Yearly'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Chart */}
+                <div className="analytics-chart-container">
+                  {analyticsLoading ? (
+                    <div className="analytics-loading">Loading analytics...</div>
+                  ) : analyticsData.length === 0 ? (
+                    <div className="analytics-loading">No data available</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={350}>
+                      {analyticsChart === 'earnings' ? (
+                        <AreaChart data={analyticsData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#059669" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#059669" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis
+                            dataKey="period"
+                            tick={{ fontSize: 11, fill: '#64748b' }}
+                            tickFormatter={(v: string) => {
+                              if (analyticsTimeframe === 'day') return v.slice(5);
+                              if (analyticsTimeframe === 'week') return v.slice(5);
+                              if (analyticsTimeframe === 'month') {
+                                const [y, m] = v.split('-');
+                                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                                return `${months[parseInt(m) - 1]} ${y.slice(2)}`;
+                              }
+                              return v;
+                            }}
+                          />
+                          <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(v: number) => `$${v}`} />
+                          <Tooltip
+                            contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }}
+                            formatter={(value: unknown) => [`$${Number(value).toFixed(2)} CAD`, 'Your Cut']}
+                          />
+                          <Area type="monotone" dataKey="earnings" stroke="#059669" strokeWidth={2.5} fill="url(#earningsGrad)" />
+                        </AreaChart>
+                      ) : analyticsChart === 'leads' ? (
+                        <AreaChart data={analyticsData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="leadsGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis
+                            dataKey="period"
+                            tick={{ fontSize: 11, fill: '#64748b' }}
+                            tickFormatter={(v: string) => {
+                              if (analyticsTimeframe === 'day') return v.slice(5);
+                              if (analyticsTimeframe === 'week') return v.slice(5);
+                              if (analyticsTimeframe === 'month') {
+                                const [y, m] = v.split('-');
+                                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                                return `${months[parseInt(m) - 1]} ${y.slice(2)}`;
+                              }
+                              return v;
+                            }}
+                          />
+                          <YAxis tick={{ fontSize: 11, fill: '#64748b' }} allowDecimals={false} />
+                          <Tooltip
+                            contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }}
+                            formatter={(value: unknown) => [Number(value), 'Leads']}
+                          />
+                          <Area type="monotone" dataKey="leads" stroke="#3b82f6" strokeWidth={2.5} fill="url(#leadsGrad)" />
+                        </AreaChart>
+                      ) : (
+                        <AreaChart data={analyticsData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="attendanceGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis
+                            dataKey="period"
+                            tick={{ fontSize: 11, fill: '#64748b' }}
+                            tickFormatter={(v: string) => {
+                              if (analyticsTimeframe === 'day') return v.slice(5);
+                              if (analyticsTimeframe === 'week') return v.slice(5);
+                              if (analyticsTimeframe === 'month') {
+                                const [y, m] = v.split('-');
+                                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                                return `${months[parseInt(m) - 1]} ${y.slice(2)}`;
+                              }
+                              return v;
+                            }}
+                          />
+                          <YAxis tick={{ fontSize: 11, fill: '#64748b' }} allowDecimals={false} />
+                          <Tooltip
+                            contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }}
+                            formatter={(value: unknown) => [Number(value), 'Attendance']}
+                          />
+                          <Area type="monotone" dataKey="attendance" stroke="#8b5cf6" strokeWidth={2.5} fill="url(#attendanceGrad)" />
+                        </AreaChart>
+                      )}
+                    </ResponsiveContainer>
+                  )}
+                </div>
+
+                {/* Summary stats below chart */}
+                {!analyticsLoading && analyticsData.length > 0 && (
+                  <div className="analytics-summary">
+                    <div className="analytics-summary-card">
+                      <strong>{formatMoney(analyticsData.reduce((s, d) => s + d.earnings, 0))}</strong>
+                      <span>Total Earnings (Your Cut)</span>
+                    </div>
+                    <div className="analytics-summary-card">
+                      <strong>{analyticsData.reduce((s, d) => s + d.leads, 0)}</strong>
+                      <span>Total Leads</span>
+                    </div>
+                    <div className="analytics-summary-card">
+                      <strong>{analyticsData.reduce((s, d) => s + d.attendance, 0)}</strong>
+                      <span>Total Attendance</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1095,6 +1286,59 @@ function TeacherContent() {
           padding: 8px 6px; border-bottom: 1px solid #f1f5f9; color: #64748b;
         }
 
+        /* Analytics */
+        .analytics-section { margin-bottom: 24px; }
+        .analytics-metric-toggle {
+          display: flex; gap: 6px; margin-bottom: 12px;
+        }
+        .analytics-metric-toggle button {
+          flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+          background: white; cursor: pointer; font-size: 14px; font-weight: 600;
+          font-family: inherit; color: #475569; transition: all 0.2s;
+        }
+        .analytics-metric-toggle button.active {
+          border-color: transparent; color: white;
+        }
+        .analytics-metric-toggle button:nth-child(1).active {
+          background: linear-gradient(135deg, #059669, #047857);
+        }
+        .analytics-metric-toggle button:nth-child(2).active {
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        .analytics-metric-toggle button:nth-child(3).active {
+          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+        .analytics-timeframe {
+          display: flex; gap: 4px; margin-bottom: 16px; justify-content: center;
+        }
+        .analytics-timeframe button {
+          padding: 6px 16px; border: 1px solid #e2e8f0; border-radius: 8px;
+          background: white; cursor: pointer; font-size: 12px; font-weight: 600;
+          font-family: inherit; color: #64748b; transition: all 0.15s;
+        }
+        .analytics-timeframe button.active {
+          background: #1e293b; color: white; border-color: #1e293b;
+        }
+        .analytics-chart-container {
+          background: white; border-radius: 16px; border: 1px solid #e2e8f0;
+          padding: 20px 12px 12px; min-height: 350px; display: flex;
+          align-items: center; justify-content: center;
+        }
+        .analytics-loading {
+          color: #64748b; font-size: 14px; text-align: center;
+        }
+        .analytics-summary {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;
+        }
+        .analytics-summary-card {
+          text-align: center; padding: 16px; background: white; border-radius: 12px;
+          border: 1px solid #e2e8f0;
+        }
+        .analytics-summary-card strong {
+          display: block; font-size: 20px; color: #1e293b; margin-bottom: 4px;
+        }
+        .analytics-summary-card span { font-size: 11px; color: #64748b; }
+
         .footer-actions { text-align: center; }
         .btn-refresh {
           padding: 14px 32px; background: linear-gradient(135deg, #667eea, #764ba2);
@@ -1111,6 +1355,8 @@ function TeacherContent() {
           .student-controls { flex-direction: column; align-items: flex-start; }
           .mini-stats-grid { grid-template-columns: repeat(2, 1fr); }
           .add-row { flex-direction: column; }
+          .analytics-summary { grid-template-columns: 1fr; }
+          .analytics-metric-toggle { flex-direction: column; }
         }
       `}</style>
     </div>

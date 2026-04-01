@@ -72,6 +72,7 @@ export const functionRegistry: Record<string, AnyFunction> = {
   verifyTeacherAccess: teacherService.verifyTeacherAccess,
   getTeacherDataWithContext: teacherService.getTeacherDataWithContext,
   getStudentsCommissionData: teacherService.getStudentsCommissionData,
+  getTeacherAnalytics: teacherService.getTeacherAnalytics,
   addStudentToTeacherWithContext: teacherService.addStudentToTeacherWithContext,
   removeStudentFromTeacher: teacherService.removeStudentFromTeacher,
   setStudentPercentageOverride: teacherService.setStudentPercentageOverride,

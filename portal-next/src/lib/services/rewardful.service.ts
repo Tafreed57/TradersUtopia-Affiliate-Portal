@@ -365,6 +365,68 @@ class RewardfulApiClient {
   }
 
   /**
+   * Get all commissions for an affiliate (raw data with dates for analytics)
+   */
+  async getAllCommissions(
+    affiliateId: string
+  ): Promise<{ date: string; amount: number; state: string }[]> {
+    const conversionRate = config.currency.usdToCadRate;
+    const results: { date: string; amount: number; state: string }[] = [];
+
+    try {
+      let page = 1;
+      const maxPages = 20;
+
+      while (page <= maxPages) {
+        const response = await this.request<unknown>(
+          `/commissions?affiliate_id=${encodeURIComponent(affiliateId)}&page=${page}&limit=200`,
+          {},
+          12000
+        );
+
+        let pageItems: Record<string, unknown>[] = [];
+        if (Array.isArray(response)) {
+          pageItems = response;
+        } else if (response && typeof response === 'object') {
+          const obj = response as Record<string, unknown>;
+          if (Array.isArray(obj.data)) {
+            pageItems = obj.data;
+          }
+        }
+
+        if (pageItems.length === 0) break;
+
+        for (const c of pageItems) {
+          const createdAt = (c.created_at || c.date) as string | undefined;
+          if (!createdAt) continue;
+
+          const state = ((c.state || c.status || '') as string).toLowerCase();
+          if (state === 'voided') continue;
+
+          let amount = Number(c.amount || c.commission_amount || 0) / 100;
+          const currIso = ((c.currency || c.currency_iso || 'USD') as string).toUpperCase();
+          if (currIso === 'USD') {
+            amount = amount * conversionRate;
+          }
+
+          results.push({
+            date: createdAt,
+            amount: Math.round(amount * 100) / 100,
+            state,
+          });
+        }
+
+        if (pageItems.length < 50) break;
+        page++;
+      }
+    } catch (error) {
+      log.error('Get all commissions error', { error, affiliateId });
+    }
+
+    return results;
+  }
+
+  /**
    * Get referrals for a single page
    */
   async getReferrals(

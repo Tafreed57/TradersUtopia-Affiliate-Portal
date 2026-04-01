@@ -279,6 +279,187 @@ export async function getStudentsCommissionData(
 }
 
 // ============================================================================
+// ANALYTICS
+// ============================================================================
+
+interface AnalyticsDataPoint {
+  period: string;
+  earnings: number;
+  leads: number;
+  attendance: number;
+}
+
+/**
+ * Get teacher analytics data for charts.
+ * Returns time-series data grouped by the requested timeframe.
+ */
+export async function getTeacherAnalytics(
+  teacherEmail: string,
+  token: string,
+  timeframe: string = 'month'
+): Promise<ApiResponse & { data?: AnalyticsDataPoint[] }> {
+  const normalizedEmail = normalizeEmail(teacherEmail);
+
+  const { user: sessionUser } = await getSessionUser(token);
+  if (!sessionUser) return { success: false, error: 'Invalid session' };
+  if (sessionUser.aliasEmail !== normalizedEmail && !sessionUser.isAdmin) {
+    return { success: false, error: 'Not authorized' };
+  }
+
+  try {
+    const teacher = await prisma.user.findUnique({
+      where: { aliasEmail: normalizedEmail },
+    });
+    if (!teacher) return { success: false, error: 'Teacher not found' };
+
+    const links = await prisma.teacherStudentLink.findMany({
+      where: { teacherId: teacher.id, status: 'ACTIVE' },
+      include: { student: true },
+    });
+
+    // Collect raw events from all students
+    const earningsEvents: { date: Date; amount: number }[] = [];
+    const leadsEvents: { date: Date }[] = [];
+
+    for (const link of links) {
+      const studentInternalEmail = link.student.internalEmail || link.student.aliasEmail;
+      const multiplier = link.percentageOverride / 100;
+
+      const affiliateResult = await rewardfulApi.getAffiliateByEmail(studentInternalEmail);
+      if (!affiliateResult.success || !affiliateResult.affiliate) continue;
+
+      const affId = affiliateResult.affiliate.id;
+
+      // Fetch commissions (teacher's cut)
+      const commissions = await rewardfulApi.getAllCommissions(affId);
+      for (const c of commissions) {
+        earningsEvents.push({
+          date: new Date(c.date),
+          amount: Math.round(c.amount * multiplier * 100) / 100,
+        });
+      }
+
+      // Fetch referrals (leads)
+      const referrals = await rewardfulApi.getAllReferrals(affId);
+      for (const r of referrals) {
+        leadsEvents.push({ date: new Date(r.created_at) });
+      }
+    }
+
+    // Fetch attendance for all students (through AttendanceProfile)
+    const studentIds = links.map(l => l.studentId);
+    const attendanceRecords = await prisma.attendanceRecord.findMany({
+      where: {
+        profile: { userId: { in: studentIds } },
+      },
+      select: { date: true },
+    });
+    const attendanceEvents = attendanceRecords.map(r => ({
+      date: new Date(r.date),
+    }));
+
+    // Group into periods
+    const tf = (['day', 'week', 'month', 'year'].includes(timeframe) ? timeframe : 'month') as 'day' | 'week' | 'month' | 'year';
+    const periods = buildPeriods(tf);
+    const dataMap = new Map<string, AnalyticsDataPoint>();
+
+    for (const p of periods) {
+      dataMap.set(p, { period: p, earnings: 0, leads: 0, attendance: 0 });
+    }
+
+    for (const e of earningsEvents) {
+      const key = dateToPeriod(e.date, tf);
+      const dp = dataMap.get(key);
+      if (dp) dp.earnings = Math.round((dp.earnings + e.amount) * 100) / 100;
+    }
+
+    for (const l of leadsEvents) {
+      const key = dateToPeriod(l.date, tf);
+      const dp = dataMap.get(key);
+      if (dp) dp.leads++;
+    }
+
+    for (const a of attendanceEvents) {
+      const key = dateToPeriod(a.date, tf);
+      const dp = dataMap.get(key);
+      if (dp) dp.attendance++;
+    }
+
+    const data = periods.map(p => dataMap.get(p)!);
+
+    return { success: true, data };
+  } catch (error) {
+    log.error('Get teacher analytics error', { error });
+    return { success: false, error: 'Failed to fetch analytics' };
+  }
+}
+
+/** Convert a date to a period key based on timeframe */
+function dateToPeriod(date: Date, tf: 'day' | 'week' | 'month' | 'year'): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+
+  switch (tf) {
+    case 'day': return `${y}-${m}-${d}`;
+    case 'week': {
+      // ISO week: get Monday of the week
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(date);
+      monday.setDate(diff);
+      const wy = monday.getFullYear();
+      const wm = String(monday.getMonth() + 1).padStart(2, '0');
+      const wd = String(monday.getDate()).padStart(2, '0');
+      return `${wy}-${wm}-${wd}`;
+    }
+    case 'month': return `${y}-${m}`;
+    case 'year': return `${y}`;
+  }
+}
+
+/** Build period labels for the selected timeframe */
+function buildPeriods(tf: 'day' | 'week' | 'month' | 'year'): string[] {
+  const periods: string[] = [];
+  const now = new Date();
+
+  switch (tf) {
+    case 'day': {
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        periods.push(dateToPeriod(d, 'day'));
+      }
+      break;
+    }
+    case 'week': {
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i * 7);
+        periods.push(dateToPeriod(d, 'week'));
+      }
+      break;
+    }
+    case 'month': {
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        periods.push(dateToPeriod(d, 'month'));
+      }
+      break;
+    }
+    case 'year': {
+      const startYear = now.getFullYear() - 4;
+      for (let y = startYear; y <= now.getFullYear(); y++) {
+        periods.push(`${y}`);
+      }
+      break;
+    }
+  }
+
+  return periods;
+}
+
+// ============================================================================
 // STUDENT MANAGEMENT
 // ============================================================================
 
