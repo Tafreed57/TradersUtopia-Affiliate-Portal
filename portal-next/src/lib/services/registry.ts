@@ -82,6 +82,7 @@ export const functionRegistry: Record<string, AnyFunction> = {
   recordTeacherPayment: teacherService.recordTeacherPayment,
   getAllTeachersPaymentData: teacherService.getAllTeachersPaymentData,
   getTeacherLedger: teacherService.getTeacherLedger,
+  backfillTeacherEarnings: teacherService.backfillTeacherEarnings,
 
   // ========================================================================
   // TEACHER–STUDENT ASSIGNMENT (request + approval workflow)

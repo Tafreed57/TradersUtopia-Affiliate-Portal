@@ -120,6 +120,10 @@ function TeacherContent() {
   const [estimateLoading, setEstimateLoading] = useState(false);
   const [estimateAutoLoaded, setEstimateAutoLoaded] = useState(false);
 
+  // Backfill
+  const [backfillLoading, setBackfillLoading] = useState(false);
+  const [backfillResult, setBackfillResult] = useState<{ creditsCreated: number; totalCredited: number; totalOwed: number } | null>(null);
+
   const formatMoney = (amount: number | undefined | null) => {
     if (amount == null) return '$0.00 CAD';
     return '$' + Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' CAD';
@@ -394,6 +398,33 @@ function TeacherContent() {
     }
   };
 
+  const handleBackfill = async () => {
+    if (!confirm('Backfill historical paid commissions into the ledger? This may take a moment.')) return;
+    setBackfillLoading(true);
+    setBackfillResult(null);
+    try {
+      const token = getStoredToken();
+      const result = await gsCall<{ success: boolean; creditsCreated?: number; totalCredited?: number; totalOwed?: number; error?: string }>(
+        'backfillTeacherEarnings', targetEmail, token
+      );
+      if (result.success) {
+        setBackfillResult({
+          creditsCreated: result.creditsCreated || 0,
+          totalCredited: result.totalCredited || 0,
+          totalOwed: result.totalOwed || 0,
+        });
+        // Refresh earnings display
+        refreshEarningsSilently();
+      } else {
+        setMsg({ text: result.error || 'Backfill failed', type: 'error' });
+      }
+    } catch (err) {
+      setMsg({ text: err instanceof Error ? err.message : 'Backfill error', type: 'error' });
+    } finally {
+      setBackfillLoading(false);
+    }
+  };
+
   const loadStudentReferrals = async (studentEmail: string, mode: 'leads' | 'conversions', page: number) => {
     setStatsRefLoading(true);
     try {
@@ -615,6 +646,24 @@ function TeacherContent() {
                 <p className="earnings-timestamp">
                   Last updated: {new Date(data.earnings.lastUpdatedAt).toLocaleString()}
                 </p>
+              )}
+              {data.teacher.isAdmin && (
+                <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={handleBackfill}
+                    disabled={backfillLoading}
+                    style={{ fontSize: '12px', padding: '6px 14px' }}
+                  >
+                    {backfillLoading ? 'Backfilling...' : 'Sync Historical Earnings'}
+                  </button>
+                  {backfillResult && (
+                    <p style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
+                      {backfillResult.creditsCreated} entries added. Total earned: {formatMoney(backfillResult.totalCredited)}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 

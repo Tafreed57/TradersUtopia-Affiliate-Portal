@@ -540,12 +540,12 @@ export async function refreshTeacherEstimate(
     const studentsResult = await getStudentsCommissionData(normalizedEmail, token);
     const students = studentsResult.students || [];
 
-    let estimatedUnpaid = 0;
-    let estimatedDueNow = 0;
+    let totalUnpaid = 0; // Rewardful "unpaid" = pending + due combined
+    let totalDueNow = 0; // Rewardful "due" = subset of unpaid ready to pay
 
     for (const student of students) {
-      estimatedUnpaid += student.teacherCutUnpaid;
-      estimatedDueNow += student.teacherCutDueNow;
+      totalUnpaid += student.teacherCutUnpaid;
+      totalDueNow += student.teacherCutDueNow;
     }
 
     // Update lastUpdatedAt only
@@ -555,21 +555,25 @@ export async function refreshTeacherEstimate(
       update: { lastUpdatedAt: new Date() },
     });
 
-    const totalEstimate = Math.round((estimatedUnpaid + estimatedDueNow) * 100) / 100;
+    // Rewardful "unpaid" already includes "due" — do NOT sum them.
+    // pending-only = unpaid - due
+    const pendingOnly = Math.round((totalUnpaid - totalDueNow) * 100) / 100;
+    const dueNow = Math.round(totalDueNow * 100) / 100;
+    const totalEstimate = Math.round(totalUnpaid * 100) / 100;
 
     log.info('Teacher estimate refreshed', {
       teacher: normalizedEmail,
       students: students.length,
-      estimatedUnpaid,
-      estimatedDueNow,
+      pendingOnly,
+      dueNow,
       totalEstimate,
     });
 
     return {
       success: true,
       message: 'Estimate refreshed',
-      estimatedUnpaid: Math.round(estimatedUnpaid * 100) / 100,
-      estimatedDueNow: Math.round(estimatedDueNow * 100) / 100,
+      estimatedUnpaid: pendingOnly,
+      estimatedDueNow: dueNow,
       totalEstimate,
     };
   } catch (error) {
@@ -982,5 +986,189 @@ export async function getAllTeachersPaymentData(
   } catch (error) {
     log.error('Get all teachers payment data error', { error });
     return { success: false, error: 'Failed to load teacher data' };
+  }
+}
+
+// ============================================================================
+// BACKFILL: Historical paid commissions → teacher ledger
+// ============================================================================
+
+/**
+ * Backfill teacher ledger from ALL historical paid commissions in Rewardful.
+ * For each student, fetches every paid commission, creates idempotent CREDIT
+ * entries (using commission ID as rewardfulPayoutId), then recalculates totals
+ * from the full ledger.
+ *
+ * Admin-only. Safe to run multiple times (idempotent via unique constraint).
+ */
+export async function backfillTeacherEarnings(
+  teacherEmail: string,
+  token: string
+): Promise<ApiResponse & { creditsCreated?: number; totalCredited?: number; totalOwed?: number }> {
+  const isAdmin = await validateAdminSession(token);
+  if (!isAdmin) {
+    return { success: false, error: 'Unauthorized - admin only' };
+  }
+
+  const normalizedEmail = normalizeEmail(teacherEmail);
+
+  try {
+    const teacher = await prisma.user.findUnique({
+      where: { aliasEmail: normalizedEmail },
+    });
+
+    if (!teacher) {
+      return { success: false, error: 'Teacher not found' };
+    }
+
+    // Get or create earnings record
+    let earnings = await prisma.teacherEarnings.findUnique({
+      where: { userId: teacher.id },
+    });
+    if (!earnings) {
+      earnings = await prisma.teacherEarnings.create({
+        data: { userId: teacher.id },
+      });
+    }
+
+    const links = await prisma.teacherStudentLink.findMany({
+      where: { teacherId: teacher.id, status: 'ACTIVE' },
+      include: { student: true },
+    });
+
+    let creditsCreated = 0;
+    const conversionRate = config.currency.usdToCadRate;
+
+    for (const link of links) {
+      const studentInternalEmail = link.student.internalEmail || link.student.aliasEmail;
+      const affiliateResult = await rewardfulApi.getAffiliateByEmail(studentInternalEmail);
+
+      if (!affiliateResult.success || !affiliateResult.affiliate) {
+        log.info('Backfill: no affiliate found', { student: link.student.aliasEmail });
+        continue;
+      }
+
+      const affId = affiliateResult.affiliate.id;
+
+      // Fetch all paid commissions via raw commission listing
+      let page = 1;
+      const maxPages = 20;
+      while (page <= maxPages) {
+        let pageItems: Record<string, unknown>[] = [];
+
+        try {
+          const commResponse = await fetch(
+            `${config.rewardful.baseUrl}/commissions?affiliate_id=${encodeURIComponent(affId)}&page=${page}&limit=200`,
+            {
+              headers: {
+                Authorization: `Basic ${Buffer.from(`${config.rewardful.apiKey}:`).toString('base64')}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+          if (!commResponse.ok) break;
+
+          const commData = await commResponse.json();
+          if (Array.isArray(commData)) {
+            pageItems = commData;
+          } else if (commData?.data && Array.isArray(commData.data)) {
+            pageItems = commData.data;
+          }
+        } catch {
+          log.error('Backfill: commission fetch failed', { page, affId });
+          break;
+        }
+
+        if (pageItems.length === 0) break;
+
+        for (const c of pageItems) {
+          const state = ((c.state || c.status || '') as string).toLowerCase();
+          if (state !== 'paid') continue;
+
+          const commissionId = c.id as string;
+          if (!commissionId) continue;
+
+          const amountCents = Number(c.amount || c.commission_amount || 0);
+          const currIso = ((c.currency || c.currency_iso || 'USD') as string).toUpperCase();
+
+          // Convert cents → dollars → CAD
+          let amountCad = amountCents / 100;
+          if (currIso === 'USD') {
+            amountCad = amountCad * conversionRate;
+          }
+          amountCad = Math.round(amountCad * 100) / 100;
+
+          const teacherCut = Math.round(amountCad * (link.percentageOverride / 100) * 100) / 100;
+          if (teacherCut <= 0) continue;
+
+          // Create idempotent CREDIT entry (commission ID as rewardfulPayoutId)
+          try {
+            await prisma.teacherLedgerEntry.create({
+              data: {
+                earningsId: earnings.id,
+                type: 'CREDIT',
+                amount: teacherCut,
+                currency: 'CAD',
+                rewardfulPayoutId: commissionId,
+                studentUserId: link.student.id,
+                studentEmail: link.student.aliasEmail,
+                percentageApplied: link.percentageOverride,
+                payoutAmountCents: amountCents,
+                payoutCurrency: currIso,
+                note: 'Historical backfill',
+              },
+            });
+            creditsCreated++;
+          } catch (error: unknown) {
+            const prismaError = error as { code?: string };
+            if (prismaError.code === 'P2002') {
+              // Already exists — skip (idempotent)
+            } else {
+              throw error;
+            }
+          }
+        }
+
+        if (pageItems.length < 200) break;
+        page++;
+      }
+    }
+
+    // Recalculate totals from the full ledger
+    const creditSum = await prisma.teacherLedgerEntry.aggregate({
+      where: { earningsId: earnings.id, type: 'CREDIT' },
+      _sum: { amount: true },
+    });
+    const debitSum = await prisma.teacherLedgerEntry.aggregate({
+      where: { earningsId: earnings.id, type: 'DEBIT' },
+      _sum: { amount: true },
+    });
+
+    const totalCredited = Math.round((creditSum._sum.amount || 0) * 100) / 100;
+    const totalPaid = Math.round((debitSum._sum.amount || 0) * 100) / 100;
+    const totalOwed = Math.round((totalCredited - totalPaid) * 100) / 100;
+
+    await prisma.teacherEarnings.update({
+      where: { id: earnings.id },
+      data: {
+        totalCredited,
+        totalPaid,
+        totalOwed,
+        lastUpdatedAt: new Date(),
+      },
+    });
+
+    log.info('Backfill complete', {
+      teacher: normalizedEmail,
+      creditsCreated,
+      totalCredited,
+      totalOwed,
+    });
+
+    return { success: true, creditsCreated, totalCredited, totalOwed };
+  } catch (error) {
+    log.error('Backfill teacher earnings error', { error });
+    return { success: false, error: 'Failed to backfill earnings' };
   }
 }
