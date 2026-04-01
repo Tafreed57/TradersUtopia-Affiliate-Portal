@@ -520,7 +520,7 @@ function TeacherContent() {
                   <div className="estimate-divider" />
                   <div className="estimate-item">
                     <span className="estimate-item-value estimate-paid">
-                      {formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.teacherCutPaid || 0), 0))}
+                      {formatMoney(data.earnings.totalCredited)}
                     </span>
                     <span className="estimate-item-label">Total Paid</span>
                   </div>
