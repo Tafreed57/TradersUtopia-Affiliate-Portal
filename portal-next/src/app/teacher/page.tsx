@@ -115,14 +115,8 @@ function TeacherContent() {
   const [removeLoading, setRemoveLoading] = useState(false);
   const [supervisorViewAsEmail, setSupervisorViewAsEmail] = useState('');
 
-  // Estimate
-  const [estimateData, setEstimateData] = useState<{ unpaid: number; dueNow: number; total: number } | null>(null);
+  // Refresh spinner for earnings
   const [estimateLoading, setEstimateLoading] = useState(false);
-  const [estimateAutoLoaded, setEstimateAutoLoaded] = useState(false);
-
-  // Backfill
-  const [backfillLoading, setBackfillLoading] = useState(false);
-  const [backfillResult, setBackfillResult] = useState<{ creditsCreated: number; totalCredited: number; totalOwed: number } | null>(null);
 
   const formatMoney = (amount: number | undefined | null) => {
     if (amount == null) return '$0.00 CAD';
@@ -168,22 +162,6 @@ function TeacherContent() {
     } catch { /* silent */ }
   }, []);
 
-  // Silently refresh just earnings data (no loading overlay)
-  const refreshEarningsSilently = useCallback(async (email?: string) => {
-    const effectiveEmail = email || targetEmail;
-    if (!effectiveEmail) return;
-    try {
-      const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; data?: TeacherPageData }>(
-        'getTeacherDataWithContext', effectiveEmail, token
-      );
-      if (result.success && result.data) {
-        setData(prev => prev ? { ...prev, earnings: result.data!.earnings } : prev);
-      }
-    } catch { /* silent */ }
-  }, [targetEmail]);
-
-
   useEffect(() => {
     if (sessionLoading || !user) return;
     // Supervisors/admins who aren't teachers: don't auto-load own data, wait for search
@@ -197,38 +175,14 @@ function TeacherContent() {
     loadCommissionData(email);
   }, [sessionLoading, user, loadTeacherData, loadCommissionData]);
 
-  // Auto-load estimate when teacher data first loads
-  useEffect(() => {
-    if (!data || !targetEmail || estimateAutoLoaded) return;
-    setEstimateAutoLoaded(true);
-    const loadEstimate = async () => {
-      setEstimateLoading(true);
-      try {
-        const token = getStoredToken();
-        const result = await gsCall<{ success: boolean; totalEstimate?: number; estimatedUnpaid?: number; estimatedDueNow?: number }>(
-          'refreshTeacherEstimate', targetEmail, token
-        );
-        if (result.success) {
-          setEstimateData({
-            unpaid: result.estimatedUnpaid || 0,
-            dueNow: result.estimatedDueNow || 0,
-            total: result.totalEstimate || 0,
-          });
-        }
-      } catch { /* silent on auto-load */ }
-      finally { setEstimateLoading(false); }
-    };
-    loadEstimate();
-  }, [data, targetEmail, estimateAutoLoaded]);
-
-  // Silent polling — picks up webhook-driven earnings changes every 60s
+  // Silent polling — refresh commission data every 60s
   useEffect(() => {
     if (!targetEmail || !data) return;
     const interval = setInterval(() => {
-      refreshEarningsSilently();
+      loadCommissionData(targetEmail);
     }, 60000);
     return () => clearInterval(interval);
-  }, [targetEmail, data, refreshEarningsSilently]);
+  }, [targetEmail, data, loadCommissionData]);
 
   const handleAddStudent = async () => {
     if (!newStudentEmail.trim()) return;
@@ -376,52 +330,9 @@ function TeacherContent() {
   const handleRefreshEstimate = async () => {
     setEstimateLoading(true);
     try {
-      const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; totalEstimate?: number; estimatedUnpaid?: number; estimatedDueNow?: number; error?: string }>(
-        'refreshTeacherEstimate', targetEmail, token
-      );
-      if (result.success) {
-        setEstimateData({
-          unpaid: result.estimatedUnpaid || 0,
-          dueNow: result.estimatedDueNow || 0,
-          total: result.totalEstimate || 0,
-        });
-        // Silently refresh confirmed earnings without full page reload
-        refreshEarningsSilently();
-      } else {
-        setMsg({ text: result.error || 'Failed', type: 'error' });
-      }
-    } catch (err) {
-      setMsg({ text: err instanceof Error ? err.message : 'Error', type: 'error' });
+      await loadCommissionData(targetEmail);
     } finally {
       setEstimateLoading(false);
-    }
-  };
-
-  const handleBackfill = async () => {
-    if (!confirm('Backfill historical paid commissions into the ledger? This may take a moment.')) return;
-    setBackfillLoading(true);
-    setBackfillResult(null);
-    try {
-      const token = getStoredToken();
-      const result = await gsCall<{ success: boolean; creditsCreated?: number; totalCredited?: number; totalOwed?: number; error?: string }>(
-        'backfillTeacherEarnings', targetEmail, token
-      );
-      if (result.success) {
-        setBackfillResult({
-          creditsCreated: result.creditsCreated || 0,
-          totalCredited: result.totalCredited || 0,
-          totalOwed: result.totalOwed || 0,
-        });
-        // Refresh earnings display
-        refreshEarningsSilently();
-      } else {
-        setMsg({ text: result.error || 'Backfill failed', type: 'error' });
-      }
-    } catch (err) {
-      setMsg({ text: err instanceof Error ? err.message : 'Backfill error', type: 'error' });
-    } finally {
-      setBackfillLoading(false);
     }
   };
 
@@ -469,8 +380,6 @@ function TeacherContent() {
     try { await gsCall('adminStartManageUser', user?.email || '', target); } catch { /* ok */ }
     setIsManaging(true);
     setTargetEmail(target);
-    setEstimateAutoLoaded(false);
-    setEstimateData(null);
     loadTeacherData(target);
     loadCommissionData(target);
   };
@@ -479,8 +388,6 @@ function TeacherContent() {
     try { await gsCall('adminStopManageUser', user?.email || '', targetEmail); } catch { /* ok */ }
     setIsManaging(false);
     setManagedEmail('');
-    setEstimateAutoLoaded(false);
-    setEstimateData(null);
     const email = user?.email || '';
     setTargetEmail(email);
     loadTeacherData(email);
@@ -510,8 +417,6 @@ function TeacherContent() {
                   const email = supervisorViewAsEmail.trim();
                   setMsg(null);
                   setTargetEmail(email);
-                  setEstimateAutoLoaded(false);
-                  setEstimateData(null);
                   loadTeacherData(email);
                   loadCommissionData(email);
                   loadOpenRequests();
@@ -525,8 +430,6 @@ function TeacherContent() {
                 if (!email) return;
                 setMsg(null);
                 setTargetEmail(email);
-                setEstimateAutoLoaded(false);
-                setEstimateData(null);
                 loadTeacherData(email);
                 loadCommissionData(email);
                 loadOpenRequests();
@@ -590,7 +493,7 @@ function TeacherContent() {
                   className={`btn-refresh-inline${estimateLoading ? ' spinning' : ''}`}
                   onClick={handleRefreshEstimate}
                   disabled={estimateLoading}
-                  title="Refresh estimates"
+                  title="Refresh earnings"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -601,70 +504,20 @@ function TeacherContent() {
                 </button>
               </div>
 
-              {/* Estimated Earnings */}
               <div className="estimate-card">
-                <div className="estimate-section-label">Estimated Earnings</div>
-                {estimateData ? (
-                  <>
-                    <div className="estimate-main">{formatMoney(estimateData.total)}</div>
-                    <div className="estimate-breakdown">
-                      <div className="estimate-item">
-                        <span className="estimate-item-value">{formatMoney(estimateData.unpaid)}</span>
-                        <span className="estimate-item-label">Pending</span>
-                      </div>
-                      <div className="estimate-divider" />
-                      <div className="estimate-item">
-                        <span className="estimate-item-value">{formatMoney(estimateData.dueNow)}</span>
-                        <span className="estimate-item-label">Due Now</span>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="estimate-placeholder">
-                    {estimateLoading ? 'Calculating estimates...' : 'Loading estimates...'}
+                <div className="estimate-section-label">Your Total Cut</div>
+                <div className="estimate-main">
+                  {formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.teacherCutUnpaid || 0), 0))}
+                </div>
+                <div className="estimate-breakdown">
+                  <div className="estimate-item">
+                    <span className="estimate-item-value">
+                      {formatMoney(Object.values(commissionData).reduce((s, c) => s + (c.teacherCutDueNow || 0), 0))}
+                    </span>
+                    <span className="estimate-item-label">Due Now</span>
                   </div>
-                )}
-              </div>
-
-              {/* Confirmed Earnings */}
-              <div className="confirmed-section-label">Confirmed Earnings</div>
-              <div className="confirmed-grid">
-                <div className="confirmed-card primary">
-                  <div className="confirmed-value">{formatMoney(data.earnings.totalOwed)}</div>
-                  <div className="confirmed-sublabel">Balance Due</div>
-                </div>
-                <div className="confirmed-card">
-                  <div className="confirmed-value">{formatMoney(data.earnings.totalCredited)}</div>
-                  <div className="confirmed-sublabel">Total Earned</div>
-                </div>
-                <div className="confirmed-card">
-                  <div className="confirmed-value">{formatMoney(data.earnings.totalPaid)}</div>
-                  <div className="confirmed-sublabel">Total Paid</div>
                 </div>
               </div>
-              {data.earnings.lastUpdatedAt && (
-                <p className="earnings-timestamp">
-                  Last updated: {new Date(data.earnings.lastUpdatedAt).toLocaleString()}
-                </p>
-              )}
-              {data.teacher.isAdmin && (
-                <div style={{ marginTop: '10px', textAlign: 'center' }}>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={handleBackfill}
-                    disabled={backfillLoading}
-                    style={{ fontSize: '12px', padding: '6px 14px' }}
-                  >
-                    {backfillLoading ? 'Backfilling...' : 'Sync Historical Earnings'}
-                  </button>
-                  {backfillResult && (
-                    <p style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
-                      {backfillResult.creditsCreated} entries added. Total earned: {formatMoney(backfillResult.totalCredited)}
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Tabs: Students | Requests */}
@@ -788,8 +641,9 @@ function TeacherContent() {
                           ) : null}
                         </div>
                         <div className="student-amounts">
-                          <span className="amount-label">30d Unpaid: <strong>{formatMoney(cd.unpaid30Days)}</strong></span>
-                          <span className="amount-label">Your Cut ({cd.teacherPercentage || student.percentageOverride}%): <strong>{formatMoney(cd.teacherCut30Days)}</strong></span>
+                          <span className="amount-label">Unpaid: <strong>{formatMoney(cd.totalUnpaid)}</strong></span>
+                          <span className="amount-label">Due Now: <strong>{formatMoney(cd.totalDueNow)}</strong></span>
+                          <span className="amount-label">Your Cut ({cd.teacherPercentage || student.percentageOverride}%): <strong>{formatMoney(cd.teacherCutUnpaid)}</strong></span>
                         </div>
                       </div>
                       <div className="student-controls">
@@ -1086,23 +940,6 @@ function TeacherContent() {
           text-align: center; color: #6b7280; font-size: 13px; padding: 12px 0;
         }
 
-        .confirmed-section-label {
-          font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;
-          letter-spacing: 0.8px; margin-bottom: 10px;
-        }
-        .confirmed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .confirmed-card {
-          padding: 16px; background: white; border-radius: 12px; text-align: center;
-          border: 1px solid #e2e8f0;
-        }
-        .confirmed-card.primary { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #93c5fd; }
-        .confirmed-value { font-size: 20px; font-weight: 700; color: #16a34a; }
-        .confirmed-card.primary .confirmed-value { color: #2563eb; }
-        .confirmed-sublabel { font-size: 11px; color: #6b7280; margin-top: 4px; }
-        .earnings-timestamp {
-          font-size: 11px; color: #64748b; text-align: center; margin: 12px 0 0;
-        }
-
         .add-section {
           margin-bottom: 24px; padding: 20px;
           background: linear-gradient(135deg, #dbeafe, #e0e7ff);
@@ -1258,7 +1095,6 @@ function TeacherContent() {
         @media (max-width: 768px) {
           .page-container { padding: 20px; }
           .stats-grid { grid-template-columns: 1fr; }
-          .confirmed-grid { grid-template-columns: 1fr; }
           .student-header { flex-direction: column; align-items: flex-start; }
           .student-controls { flex-direction: column; align-items: flex-start; }
           .mini-stats-grid { grid-template-columns: repeat(2, 1fr); }
