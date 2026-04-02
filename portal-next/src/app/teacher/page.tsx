@@ -501,15 +501,6 @@ function TeacherContent() {
     }
   };
 
-  const handleAdminSearch = async () => {
-    if (!managedEmail.trim() || !managedEmail.includes('@')) return;
-    const target = managedEmail.trim().toLowerCase();
-    try { await gsCall('adminStartManageUser', user?.email || '', target); } catch { /* ok */ }
-    setIsManaging(true);
-    setTargetEmail(target);
-    loadTeacherData(target);
-    loadCommissionData(target);
-  };
 
   const handleExitManage = async () => {
     try { await gsCall('adminStopManageUser', user?.email || '', targetEmail); } catch { /* ok */ }
@@ -530,10 +521,18 @@ function TeacherContent() {
       <div className="page-container">
         <Navigation title="Teacher Portal" variant="light-bg" />
 
-        {/* Admin only: view as teacher by email */}
-        {user?.isAdmin && (
+        {/* Admin manage-user banner */}
+        {isManaging && (
+          <div className="manage-banner">
+            <span>Managing: <strong>{targetEmail}</strong></span>
+            <button onClick={handleExitManage}>Exit Manage Mode</button>
+          </div>
+        )}
+
+        {/* Admin: view or manage teacher by email */}
+        {user?.isAdmin && !isManaging && (
           <div className="supervisor-bar">
-            <label>View as teacher:</label>
+            <label>Teacher email:</label>
             <input
               type="email"
               value={supervisorViewAsEmail}
@@ -564,28 +563,22 @@ function TeacherContent() {
             >
               View
             </button>
-          </div>
-        )}
-
-        {/* Admin manage-user banner */}
-        {isManaging && (
-          <div className="manage-banner">
-            <span>Managing: <strong>{targetEmail}</strong></span>
-            <button onClick={handleExitManage}>Exit Manage Mode</button>
-          </div>
-        )}
-
-        {/* Admin search */}
-        {user?.isAdmin && !isManaging && (
-          <div className="admin-search">
-            <input
-              type="email"
-              value={managedEmail}
-              onChange={(e) => setManagedEmail(e.target.value)}
-              placeholder="Enter teacher email to manage..."
-              onKeyDown={(e) => e.key === 'Enter' && handleAdminSearch()}
-            />
-            <button onClick={handleAdminSearch}>Manage User</button>
+            <button
+              type="button"
+              onClick={() => {
+                const email = supervisorViewAsEmail.trim();
+                if (!email || !email.includes('@')) return;
+                setManagedEmail(email);
+                const target = email.toLowerCase();
+                gsCall('adminStartManageUser', user?.email || '', target).catch(() => {});
+                setIsManaging(true);
+                setTargetEmail(target);
+                loadTeacherData(target);
+                loadCommissionData(target);
+              }}
+            >
+              Manage User
+            </button>
           </div>
         )}
 
@@ -1192,18 +1185,6 @@ function TeacherContent() {
           border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit;
         }
 
-        .admin-search {
-          display: flex; gap: 8px; margin-bottom: 20px;
-        }
-        .admin-search input {
-          flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px;
-          font-size: 15px; font-family: inherit;
-        }
-        .admin-search input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.1); }
-        .admin-search button {
-          padding: 12px 24px; background: linear-gradient(135deg, #667eea, #764ba2);
-          color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px; font-family: inherit;
-        }
 
         .message { padding: 14px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; font-weight: 500; }
         .message.success { background: #f0fdf4; color: #16a34a; border-left: 4px solid #16a34a; }
